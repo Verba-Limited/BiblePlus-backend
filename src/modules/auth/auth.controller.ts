@@ -2,7 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import { AuthService } from "./auth.service";
 
 export const AuthController = {
+
+  // -----------------------------------------------------
   // REGISTER USER
+  // -----------------------------------------------------
   register: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
@@ -19,16 +22,28 @@ export const AuthController = {
     }
   },
 
+  // -----------------------------------------------------
   // VERIFY OTP
+  // -----------------------------------------------------
   verifyOtp: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, otp } = req.body;
 
-      const result = await AuthService.verifyOtp(email, otp);
+      if (!email || !otp) {
+        return res.status(400).json({
+          success: false,
+          message: "Email and OTP are required",
+        });
+      }
+
+      // Normalize OTP as string
+      const code = String(otp).trim();
+
+      const result = await AuthService.verifyOtp(email, code);
 
       res.status(200).json({
         success: true,
-        message: "Account verified",
+        message: "Account verified successfully",
         data: result,
       });
     } catch (err) {
@@ -36,7 +51,9 @@ export const AuthController = {
     }
   },
 
+  // -----------------------------------------------------
   // LOGIN
+  // -----------------------------------------------------
   login: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
@@ -52,7 +69,9 @@ export const AuthController = {
     }
   },
 
-  // FORGOT PASSWORD - SEND OTP
+  // -----------------------------------------------------
+  // FORGOT PASSWORD → SEND OTP
+  // -----------------------------------------------------
   forgotPassword: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email } = req.body;
@@ -69,12 +88,23 @@ export const AuthController = {
     }
   },
 
+  // -----------------------------------------------------
   // RESET PASSWORD
+  // -----------------------------------------------------
   resetPassword: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, otp, newPassword } = req.body;
 
-      const result = await AuthService.resetPassword(email, otp, newPassword);
+      if (!email || !otp || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Email, OTP and newPassword are required",
+        });
+      }
+
+      const code = String(otp).trim();
+
+      const result = await AuthService.resetPassword(email, code, newPassword);
 
       res.status(200).json({
         success: true,
@@ -86,10 +116,12 @@ export const AuthController = {
     }
   },
 
-  // GET PROFILE
+  // -----------------------------------------------------
+  // GET USER PROFILE
+  // -----------------------------------------------------
   profile: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
+      // @ts-ignore (set by auth middleware)
       const userId = req.userId;
 
       const user = await AuthService.profile(userId);
@@ -103,7 +135,9 @@ export const AuthController = {
     }
   },
 
+  // -----------------------------------------------------
   // UPDATE PROFILE
+  // -----------------------------------------------------
   updateProfile: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore

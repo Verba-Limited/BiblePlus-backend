@@ -1,0 +1,442 @@
+{
+  "questions": [
+    {
+      "question": "Who built the ark?",
+      "options": ["Noah", "Moses", "David", "Solomon"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+    {
+      "question": "Who was the first man created by God?",
+      "options": ["Adam", "Abraham", "Moses", "Jacob"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+    {
+      "question": "Where was Jesus born?",
+      "options": ["Bethlehem", "Nazareth", "Jerusalem", "Galilee"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "easy"
+    },
+    {
+      "question": "Who denied Jesus three times?",
+      "options": ["Peter", "John", "James", "Judas"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "easy"
+    },
+    {
+      "question": "Who betrayed Jesus?",
+      "options": ["Judas Iscariot", "Peter", "Thomas", "Paul"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "easy"
+    },
+    {
+      "question": "Who killed Goliath?",
+      "options": ["David", "Samson", "Saul", "Jonathan"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+    {
+      "question": "Who received the Ten Commandments?",
+      "options": ["Moses", "Noah", "Samuel", "Joshua"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+    {
+      "question": "How many disciples did Jesus have?",
+      "options": ["12", "10", "11", "13"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "easy"
+    },
+    {
+      "question": "What did Jesus turn water into?",
+      "options": ["Wine", "Oil", "Milk", "Honey"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "easy"
+    },
+    {
+      "question": "Who was thrown into the lions' den?",
+      "options": ["Daniel", "Elijah", "David", "Samson"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "Who was swallowed by a great fish?",
+      "options": ["Jonah", "Moses", "Joseph", "Peter"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "What is the shortest verse in the Bible?",
+      "options": ["Jesus wept", "Pray always", "Give thanks", "Fear not"],
+      "correctAnswer": 0,
+      "category": "general",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "Who led Israel into the Promised Land?",
+      "options": ["Joshua", "Moses", "Aaron", "Caleb"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "Who baptized Jesus?",
+      "options": ["John the Baptist", "Peter", "Paul", "James"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "What did God create on the first day?",
+      "options": ["Light", "Animals", "Land", "Water"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "How many books are in the Bible?",
+      "options": ["66", "72", "80", "100"],
+      "correctAnswer": 0,
+      "category": "general",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "Which apostle doubted Jesus' resurrection?",
+      "options": ["Thomas", "Peter", "James", "Bartholomew"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "What weapon did David use to kill Goliath?",
+      "options": ["A sling", "A sword", "A spear", "A bow"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "How many days did God use to create the world?",
+      "options": ["6", "7", "5", "4"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "Who was the strongest man in the Bible?",
+      "options": ["Samson", "David", "Saul", "Absalom"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "What sea did Moses part?",
+      "options": ["Red Sea", "Dead Sea", "Jordan River", "Nile"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "easy"
+    },
+
+    {
+      "question": "Who wrote most of the New Testament?",
+      "options": ["Paul", "Peter", "John", "Luke"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "What is the last book of the New Testament?",
+           "options": ["Revelation", "Jude", "Acts", "Hebrews"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Which prophet confronted King Ahab?",
+      "options": ["Elijah", "Elisha", "Jeremiah", "Isaiah"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Who interpreted Pharaoh’s dreams?",
+      "options": ["Joseph", "Moses", "Daniel", "David"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Where was Saul traveling when he encountered Jesus?",
+      "options": ["Damascus", "Jerusalem", "Galilee", "Nazareth"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "What river was Jesus baptized in?",
+      "options": ["Jordan River", "Nile River", "Euphrates", "Tigris"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "What did Solomon ask God for?",
+      "options": ["Wisdom", "Riches", "Power", "Long life"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Who replaced Judas as an apostle?",
+      "options": ["Matthias", "Paul", "Barnabas", "Silas"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Which prophet saw the valley of dry bones?",
+      "options": ["Ezekiel", "Isaiah", "Jeremiah", "Daniel"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "What is the longest book in the Bible?",
+      "options": ["Psalms", "Genesis", "Isaiah", "Jeremiah"],
+      "correctAnswer": 0,
+      "category": "general",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "How many psalms are in the Book of Psalms?",
+      "options": ["150", "100", "200", "175"],
+      "correctAnswer": 0,
+      "category": "general",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Who climbed a sycamore tree to see Jesus?",
+      "options": ["Zacchaeus", "Nicodemus", "Bartimaeus", "Saul"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Which prophet was taken to heaven in a whirlwind?",
+      "options": ["Elijah", "Elisha", "Isaiah", "Amos"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Who was the first king of Israel?",
+      "options": ["Saul", "David", "Solomon", "Samuel"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "What food did God provide Israel in the wilderness?",
+      "options": ["Manna", "Corn", "Fish", "Bread"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "What was Paul's name before conversion?",
+      "options": ["Saul", "Simon", "Joseph", "Luke"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Which disciple was a tax collector?",
+      "options": ["Matthew", "James", "Andrew", "Thomas"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "What Old Testament book tells the story of Job?",
+      "options": ["Job", "Psalms", "Genesis", "Kings"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Which apostle wrote the Book of Revelation?",
+      "options": ["John", "Peter", "Paul", "James"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "What did Jacob dream of?",
+      "options": ["A ladder to heaven", "A burning bush", "A giant statue", "Four beasts"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Which prophet confronted David after his sin with Bathsheba?",
+      "options": ["Nathan", "Samuel", "Elijah", "Gad"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "How many people were saved on Noah’s Ark?",
+      "options": ["8", "2", "12", "20"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "What language was most of the New Testament written in?",
+      "options": ["Greek", "Hebrew", "Latin", "Aramaic"],
+      "correctAnswer": 0,
+      "category": "general",
+      "difficulty": "medium"
+    },
+
+    {
+      "question": "Which prophet had a vision of God's throne with seraphim?",
+      "options": ["Isaiah", "Jeremiah", "Ezekiel", "Daniel"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "What king saw the writing on the wall?",
+      "options": ["Belshazzar", "Nebuchadnezzar", "Darius", "Cyrus"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "Who was the high priest when Samuel was a boy?",
+      "options": ["Eli", "Aaron", "Phinehas", "Abimelech"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "Which apostle was exiled to Patmos?",
+      "options": ["John", "Peter", "James", "Andrew"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "Who was the first martyr in the New Testament?",
+      "options": ["Stephen", "James", "John", "Paul"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "Which prophet saw the four beasts?",
+      "options": ["Daniel", "Ezekiel", "Isaiah", "Jeremiah"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "Which tribe of Israel served as priests?",
+      "options": ["Levi", "Judah", "Benjamin", "Reuben"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "How many missionary journeys did Paul undertake?",
+      "options": ["3", "4", "2", "1"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "What was the name of Abraham’s first son?",
+      "options": ["Ishmael", "Isaac", "Esau", "Jacob"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "Which prophet married a prostitute as a prophetic sign?",
+      "options": ["Hosea", "Joel", "Amos", "Micah"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "Who wrote the Book of Acts?",
+      "options": ["Luke", "Paul", "Peter", "John"],
+      "correctAnswer": 0,
+      "category": "nt",
+      "difficulty": "hard"
+    },
+
+    {
+      "question": "What priest blessed Abraham?",
+      "options": ["Melchizedek", "Aaron", "Eli", "Samuel"],
+      "correctAnswer": 0,
+      "category": "ot",
+      "difficulty": "hard"
+    }
+  ]
+}

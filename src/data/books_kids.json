@@ -1,0 +1,111 @@
+[
+  {
+    "title": "Bible Stories for Kids",
+    "author": "Sarah Johnson",
+    "description": "A simple retelling of classic Bible stories for young children.",
+    "coverImage": "https://example.com/covers/kids1.jpg",
+    "category": "kids",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Creation",
+        "content": "In the beginning, God created the world... in a way kids understand!"
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Noah’s Ark",
+        "content": "God told Noah to build a big boat and save the animals..."
+      },
+      {
+        "chapterNumber": 3,
+        "title": "David and Goliath",
+        "content": "David was small, but with God's help he defeated a giant!"
+      }
+    ]
+  },
+
+  {
+    "title": "Brave Heroes of the Bible",
+    "author": "Mark Daniels",
+    "description": "Stories of brave men and women who trusted God.",
+    "coverImage": "https://example.com/covers/kids2.jpg",
+    "category": "kids",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Esther Saves Her People",
+        "content": "Queen Esther used courage to protect her people..."
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Daniel in the Lions’ Den",
+        "content": "Daniel trusted God even when he was thrown into a den of lions..."
+      }
+    ]
+  },
+
+  {
+    "title": "Teen Devotional Guide",
+    "author": "Emma Grace",
+    "description": "Daily devotionals for teenagers facing real-life challenges.",
+    "coverImage": "https://example.com/covers/teens1.jpg",
+    "category": "teens",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Identity in Christ",
+        "content": "Teenagers often struggle with identity; this chapter explores who you really are in Christ..."
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Overcoming Peer Pressure",
+        "content": "How to make bold choices and stand for God in school..."
+      },
+      {
+        "chapterNumber": 3,
+        "title": "Handling Stress",
+        "content": "God gives peace even in exams, pressure, and confusion..."
+      }
+    ]
+  },
+
+  {
+    "title": "The Fruit of the Spirit for Kids",
+    "author": "Linda Scott",
+    "description": "Teaching kids about love, joy, peace, patience, and kindness.",
+    "coverImage": "https://example.com/covers/kids3.jpg",
+    "category": "kids",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Love",
+        "content": "Love means being kind and caring just like Jesus..."
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Joy",
+        "content": "Joy is more than happiness; it is a gift from God..."
+      }
+    ]
+  },
+
+  {
+    "title": "Teen Prayer Starter Pack",
+    "author": "James Cole",
+    "description": "A guide for teens learning how to pray with confidence.",
+    "coverImage": "https://example.com/covers/teens2.jpg",
+    "category": "teens",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "How to Pray",
+        "content": "Prayer is talking to God; here’s how to start..."
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Praying for Friends",
+        "content": "A teen-friendly guide on how to pray for classmates and friends..."
+      }
+    ]
+  }
+]

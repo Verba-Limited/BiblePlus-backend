@@ -1,0 +1,159 @@
+[
+  {
+    "title": "Faith That Moves Mountains",
+    "author": "John C. Maxwell",
+    "description": "A powerful devotional book about growing your faith and trusting God through every season.",
+    "coverImage": "https://example.com/covers/faith.jpg",
+    "category": "faith",
+    "audience": "adults",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "What is Faith?",
+        "content": "Faith is the substance of things hoped for..."
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Faith and Obedience",
+        "content": "The obedience of Abraham teaches us that faith requires action..."
+      },
+      {
+        "chapterNumber": 3,
+        "title": "Fear vs Faith",
+        "content": "Fear and doubt are the greatest enemies of faith..."
+      }
+    ]
+  },
+
+  {
+    "title": "The Power of Prayer",
+    "author": "E.M. Bounds",
+    "description": "A classic book about the importance, discipline, and power of prayer.",
+    "coverImage": "https://example.com/covers/prayer.jpg",
+    "category": "prayer",
+    "audience": "adults",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Why Prayer Matters",
+        "content": "Prayer is the key to heaven..."
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Developing a Prayer Life",
+        "content": "Prayer is relationship, not ritual..."
+      }
+    ]
+  },
+
+  {
+    "title": "Walking With God Daily",
+    "author": "Joyce Meyer",
+    "description": "A devotional focused on walking with God every day.",
+    "coverImage": "https://example.com/covers/walking.jpg",
+    "category": "devotional",
+    "audience": "adults",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Listening to God",
+        "content": "God speaks in many ways..."
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Daily Surrender",
+        "content": "Walking with God requires surrender..."
+      }
+    ]
+  },
+
+  {
+    "title": "Bible Stories for Kids",
+    "author": "Sarah Johnson",
+    "description": "Simple Bible stories retold for children.",
+    "coverImage": "https://example.com/covers/kids1.jpg",
+    "category": "stories",
+    "audience": "kids",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Creation",
+        "content": "In the beginning, God created the world..."
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Noah's Ark",
+        "content": "God told Noah to build a big boat..."
+      }
+    ]
+  },
+
+  {
+    "title": "Brave Heroes of the Bible",
+    "author": "Mark Daniels",
+    "description": "Stories of brave men and women from the Bible.",
+    "coverImage": "https://example.com/covers/kids2.jpg",
+    "category": "heroes",
+    "audience": "kids",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Esther the Brave",
+        "content": "Queen Esther showed courage when..."
+      }
+    ]
+  },
+
+  {
+    "title": "Teen Devotional Guide",
+    "author": "Emma Grace",
+    "description": "Daily devotionals for teenagers.",
+    "coverImage": "https://example.com/covers/teens1.jpg",
+    "category": "devotional",
+    "audience": "teens",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Identity in Christ",
+        "content": "Teenage years can be confusing, but God defines your identity..."
+      },
+      {
+        "chapterNumber": 2,
+        "title": "Overcoming Peer Pressure",
+        "content": "How to stand confidently in school and life..."
+      }
+    ]
+  },
+
+  {
+    "title": "The Fruit of the Spirit for Kids",
+    "author": "Linda Scott",
+    "description": "Teaching children the fruits of the Spirit.",
+    "coverImage": "https://example.com/covers/kids3.jpg",
+    "category": "character",
+    "audience": "kids",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "Love",
+        "content": "Love means being kind and helpful..."
+      }
+    ]
+  },
+
+  {
+    "title": "Teen Prayer Starter Pack",
+    "author": "James Cole",
+    "description": "A simple guide to prayer for teenagers.",
+    "coverImage": "https://example.com/covers/teens2.jpg",
+    "category": "prayer",
+    "audience": "teens",
+    "chapters": [
+      {
+        "chapterNumber": 1,
+        "title": "How to Pray",
+        "content": "Prayer is talking to God—here's how to begin..."
+      }
+    ]
+  }
+]

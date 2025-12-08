@@ -1,27 +1,39 @@
-import { BibleBook } from "./bibleBook.model";
-import { BibleVerse } from "./bibleVerse.model";
-import { Highlight } from "./highlight.model";
 import AppError from "../../core/AppError";
+import { Highlight } from "./highlight.model";
+import { BibleLoader } from "./bible.loader";
 
 export const BibleService = {
-  // Get all books
-  getBooks: async () => {
-    return await BibleBook.find({}).sort({ name: 1 });
+  getBooks: async (version: string) => {
+    const bible = BibleLoader.getVersion(version);
+    if (!bible) throw new AppError("Invalid version", 400);
+
+    return bible.books.map((b: any) => ({
+      name: b.name,
+      chapters: b.chapters.length
+    }));
   },
 
-  // Get verses from selected version
-  getVerses: async (book: string, chapter: number, version: string) => {
-    const verses = await BibleVerse.find({ book, chapter, version }).sort({
-      verse: 1,
-    });
+  getVerses: async (bookName: string, chapter: number, version: string) => {
+    const bible = BibleLoader.getVersion(version);
+    if (!bible) throw new AppError("Invalid version", 400);
 
-    if (!verses.length)
-      throw new AppError("No verses found for this chapter or version", 404);
+    const book = bible.books.find(
+      (b: any) => b.name.toLowerCase() === bookName.toLowerCase()
+    );
 
-    return verses;
+    if (!book) throw new AppError("Book not found", 404);
+
+    const chapterObj = book.chapters.find((c: any) => c.chapter === chapter);
+    if (!chapterObj) throw new AppError("Chapter not found", 404);
+
+    return {
+      book: book.name,
+      chapter: chapter,
+      version,
+      verses: chapterObj.verses
+    };
   },
 
-  // Highlight a verse
   highlightVerse: async (
     userId: string,
     book: string,
@@ -29,27 +41,22 @@ export const BibleService = {
     verse: number,
     version: string
   ) => {
-    const verseData = await BibleVerse.findOne({
-      book,
-      chapter,
-      verse,
-      version,
-    });
+    const data = await BibleService.getVerses(book, chapter, version);
 
-    if (!verseData) throw new AppError("Verse not found", 404);
+    const v = data.verses.find((v: any) => v.verse === verse);
+    if (!v) throw new AppError("Verse not found", 404);
 
     return await Highlight.create({
       userId,
       book,
       chapter,
       verse,
-      version,
-      text: verseData.text,
+      text: v.text,
+      version
     });
   },
 
-  // Get user highlights
   getHighlights: async (userId: string) => {
     return await Highlight.find({ userId }).sort({ createdAt: -1 });
-  },
+  }
 };
