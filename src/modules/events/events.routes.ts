@@ -3,6 +3,7 @@ import { EventController } from "./event.controller";
 import { EventReminderController } from "./eventReminder.controller";
 import { SpeakerController } from "./speaker.controller";
 import authMiddleware from "../../middleware/auth.middleware";
+import { adminOnly } from "../../middleware/admin.middleware";
 import multer from "multer";
 
 /* ==========================================
@@ -25,27 +26,30 @@ router.get("/search", EventController.search);
 router.get("/:id", EventController.getEvent);
 
 /* ==========================================
-   EVENT REMINDERS
+   USER REMINDERS (NOT ADMIN)
 ========================================== */
 router.post("/reminders/add", authMiddleware, EventReminderController.add);
 router.post("/reminders/remove", authMiddleware, EventReminderController.remove);
 router.get("/reminders/all", authMiddleware, EventReminderController.all);
 
 /* ==========================================
-   SPEAKER ROUTES
+   SPEAKER MANAGEMENT (ADMIN ONLY)
 ========================================== */
-router.post("/speakers", authMiddleware, SpeakerController.create);
-router.put("/speakers/:id", authMiddleware, SpeakerController.update);
-router.delete("/speakers/:id", authMiddleware, SpeakerController.delete);
+router.post("/speakers", authMiddleware, adminOnly, SpeakerController.create);
+router.put("/speakers/:id", authMiddleware, adminOnly, SpeakerController.update);
+router.delete("/speakers/:id", authMiddleware, adminOnly, SpeakerController.delete);
+
+// Public Speaker list
 router.get("/speakers", SpeakerController.getAll);
 router.get("/speakers/:id", SpeakerController.getOne);
 
 /* ==========================================
-   EVENT BANNER UPLOAD (Single Image)
+   EVENT BANNER UPLOAD (ADMIN ONLY)
 ========================================== */
 router.post(
   "/upload-banner",
   authMiddleware,
+  adminOnly,
   bannerUpload.single("banner"),
   (req, res) => {
     if (!req.file) {
@@ -64,11 +68,12 @@ router.post(
 );
 
 /* ==========================================
-   EVENT GALLERY UPLOAD (Multiple Images)
+   EVENT GALLERY UPLOAD (ADMIN ONLY)
 ========================================== */
 router.post(
   "/gallery/upload",
   authMiddleware,
+  adminOnly,
   galleryUpload.array("images", 10),
   (req, res) => {
     const files = req.files as Express.Multer.File[];
@@ -91,15 +96,15 @@ router.post(
 );
 
 /* ==========================================
-   LIVESTREAM UPDATE
+   LIVESTREAM UPDATE (ADMIN ONLY)
 ========================================== */
-router.put("/:id/live", authMiddleware, EventController.updateLiveStream);
+router.put("/:id/live", authMiddleware, adminOnly, EventController.updateLiveStream);
 
 /* ==========================================
-   ADMIN EVENT CRUD
+   EVENT CRUD (ADMIN ONLY)
 ========================================== */
-router.post("/", authMiddleware, EventController.create);
-router.put("/:id", authMiddleware, EventController.update);
-router.delete("/:id", authMiddleware, EventController.delete);
+router.post("/", authMiddleware, adminOnly, EventController.create);
+router.put("/:id", authMiddleware, adminOnly, EventController.update);
+router.delete("/:id", authMiddleware, adminOnly, EventController.delete);
 
 export default router;

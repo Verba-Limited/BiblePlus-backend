@@ -4,28 +4,31 @@ import { PrayerLikeService } from "./prayerLike.service";
 import { NotificationService } from "../notifications/notification.service";
 
 export const PrayerService = {
-  // -----------------------------------------------------
-  // CREATE a new prayer request
-  // -----------------------------------------------------
+
+  /* ======================================================
+        CREATE PRAYER REQUEST
+  ====================================================== */
   create: async (data: any) => {
     const prayer = await Prayer.create(data);
+
+    // Ensure we have a single document
     const created = Array.isArray(prayer) ? prayer[0] : prayer;
 
-    // Notify admin (or system) that a new prayer was submitted
+    // Notify admin that a prayer request was submitted
     NotificationService.create(
       "ADMIN",
-      "New Prayer Request",
-      `A new prayer request has been submitted.`,
+      "New Prayer Request Submitted",
+      `A new prayer request has been submitted for review.`,
       "prayer-new",
-      { prayerId: (created as any)?._id?.toString?.() ?? null }
+      { prayerId: created?._id?.toString() }
     ).catch(() => {});
 
-    return prayer;
+    return created;
   },
 
-  // -----------------------------------------------------
-  // PUBLIC approved prayer requests with pray count
-  // -----------------------------------------------------
+  /* ======================================================
+        GET PUBLIC PRAYER WALL
+  ====================================================== */
   getPublic: async (page = 1, limit = 20, userId?: string) => {
     const skip = (page - 1) * limit;
 
@@ -42,19 +45,17 @@ export const PrayerService = {
       status: "approved"
     });
 
+    // Add prayCount + userPrayed to each request
     const enrichedRequests = await Promise.all(
       requests.map(async (req) => {
         const id = req._id.toString();
 
-        const prayCount = await PrayerLikeService.count(id);
-        const prayed = userId
-          ? await PrayerLikeService.userPrayed(userId, id)
-          : false;
-
         return {
           ...req.toObject(),
-          prayCount,
-          userPrayed: prayed
+          prayCount: await PrayerLikeService.count(id),
+          userPrayed: userId
+            ? await PrayerLikeService.userPrayed(userId, id)
+            : false
         };
       })
     );
@@ -62,16 +63,16 @@ export const PrayerService = {
     return { requests: enrichedRequests, total };
   },
 
-  // -----------------------------------------------------
-  // GET user's own prayer requests
-  // -----------------------------------------------------
+  /* ======================================================
+        GET USER'S OWN REQUESTS
+  ====================================================== */
   getUserRequests: async (userId: string) => {
     return await Prayer.find({ userId }).sort({ createdAt: -1 });
   },
 
-  // -----------------------------------------------------
-  // ADMIN: APPROVE a prayer request
-  // -----------------------------------------------------
+  /* ======================================================
+        ADMIN: APPROVE PRAYER REQUEST
+  ====================================================== */
   approve: async (id: string) => {
     const updated = await Prayer.findByIdAndUpdate(
       id,
@@ -81,11 +82,11 @@ export const PrayerService = {
 
     if (!updated) throw new AppError("Prayer request not found", 404);
 
-    // Notify the user that their prayer was approved
+    // Notify user that prayer is approved
     NotificationService.create(
       updated.userId,
       "Prayer Approved",
-      "Your prayer request has been approved and is now public.",
+      "Your prayer request has been approved and is now visible publicly.",
       "prayer-approved",
       { prayerId: updated._id.toString() }
     ).catch(() => {});
@@ -93,9 +94,9 @@ export const PrayerService = {
     return updated;
   },
 
-  // -----------------------------------------------------
-  // ADMIN: MARK a prayer as answered
-  // -----------------------------------------------------
+  /* ======================================================
+        ADMIN: MARK PRAYER AS ANSWERED
+  ====================================================== */
   markAnswered: async (id: string) => {
     const updated = await Prayer.findByIdAndUpdate(
       id,
@@ -105,27 +106,34 @@ export const PrayerService = {
 
     if (!updated) throw new AppError("Prayer request not found", 404);
 
-    // Notify ONLY the user that their prayer was answered
+    // Notify user privately
     NotificationService.create(
       updated.userId,
       "Prayer Answered",
-      "Your prayer request has been marked as answered.",
+      "Your prayer has been marked as answered.",
       "prayer-answered",
       { prayerId: updated._id.toString() }
     ).catch(() => {});
 
-    // OPTIONAL: notify all users when a prayer is answered  
-    // (uncomment if needed)
-    
+    // OPTIONAL: notify all users
     NotificationService.create(
       "ALL",
-      "Prayer Answered",
+      "A Prayer Has Been Answered!",
       "A prayer request in the community has been answered!",
       "prayer-answered-public",
       { prayerId: updated._id.toString() }
     ).catch(() => {});
-    
 
     return updated;
+  },
+
+  /* ======================================================
+        ADMIN: DELETE PRAYER REQUEST
+  ====================================================== */
+  delete: async (id: string) => {
+    const removed = await Prayer.findByIdAndDelete(id);
+    if (!removed) throw new AppError("Prayer request not found", 404);
+
+    return removed;
   }
 };

@@ -2,7 +2,10 @@ import { Notification } from "./notification.model";
 import { SocketNotify } from "./socketNotify";
 
 export const NotificationService = {
-  // Create a notification + send real-time socket alert
+
+  /* ==================================================
+        SEND NOTIFICATION TO ONE USER
+  ================================================== */
   create: async (
     userId: string,
     title: string,
@@ -15,12 +18,13 @@ export const NotificationService = {
       title,
       message,
       type,
-      data
+      data,
+      read: false
     });
 
-    // Send instant WebSocket notification
+    // Real-time push
     SocketNotify.sendToUser(userId, {
-      id: notif._id,
+      id: notif._id.toString(),
       title,
       message,
       type,
@@ -32,12 +36,68 @@ export const NotificationService = {
     return notif;
   },
 
-  // Get notifications for user
-  getUserNotifications: async (userId: string) => {
-    return await Notification.find({ userId }).sort({ createdAt: -1 });
+  /* ==================================================
+        ADMIN: BROADCAST TO ALL USERS
+  ================================================== */
+  broadcast: async (
+    title: string,
+    message: string,
+    type = "system",
+    data: any = {}
+  ) => {
+    // Save only 1 record with userId = "ALL"
+    const notif = await Notification.create({
+      userId: "ALL",
+      title,
+      message,
+      type,
+      data,
+      read: false
+    });
+
+    SocketNotify.sendToAll({
+      id: notif._id.toString(),
+      title,
+      message,
+      type,
+      data,
+      read: false,
+      createdAt: notif.createdAt
+    });
+
+    return notif;
   },
 
-  // Mark a notification as read
+  /* ==================================================
+        GET NOTIFICATIONS FOR USER (PAGINATED)
+  ================================================== */
+  getUserNotifications: async (userId: string, page = 1, limit = 20) => {
+    const skip = (page - 1) * limit;
+
+    const items = await Notification.find({
+      $or: [{ userId }, { userId: "ALL" }]
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Notification.countDocuments({
+      $or: [{ userId }, { userId: "ALL" }]
+    });
+
+    return {
+      notifications: items,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    };
+  },
+
+  /* ==================================================
+        MARK AS READ
+  ================================================== */
   markAsRead: async (notificationId: string) => {
     return await Notification.findByIdAndUpdate(
       notificationId,
@@ -46,7 +106,9 @@ export const NotificationService = {
     );
   },
 
-  // Mark all notifications as read
+  /* ==================================================
+        MARK ALL AS READ
+  ================================================== */
   markAllAsRead: async (userId: string) => {
     return await Notification.updateMany(
       { userId },
@@ -54,8 +116,13 @@ export const NotificationService = {
     );
   },
 
-  // Count unread notifications
+  /* ==================================================
+        UNREAD COUNT
+  ================================================== */
   unreadCount: async (userId: string) => {
-    return await Notification.countDocuments({ userId, read: false });
+    return await Notification.countDocuments({
+      $or: [{ userId }, { userId: "ALL" }],
+      read: false
+    });
   }
 };
