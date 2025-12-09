@@ -2,59 +2,62 @@ import fs from "fs";
 import path from "path";
 
 export const BibleLoader = {
-  asv: null as any,
-  kjv: null as any,
-  web: null as any,
+  versions: {} as Record<string, any>,
 
   load() {
     const dataPath = path.join(__dirname, "../../data");
 
-    try {
-      this.asv = JSON.parse(
-        fs.readFileSync(path.join(dataPath, "asv.json"), "utf8")
-      );
-      console.log("✔ ASV JSON loaded successfully");
-    } catch (err: any) {
-      console.error("❌ FAILED to load ASV JSON:", err.message);
-      this.asv = null;
-    }
+    const versionFiles = [
+      { key: "kjv", file: "kjv.json" },
+      { key: "asv", file: "asv.json" },
+      { key: "web", file: "web.json" }
+    ];
 
-    try {
-      this.kjv = JSON.parse(
-        fs.readFileSync(path.join(dataPath, "kjv.json"), "utf8")
-      );
-      console.log("✔ KJV JSON loaded successfully");
-    } catch (err: any) {
-      console.error("❌ FAILED to load KJV JSON:", err.message);
-      this.kjv = null;
-    }
+    versionFiles.forEach(({ key, file }) => {
+      try {
+        const filePath = path.join(dataPath, file);
 
-    try {
-      this.web = JSON.parse(
-        fs.readFileSync(path.join(dataPath, "web.json"), "utf8")
-      );
-      console.log("✔ WEB JSON loaded successfully");
-    } catch (err: any) {
-      console.error("❌ FAILED to load WEB JSON:", err.message);
-      this.web = null;
-    }
+        if (!fs.existsSync(filePath)) {
+          console.error(`❌ File not found: ${filePath}`);
+          this.versions[key] = null;
+          return;
+        }
 
-    console.log("📘 Bible JSON loader results:");
-    console.log("ASV loaded:", !!this.asv);
-    console.log("KJV loaded:", !!this.kjv);
-    console.log("WEB loaded:", !!this.web);
+        const raw = fs.readFileSync(filePath, "utf8");
+
+        // Validate JSON
+        const json = JSON.parse(raw);
+
+        // Store original JSON
+        this.versions[key] = json;
+
+        console.log(`✔ Loaded ${file}`);
+
+        // -------------------------------
+        // STRUCTURE DEBUG CHECK
+        // -------------------------------
+        console.log(`🔍 Structure check for ${key.toUpperCase()}:`, {
+          translation: json.translation || "MISSING",
+          hasBooks: Array.isArray(json.books),
+          booksCount: json.books?.length ?? "MISSING",
+          firstBookName: json.books?.[0]?.name ?? "MISSING",
+          firstBookChapters:
+            json.books?.[0]?.chapters?.length ?? "MISSING",
+          firstChapterVerses:
+            json.books?.[0]?.chapters?.[0]?.verses?.length ?? "MISSING"
+        });
+
+      } catch (err: any) {
+        console.error(`❌ FAILED to load ${file}:`, err.message);
+        this.versions[key] = null;
+      }
+    });
+
+    console.log("📘 Loaded versions:", Object.keys(this.versions));
   },
 
+  // Return EXACT JSON data without modification
   getVersion(version: string) {
-    switch (version.toLowerCase()) {
-      case "asv":
-        return this.asv;
-      case "kjv":
-        return this.kjv;
-      case "web":
-        return this.web;
-      default:
-        return null;
-    }
+    return this.versions[version.toLowerCase()] || null;
   }
 };

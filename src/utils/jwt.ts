@@ -1,9 +1,24 @@
 import jwt from "jsonwebtoken";
 
-export const generateAccessToken = (userId: string) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: "15m" });
+interface JwtPayload {
+  userId: string;
+  role: string; // "user" | "admin"
+}
+
+// ACCESS TOKEN (short-lived)
+export const generateAccessToken = (userId: string, role: string = "user") => {
+  return jwt.sign(
+    { userId, role } as JwtPayload,
+    process.env.JWT_SECRET!,
+    { expiresIn: "15m" }
+  );
 };
 
-export const generateRefreshToken = (userId: string) => {
-  return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET!, { expiresIn: "7d" });
+// REFRESH TOKEN (long-lived)
+export const generateRefreshToken = (userId: string, role: string = "user") => {
+  return jwt.sign(
+    { userId, role } as JwtPayload,
+    process.env.JWT_REFRESH_SECRET!,
+    { expiresIn: "7d" }
+  );
 };

@@ -25,6 +25,8 @@ import prayerLikeRoutes from "./modules/prayer/prayerLike.routes";
 import prayerRoutes from "./modules/prayer/prayer.routes";
 
 import notificationRoutes from "./modules/notifications/notification.routes";
+import { BibleLoader } from "./modules/bible/bible.loader";
+import AdminRoutes from "./modules/admin/admin.routes";
 
 dotenv.config();
 
@@ -56,8 +58,10 @@ app.use("/api/blog/trending", blogTrendingRoutes);
 
 app.use("/api/prayer/likes", prayerLikeRoutes);
 app.use("/api/prayer", prayerRoutes);
+app.use("/api/admin", AdminRoutes);
 
 app.use("/api/notifications", notificationRoutes);
+BibleLoader.load();
 
 // Test route
 app.get("/", (req, res) => {
