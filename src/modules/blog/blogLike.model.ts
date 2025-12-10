@@ -1,19 +1,30 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IBlogLike extends Document {
-  blogId: string;
-  userId: string;
+  userId: mongoose.Types.ObjectId;
+  blogId: mongoose.Types.ObjectId;
+  createdAt: Date;
 }
 
-const blogLikeSchema = new Schema<IBlogLike>(
+const BlogLikeSchema = new Schema<IBlogLike>(
   {
-    blogId: { type: String, required: true },
-    userId: { type: String, required: true }
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    blogId: { type: Schema.Types.ObjectId, ref: "Blog", required: true },
   },
   { timestamps: true }
 );
 
-// Prevent duplicate likes
-blogLikeSchema.index({ blogId: 1, userId: 1 }, { unique: true });
+/* ===================================
+   INDEXES FOR PERFORMANCE
+=================================== */
 
-export const BlogLike = mongoose.model<IBlogLike>("BlogLike", blogLikeSchema);
+// Prevent double-like
+BlogLikeSchema.index({ userId: 1, blogId: 1 }, { unique: true });
+
+// Query likes by blog
+BlogLikeSchema.index({ blogId: 1 });
+
+// Query likes within time range for trending
+BlogLikeSchema.index({ createdAt: -1 });
+
+export const BlogLike = mongoose.model<IBlogLike>("BlogLike", BlogLikeSchema);

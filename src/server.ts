@@ -1,14 +1,17 @@
 import app from "./app";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cron from "node-cron";
 import { Server } from "socket.io";
 import http from "http";
 import { SocketNotify } from "./modules/notifications/socketNotify";
+import { EventReminderService } from "./modules/events/eventReminder.service";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI as string;
+
 
 // -------------------------------
 // CREATE HTTP SERVER
@@ -41,6 +44,12 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
   });
+});
+
+// notification
+cron.schedule("* * * * *", async () => {
+  console.log("🕒 Running Event Reminder Cron...");
+  await EventReminderService.processReminders();
 });
 
 // -------------------------------

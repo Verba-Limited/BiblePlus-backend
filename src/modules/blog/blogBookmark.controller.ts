@@ -9,7 +9,8 @@ export const BlogBookmarkController = {
       const { blogId } = req.body;
 
       const data = await BlogBookmarkService.add(userId, blogId);
-      res.json({ success: true, data });
+
+      res.json({ success: true, message: "Bookmarked", data });
     } catch (err) {
       next(err);
     }
@@ -21,8 +22,9 @@ export const BlogBookmarkController = {
       const userId = req.userId;
       const { blogId } = req.body;
 
-      const data = await BlogBookmarkService.remove(userId, blogId);
-      res.json({ success: true, data });
+      await BlogBookmarkService.remove(userId, blogId);
+
+      res.json({ success: true, message: "Bookmark removed" });
     } catch (err) {
       next(err);
     }
@@ -33,7 +35,8 @@ export const BlogBookmarkController = {
       // @ts-ignore
       const userId = req.userId;
 
-      const data = await BlogBookmarkService.getUserBookmarks(userId);
+      const data = await BlogBookmarkService.list(userId);
+
       res.json({ success: true, data });
     } catch (err) {
       next(err);
@@ -46,7 +49,8 @@ export const BlogBookmarkController = {
       const userId = req.userId;
       const blogId = req.query.blogId as string;
 
-      const bookmarked = await BlogBookmarkService.isBookmarked(userId, blogId);
+      const bookmarked = await BlogBookmarkService.status(userId, blogId);
+
       res.json({ success: true, bookmarked });
     } catch (err) {
       next(err);

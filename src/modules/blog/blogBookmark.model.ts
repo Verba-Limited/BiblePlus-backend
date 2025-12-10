@@ -1,22 +1,33 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IBlogBookmark extends Document {
-  userId: string;
-  blogId: string;
+  userId: mongoose.Types.ObjectId;
+  blogId: mongoose.Types.ObjectId;
+  createdAt: Date;
 }
 
-const bookmarkSchema = new Schema<IBlogBookmark>(
+const BlogBookmarkSchema = new Schema<IBlogBookmark>(
   {
-    userId: { type: String, required: true },
-    blogId: { type: String, required: true }
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    blogId: { type: Schema.Types.ObjectId, ref: "Blog", required: true }
   },
   { timestamps: true }
 );
 
-// Prevent duplicate bookmarks
-bookmarkSchema.index({ userId: 1, blogId: 1 }, { unique: true });
+/* ============================================
+   INDEXES
+============================================ */
+
+// Prevent same blog from being bookmarked twice
+BlogBookmarkSchema.index({ userId: 1, blogId: 1 }, { unique: true });
+
+// Find all bookmarks of a user
+BlogBookmarkSchema.index({ userId: 1 });
+
+// Find all users who bookmarked a blog
+BlogBookmarkSchema.index({ blogId: 1 });
 
 export const BlogBookmark = mongoose.model<IBlogBookmark>(
   "BlogBookmark",
-  bookmarkSchema
+  BlogBookmarkSchema
 );

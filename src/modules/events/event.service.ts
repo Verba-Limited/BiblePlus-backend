@@ -3,9 +3,9 @@ import AppError from "../../core/AppError";
 import { NotificationService } from "../notifications/notification.service";
 
 export const EventService = {
-  // -----------------------------------------------------
-  // GET EVENTS WITH OPTIONAL FILTERS
-  // -----------------------------------------------------
+  /* ========================================================
+     GET EVENTS WITH OPTIONAL FILTERS
+  ======================================================== */
   getEvents: async (filters: any) => {
     const query: any = {};
     if (filters.category) query.category = filters.category;
@@ -15,96 +15,92 @@ export const EventService = {
       .sort({ startDate: 1 });
   },
 
-  // -----------------------------------------------------
-  // GET SINGLE EVENT
-  // -----------------------------------------------------
+  /* ========================================================
+     GET SINGLE EVENT
+  ======================================================== */
   getEvent: async (id: string) => {
     const event = await Event.findById(id).populate("speakers");
     if (!event) throw new AppError("Event not found", 404);
-
     return event;
   },
 
-  // -----------------------------------------------------
-  // UPCOMING EVENTS
-  // -----------------------------------------------------
+  /* ========================================================
+     UPCOMING EVENTS
+  ======================================================== */
   getUpcoming: async () => {
     return await Event.find({ startDate: { $gte: new Date() } })
       .populate("speakers")
       .sort({ startDate: 1 });
   },
 
-  // -----------------------------------------------------
-  // PAST EVENTS
-  // -----------------------------------------------------
+  /* ========================================================
+     PAST EVENTS
+  ======================================================== */
   getPast: async () => {
     return await Event.find({ endDate: { $lt: new Date() } })
       .populate("speakers")
       .sort({ startDate: -1 });
   },
 
-  // -----------------------------------------------------
-  // SEARCH EVENTS
-  // -----------------------------------------------------
+  /* ========================================================
+     SEARCH
+  ======================================================== */
   searchEvents: async (query: string) => {
     return await Event.find({
       title: { $regex: query, $options: "i" }
     }).populate("speakers");
   },
 
-  // -----------------------------------------------------
-  // ADMIN: CREATE EVENT
-  // -----------------------------------------------------
+  /* ========================================================
+     ADMIN: CREATE EVENT
+  ======================================================== */
   createEvent: async (data: any) => {
-    if (data.liveStream?.url) {
-      data.isOnline = true;
-    }
+    // Auto-mark online if livestream exists
+    if (data.liveStream?.url) data.isOnline = true;
 
-    const created = await Event.create(data);
+    const eventDoc = await Event.create(data);
+    const created = Array.isArray(eventDoc) ? eventDoc[0] : eventDoc;
 
-    // created can be an array when multiple docs are passed; normalize to single document
-    const createdDoc = Array.isArray(created) ? created[0] : created;
+    const populated = await Event.findById(created._id).populate("speakers");
 
-    // Correct populate usage
-    const populated = await Event.findById(createdDoc._id).populate("speakers");
-
-    // Best-effort notification
+    // Notify ALL users (best effort)
     NotificationService.create(
       "ALL",
       "New Event Posted",
-      `A new event "${populated?.title}" has been posted.`,
-      "event",
+      `A new event "${populated?.title}" has been created.`,
+      "event-create",
       { eventId: populated?._id }
     ).catch(() => {});
 
     return populated;
   },
 
-  // -----------------------------------------------------
-  // ADMIN: UPDATE EVENT
-  // -----------------------------------------------------
+  /* ========================================================
+     ADMIN: UPDATE EVENT
+  ======================================================== */
   updateEvent: async (id: string, data: any) => {
-    const event = await Event.findByIdAndUpdate(id, data, {
+    const updated = await Event.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true
     }).populate("speakers");
 
-    if (!event) throw new AppError("Event not found", 404);
+    if (!updated) throw new AppError("Event not found", 404);
 
+    // Notify ALL users
     NotificationService.create(
       "ALL",
       "Event Updated",
-      `Event "${event.title}" was updated.`,
+      `The event "${updated.title}" has been updated.`,
       "event-update",
-      { eventId: event._id }
+      { eventId: updated._id }
     ).catch(() => {});
 
-    return event;
+    return updated;
   },
 
-  // -----------------------------------------------------
-  // ADMIN: UPDATE LIVESTREAM ONLY
-  // -----------------------------------------------------
+  /* ========================================================
+     ADMIN: UPDATE LIVESTREAM
+  ======================================================== */
   updateLiveStream: async (id: string, stream: any) => {
     const event = await Event.findById(id);
     if (!event) throw new AppError("Event not found", 404);
@@ -114,22 +110,22 @@ export const EventService = {
 
     await event.save();
 
-    const populated = await Event.findById(event._id).populate("speakers");
+    const populated = await Event.findById(id).populate("speakers");
 
     NotificationService.create(
       "ALL",
-      "Livestream Updated",
-      `Livestream for "${populated?.title}" is available.`,
-      "livestream",
-      { eventId: populated?._id }
+      "Livestream Available",
+      `Livestream updated for "${populated?.title}".`,
+      "event-livestream",
+      { eventId: populated?._id, liveStream: populated?.liveStream }
     ).catch(() => {});
 
     return populated;
   },
 
-  // -----------------------------------------------------
-  // ADMIN: DELETE EVENT
-  // -----------------------------------------------------
+  /* ========================================================
+     ADMIN: DELETE EVENT
+  ======================================================== */
   deleteEvent: async (id: string) => {
     const removed = await Event.findByIdAndDelete(id);
     if (!removed) throw new AppError("Event not found", 404);

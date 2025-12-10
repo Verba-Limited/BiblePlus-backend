@@ -84,19 +84,20 @@ export const NotificationAdminController = {
   // DELETE NOTIFICATION
   // -----------------------------------------------------
   delete: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = req.params.id;
+  try {
+    const id = req.params.id;
 
-      await NotificationService.delete(id);
+    await NotificationService.deleteNotification(id);
 
-      res.json({
-        success: true,
-        message: "Notification deleted"
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
+    res.json({
+      success: true,
+      message: "Notification deleted"
+    });
+  } catch (err) {
+    next(err);
+  }
+},
+
 
   // -----------------------------------------------------
   // RESEND NOTIFICATION

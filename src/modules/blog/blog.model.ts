@@ -26,36 +26,49 @@ const blogSchema = new Schema<IBlog>(
     summary: { type: String, default: "" },
     readingTime: { type: Number, default: 0 },
     coverImage: { type: String, default: "" },
-    category: { type: String, default: "general" },
-    tags: [{ type: String }],
-    authorId: { type: String, required: true },
-    featured: { type: Boolean, default: false },
+    category: { type: String, default: "general", index: true },
+    tags: [{ type: String, index: true }],
+    authorId: { type: String, required: true, index: true },
+    featured: { type: Boolean, default: false, index: true },
     status: {
       type: String,
       enum: ["draft", "published"],
-      default: "draft"
+      default: "draft",
+      index: true
     },
-    views: { type: Number, default: 0 }
+    views: { type: Number, default: 0, index: true }
   },
   { timestamps: true }
 );
 
-// ===========================================================
-// 🔥 Optimized search index (title + content)
-// ===========================================================
+/* ===========================================================
+   🔥 SEARCH INDEX (title + content + summary)
+=========================================================== */
 blogSchema.index({ title: "text", content: "text", summary: "text" });
 
-// ===========================================================
-// 🔥 Pre-save hook using PROMISE (no next(), no TS errors)
-// ===========================================================
+/* ===========================================================
+   🔥 TRENDING INDEXES
+   Used for fast trending retrieval:
+   - CreatedAt sorting
+   - Views sorting
+=========================================================== */
+blogSchema.index({ createdAt: -1, views: -1 });
+
+/* ===========================================================
+   🔥 OPTIONAL: Composite index for category trending
+=========================================================== */
+blogSchema.index({ category: 1, createdAt: -1, views: -1 });
+
+/* ===========================================================
+   PRE-SAVE: Slug + Summary + Reading Time
+=========================================================== */
 blogSchema.pre("save", async function () {
-  // Auto-generate slug
+  // Auto slug
   if (this.isModified("title")) {
     let baseSlug = slugify(this.title, { lower: true, strict: true });
     let slug = baseSlug;
     let counter = 1;
 
-    // Collisions → append -1, -2, etc.
     while (await mongoose.models.Blog.findOne({ slug })) {
       slug = `${baseSlug}-${counter++}`;
     }
@@ -63,14 +76,12 @@ blogSchema.pre("save", async function () {
     this.slug = slug;
   }
 
-  // Auto summary + reading time
+  // Summary & reading time
   if (this.isModified("content")) {
     const words = this.content.split(/\s+/).length;
-    this.readingTime = Math.ceil(words / 200); // 200 wpm
+    this.readingTime = Math.ceil(words / 200);
     this.summary = this.content.substring(0, 200) + "...";
   }
 });
-
-// ===========================================================
 
 export const Blog = mongoose.model<IBlog>("Blog", blogSchema);

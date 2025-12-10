@@ -2,37 +2,79 @@ import { Request, Response, NextFunction } from "express";
 import { BlogCommentService } from "./blogComment.service";
 
 export const BlogCommentController = {
-  add: async (req: Request, res: Response, next: NextFunction) => {
+  // -----------------------------------------------------
+  // GET COMMENTS FOR A BLOG
+  // -----------------------------------------------------
+  getComments: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
-      const userId = req.userId;
-      const { blogId, text } = req.body;
+      const blogId = req.params.blogId;
+      const data = await BlogCommentService.getComments(blogId);
 
-      const data = await BlogCommentService.add(userId, blogId, text);
       res.json({ success: true, data });
     } catch (err) {
       next(err);
     }
   },
 
-  delete: async (req: Request, res: Response, next: NextFunction) => {
+  // -----------------------------------------------------
+  // USER: CREATE COMMENT
+  // -----------------------------------------------------
+  create: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
       const userId = req.userId;
-      // @ts-ignore
-      const isAdmin = req.isAdmin || false;
+      const data = await BlogCommentService.create(userId, req.body);
 
-      const data = await BlogCommentService.delete(req.params.id, userId, isAdmin);
       res.json({ success: true, data });
     } catch (err) {
       next(err);
     }
   },
 
-  list: async (req: Request, res: Response, next: NextFunction) => {
+  // -----------------------------------------------------
+  // USER: UPDATE OWN COMMENT
+  // -----------------------------------------------------
+  update: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const comments = await BlogCommentService.list(req.params.blogId);
-      res.json({ success: true, data: comments });
+      const commentId = req.params.id;
+      // @ts-ignore
+      const userId = req.userId;
+
+      const updated = await BlogCommentService.update(commentId, userId, req.body);
+
+      res.json({ success: true, data: updated });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // -----------------------------------------------------
+  // USER: DELETE OWN COMMENT
+  // -----------------------------------------------------
+  deleteOwn: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const commentId = req.params.id;
+      // @ts-ignore
+      const userId = req.userId;
+
+      await BlogCommentService.deleteOwn(commentId, userId);
+
+      res.json({ success: true, message: "Comment deleted" });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // -----------------------------------------------------
+  // ADMIN: DELETE ANY COMMENT
+  // -----------------------------------------------------
+  adminDelete: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const commentId = req.params.id;
+
+      await BlogCommentService.adminDelete(commentId);
+
+      res.json({ success: true, message: "Comment removed by admin" });
     } catch (err) {
       next(err);
     }
