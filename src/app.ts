@@ -28,6 +28,7 @@ import notificationRoutes from "./modules/notifications/notification.routes";
 import { BibleLoader } from "./modules/bible/bible.loader";
 import AdminRoutes from "./modules/admin/admin.routes";
 import chatbotRoutes from "./modules/chatbot/chatbot.routes";
+import { QuizLoader } from "./modules/quiz/quiz.loader";
 
 dotenv.config();
 
@@ -64,6 +65,7 @@ app.use("/api/admin", AdminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 BibleLoader.load();
+QuizLoader.load();
 
 // Test route
 app.get("/", (req, res) => {

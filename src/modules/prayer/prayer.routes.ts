@@ -8,19 +8,19 @@ import { PrayerLikeController } from "./prayerLike.controller";
 const upload = multer({ dest: "uploads/prayers" });
 const router = Router();
 
-/* ============================
+/* =====================================
       PUBLIC PRAYER WALL
-============================= */
+===================================== */
 router.get("/public", PrayerController.getPublic);
 
-/* ============================
+/* =====================================
       USER PRAYER REQUESTS
-============================= */
+===================================== */
 router.get("/mine", authMiddleware, PrayerController.getUserRequests);
 
-/* ============================
+/* =====================================
       CREATE PRAYER REQUEST
-============================= */
+===================================== */
 router.post(
   "/",
   authMiddleware,
@@ -28,9 +28,9 @@ router.post(
   PrayerController.create
 );
 
-/* ============================
+/* =====================================
       PRAYER LIKE SYSTEM
-============================= */
+===================================== */
 // User prays for a request
 router.post("/like/pray", authMiddleware, PrayerLikeController.pray);
 
@@ -40,32 +40,34 @@ router.post("/like/unpray", authMiddleware, PrayerLikeController.unpray);
 // Check if user prayed
 router.get("/like/status", authMiddleware, PrayerLikeController.status);
 
-// Get total prayer count (public)
+// Get total prayer count (PUBLIC)
 router.get("/like/count/:prayerId", PrayerLikeController.count);
 
-/* ============================
-          ADMIN ACTIONS
-============================= */
+/* =====================================
+      ADMIN ACTIONS (Approve / Answered)
+===================================== */
 router.put(
-  "/:id/approve",
+  "/admin/:id/approve",
   authMiddleware,
   adminOnly,
   PrayerController.approve
 );
 
 router.put(
-  "/:id/answered",
+  "/admin/:id/answered",
   authMiddleware,
   adminOnly,
   PrayerController.markAnswered
 );
 
-// OPTIONAL: Allow admin to delete a prayer (recommended)
+/* =====================================
+      ADMIN DELETE PRAYER (Optional)
+===================================== */
 router.delete(
-  "/:id",
+  "/admin/:id",
   authMiddleware,
   adminOnly,
-  PrayerController.delete
+  PrayerController.delete // ⚠ You must implement delete() in the controller
 );
 
 export default router;

@@ -6,15 +6,28 @@ import { LeaderboardController } from "./leaderboard.controller";
 
 const router = Router();
 
-// Normal quiz
+/* ===========================
+        NORMAL QUIZ
+=========================== */
 router.get("/questions", QuizController.getQuestions);
+
+// Optional: require auth to grade
+// router.post("/grade", authMiddleware, QuizController.gradeQuiz);
 router.post("/grade", QuizController.gradeQuiz);
 
-// Daily Quiz
+/* ===========================
+        DAILY QUIZ
+=========================== */
 router.get("/daily", authMiddleware, QuizDailyController.getDailyQuiz);
-router.post("/daily/submit", authMiddleware, QuizDailyController.submitDailyQuiz);
+router.post(
+  "/daily/submit",
+  authMiddleware,
+  QuizDailyController.submitDailyQuiz
+);
 
-// Leaderboard
+/* ===========================
+        LEADERBOARD
+=========================== */
 router.get("/leaderboard", LeaderboardController.getTopScores);
 
 export default router;

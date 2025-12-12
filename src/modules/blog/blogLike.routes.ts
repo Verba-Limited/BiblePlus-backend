@@ -4,9 +4,9 @@ import { BlogLikeController } from "./blogLike.controller";
 
 const router = Router();
 
-/* ================================
-   USER LIKE SYSTEM
-================================ */
+/* ======================================================
+   📌 USER LIKE ACTIONS (Auth Required)
+====================================================== */
 
 // Like a blog
 router.post("/like", authMiddleware, BlogLikeController.like);
@@ -14,10 +14,13 @@ router.post("/like", authMiddleware, BlogLikeController.like);
 // Unlike a blog
 router.post("/unlike", authMiddleware, BlogLikeController.unlike);
 
-// Get like status for user
-router.get("/status", authMiddleware, BlogLikeController.status);
+// Check if user liked a blog
+router.get("/status/:blogId", authMiddleware, BlogLikeController.status);
 
-// Get like count for the blog (public)
+
+/* ======================================================
+   📌 PUBLIC — LIKE COUNT (No Auth)
+====================================================== */
 router.get("/count/:blogId", BlogLikeController.count);
 
 export default router;

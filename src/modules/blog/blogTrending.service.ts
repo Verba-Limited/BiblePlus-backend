@@ -1,94 +1,84 @@
-import { Blog } from "./blog.model";
+import { Blog } from "../blog/blog.model";
 import { BlogLike } from "./blogLike.model";
+import FilterQuery  from "mongoose";
 
-let trendingCache: any = null;
-let trendingCacheTime = 0;
+interface TrendingResult {
+  blog: any;
+  score: number;
+}
 
-// Cache duration: 5 minutes
-const CACHE_DURATION = 5 * 60 * 1000;
+export class BlogTrendingService {
+  private static CACHE_TTL_MS = 60 * 1000; // 1 minute cache
+  private static cache: {
+    timestamp: number;
+    data: any[];
+  } | null = null;
 
-export const BlogTrendingService = {
-  getTrending: async (limit: number) => {
-    const now = Date.now();
-
-    // ============================
-    // CACHED RESPONSE
-    // ============================
-    if (trendingCache && now - trendingCacheTime < CACHE_DURATION) {
-      return trendingCache.slice(0, limit);
+  // ============================
+  // GET GENERAL TRENDING BLOGS
+  // ============================
+  static async getTrending(limit: number = 20) {
+    // ---- Return cached result if still fresh ----
+    if (
+      this.cache &&
+      Date.now() - this.cache.timestamp < this.CACHE_TTL_MS
+    ) {
+      return this.cache.data;
     }
 
-    // Last 7 days filter
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600 * 1000);
 
-    // Only recent published blogs
-    const blogs = await Blog.find({
-      status: "published",
+    // Get all likes for last 7 days
+    const recentLikes = await BlogLike.find({
       createdAt: { $gte: sevenDaysAgo }
-    })
-      .sort({ createdAt: -1 })
-      .limit(200);
+    }).lean();
 
-    const results = await Promise.all(
-      blogs.map(async (blog) => {
-        const blogId = blog._id;
+    // Group likes per blog
+    const likeMap: Record<string, number> = {};
+    recentLikes.forEach((l) => {
+      const id = l.blogId.toString();
+      likeMap[id] = (likeMap[id] || 0) + 1;
+    });
 
-        // Count likes in the last 7 days only
-        const recentLikes = await BlogLike.countDocuments({
-          blogId,
-          createdAt: { $gte: sevenDaysAgo }
-        });
+    // Load all published blogs
+    const blogs = await Blog.find({ status: "published" }).lean();
 
-        // Score = views + (likes × 2)
-        const score = blog.views + recentLikes * 2;
+    // Compute trending score
+    const results: TrendingResult[] = blogs.map((blog) => {
+      const likeScore = likeMap[blog._id.toString()] || 0;
+      const viewScore = (blog.views || 0) * 0.2;
 
-        return {
-          blog,
-          score,
-          likes: recentLikes
-        };
-      })
-    );
+      // Recent blogs get bonus
+      const ageMs = Date.now() - new Date(blog.createdAt).getTime();
+      const recencyBoost = Math.max(0, 10 - ageMs / (24 * 3600 * 1000));
 
-    // Sort by score
-    const sorted = results.sort((a, b) => b.score - a.score);
+      const score = likeScore * 2 + viewScore + recencyBoost;
 
-    // Cache result
-    trendingCache = sorted.map((x) => x.blog);
-    trendingCacheTime = now;
+      return { blog, score };
+    });
 
-    return trendingCache.slice(0, limit);
-  },
-
-  getTrendingByCategory: async (category: string, limit: number) => {
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
-    const blogs = await Blog.find({
-      status: "published",
-      category,
-      createdAt: { $gte: sevenDaysAgo }
-    })
-      .sort({ createdAt: -1 })
-      .limit(200);
-
-    const results = await Promise.all(
-      blogs.map(async (blog) => {
-        const blogId = blog._id;
-
-        const recentLikes = await BlogLike.countDocuments({
-          blogId,
-          createdAt: { $gte: sevenDaysAgo }
-        });
-
-        const score = blog.views + recentLikes * 2;
-
-        return { blog, score };
-      })
-    );
-
-    return results
+    // Sort and limit
+    const sorted = results
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
-      .map((x) => x.blog);
+      .map((r) => r.blog);
+
+    // Cache the result
+    this.cache = {
+      timestamp: Date.now(),
+      data: sorted,
+    };
+
+    return sorted;
   }
-};
+
+  // ============================
+  // GET CATEGORY TRENDING BLOGS
+  // ============================
+  static async getTrendingByCategory(category: string, limit: number = 20) {
+    if (!category) return [];
+
+    const blogs = await this.getTrending(200); // get a larger pool
+    return blogs.filter((b) => b.category === category).slice(0, limit);
+  }
+}

@@ -1,19 +1,26 @@
 import { Request, Response, NextFunction } from "express";
 import { QuizService } from "./quiz.service";
+import AppError from "../../core/AppError";
 
 export const QuizController = {
-  // -------------------------------------------------------------
-  // GET QUESTIONS (supports difficulty + category + amount)
-  // -------------------------------------------------------------
-  getQuestions: (req: Request, res: Response, next: NextFunction) => {
+
+  /* =========================================================
+        GET QUIZ QUESTIONS 
+        Supports: amount, category, difficulty
+  ========================================================= */
+  getQuestions: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const amount = Number(req.query.amount) || 10;
       const category = (req.query.category as string) || "";
-      const difficulty = (req.query.difficulty as string) || "";
+      const difficulty = (req.query.difficulty as string) || "easy";
 
-      const questions = QuizService.getQuestions(amount, category, difficulty);
+      if (!["easy", "medium", "hard"].includes(difficulty)) {
+        throw new AppError("Invalid difficulty level", 400);
+      }
 
-      res.json({
+      const questions = await QuizService.getQuestions(amount, category, difficulty);
+
+      return res.json({
         success: true,
         data: {
           questions,
@@ -21,7 +28,7 @@ export const QuizController = {
             amount,
             category,
             difficulty,
-            timer: 30 // frontend timer usage
+            timer: 30
           }
         }
       });
@@ -30,29 +37,31 @@ export const QuizController = {
     }
   },
 
-  // -------------------------------------------------------------
-  // GRADE QUIZ (supports difficulty progression)
-  // -------------------------------------------------------------
-  gradeQuiz: (req: Request, res: Response, next: NextFunction) => {
+  /* =========================================================
+        GRADE QUIZ 
+        Supports difficulty progression
+  ========================================================= */
+  gradeQuiz: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { answers, difficulty } = req.body;
 
       if (!Array.isArray(answers) || answers.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Answers array is required"
-        });
+        throw new AppError("Answers array is required", 400);
       }
 
-      const result = QuizService.gradeQuiz(
-        answers,
-        difficulty || "easy"
-      );
+      const level = difficulty || "easy";
 
-      res.json({
+      if (!["easy", "medium", "hard"].includes(level)) {
+        throw new AppError("Invalid difficulty level", 400);
+      }
+
+      // Call service
+      const result = await QuizService.gradeQuiz(answers, level);
+
+      return res.json({
         success: true,
-        data: result,
-        message: "Quiz graded successfully"
+        message: "Quiz graded successfully",
+        data: result
       });
     } catch (err) {
       next(err);

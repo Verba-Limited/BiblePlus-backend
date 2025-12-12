@@ -5,19 +5,25 @@ import { BlogCommentController } from "./blogComment.controller";
 
 const router = Router();
 
-// PUBLIC — fetch comments for a blog
-router.get("/:blogId", BlogCommentController.getComments);
+/* ======================================================
+   📌 PUBLIC — FETCH COMMENTS FOR A BLOG
+====================================================== */
+router.get("/blog/:blogId", BlogCommentController.getComments);
 
-// USER — create comment
+/* ======================================================
+   📌 USER COMMENT ACTIONS
+====================================================== */
 router.post("/", authMiddleware, BlogCommentController.create);
 
-// USER — update own comment
 router.put("/:id", authMiddleware, BlogCommentController.update);
 
-// USER — delete own comment
 router.delete("/:id", authMiddleware, BlogCommentController.deleteOwn);
 
-// ADMIN — delete any comment
-router.delete("/:id/admin", authMiddleware, adminOnly, BlogCommentController.adminDelete);
+/* ======================================================
+   📌 ADMIN COMMENT MANAGEMENT
+====================================================== */
+
+// Admin delete ANY comment
+router.delete("/admin/:id", adminOnly, BlogCommentController.adminDelete);
 
 export default router;

@@ -4,9 +4,20 @@ import { BlogBookmarkController } from "./blogBookmark.controller";
 
 const router = Router();
 
-router.post("/add", authMiddleware, BlogBookmarkController.add);
-router.post("/remove", authMiddleware, BlogBookmarkController.remove);
-router.get("/list", authMiddleware, BlogBookmarkController.list);
-router.get("/status", authMiddleware, BlogBookmarkController.status);
+/* ================================
+      USER BOOKMARK ROUTES
+================================ */
+
+// Add bookmark
+router.post("/", authMiddleware, BlogBookmarkController.add);
+
+// Remove bookmark (REST version)
+router.delete("/:blogId", authMiddleware, BlogBookmarkController.remove);
+
+// List all bookmarks
+router.get("/", authMiddleware, BlogBookmarkController.list);
+
+// Check bookmark status
+router.get("/status/:blogId", authMiddleware, BlogBookmarkController.status);
 
 export default router;

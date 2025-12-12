@@ -4,48 +4,91 @@ import { QuizAttempt } from "./quizAttempt.model";
 import AppError from "../../core/AppError";
 
 export const QuizDailyService = {
-  // Generate 5 random questions for today's quiz
+  /* =======================================================
+      1. GET TODAY'S QUIZ
+  ======================================================= */
   getDailyQuiz: async () => {
-    const shuffled = QuizLoader.questions.sort(() => Math.random() - 0.5);
+    const todayKey = QuizDailyService._todayKey();
+
+    // Randomize fresh set of 5 questions
+    const shuffled = [...QuizLoader.questions].sort(() => Math.random() - 0.5);
     const questions = shuffled.slice(0, 5);
 
     return {
-      date: new Date().toDateString(),
+      date: todayKey,
       timer: 30,
       questions
     };
   },
 
-  // Complete daily quiz + update streak
+  /* =======================================================
+      2. COMPLETE DAILY QUIZ
+  ======================================================= */
   completeDailyQuiz: async (userId: string, answers: any[]) => {
-    const today = new Date().toDateString();
+    const todayKey = QuizDailyService._todayKey();
 
+    // -------------------------------------------------------
+    // A. Prevent multiple attempts per day
+    // -------------------------------------------------------
+    const already = await QuizAttempt.findOne({ userId, date: todayKey });
+    if (already) throw new AppError("You already completed today's quiz!", 400);
+
+    // -------------------------------------------------------
+    // B. Save today's attempt
+    // -------------------------------------------------------
+    await QuizAttempt.create({
+      userId,
+      date: todayKey,
+      answers
+    });
+
+    // -------------------------------------------------------
+    // C. STREAK LOGIC
+    // -------------------------------------------------------
     let streak = await QuizStreak.findOne({ userId });
 
     if (!streak) {
+      // First time ever
       streak = await QuizStreak.create({
         userId,
-        lastCompleted: today,
+        lastCompleted: todayKey,
         streak: 1
       });
     } else {
-      const last = streak.lastCompleted;
-      const lastDate = new Date(last);
-      const diff = (new Date(today).getTime() - lastDate.getTime()) / (1000 * 3600 * 24);
+      const diffDays = QuizDailyService._daysBetween(
+        streak.lastCompleted,
+        todayKey
+      );
 
-      if (diff === 1) {
-        streak.streak += 1;
-      } else if (diff > 1) {
-        streak.streak = 1; // reset
+      if (diffDays === 1) {
+        streak.streak += 1; // Continue streak
+      } else if (diffDays > 1) {
+        streak.streak = 1; // Reset streak
       }
 
-      streak.lastCompleted = today;
+      streak.lastCompleted = todayKey;
       await streak.save();
     }
 
     return {
-      message: "Daily quiz completed",
-      streak: streak.streak
+      streak: streak.streak,
+      lastCompleted: streak.lastCompleted
     };
+  },
+
+  /* =======================================================
+      UTIL: Get YYYY-MM-DD (timezone safe)
+  ======================================================= */
+  _todayKey: (): string => {
+    return new Date().toISOString().split("T")[0];
+  },
+
+  /* =======================================================
+      UTIL: Days between two YYYY-MM-DD dates
+  ======================================================= */
+  _daysBetween: (d1: string, d2: string): number => {
+    const a = new Date(d1 + "T00:00:00");
+    const b = new Date(d2 + "T00:00:00");
+    return Math.floor((b.getTime() - a.getTime()) / 86400000);
   }
 };

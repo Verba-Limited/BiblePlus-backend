@@ -3,10 +3,10 @@ import { BlogTrendingController } from "./blogTrending.controller";
 
 const router = Router();
 
-// PUBLIC — get trending blogs
+// GET /api/blog-trending?limit=20
 router.get("/", BlogTrendingController.getTrending);
 
-// PUBLIC — get trending in specific category
+// GET /api/blog-trending/category/faith?limit=20
 router.get("/category/:category", BlogTrendingController.getTrendingByCategory);
 
 export default router;
