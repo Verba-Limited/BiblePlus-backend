@@ -1,5 +1,5 @@
 // src/modules/chatbot/verseFinder.ts
-import Fuse from "fuse.js";
+import Fuse, { FuseResult } from "fuse.js";
 import { VerseItem } from "../chatbot.types";
 import { BibleLoader } from "../../bible/bible.loader";
 
@@ -40,8 +40,8 @@ class VerseFinderClass {
 
   search(query: string, limit = 5): VerseItem[] {
     if (!this.ready || !this.fuse) return [];
-    return this.fuse.search(query).slice(0, limit).map((r: Fuse.FuseResult<VerseItem>) => r.item);
+    return this.fuse.search(query).slice(0, limit).map((r: FuseResult<VerseItem>) => r.item);
   }
 }
 
-export const VerseFinder = new VerseFinderClass();
+export const VerseFinder = new VerseFinderClass();  

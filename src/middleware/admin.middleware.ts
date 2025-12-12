@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import AppError from "../core/AppError";
 
 export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
   const header = req.headers.authorization;
@@ -15,18 +14,25 @@ export const adminOnly = (req: Request, res: Response, next: NextFunction) => {
   const token = header.split(" ")[1];
 
   try {
-    // Verify admin JWT
-    const decoded: any = jwt.verify(token, process.env.JWT_ADMIN_SECRET!);
-
-    // Must contain role + adminId
-    if (!decoded || decoded.role !== "admin" || !decoded.adminId) {
-      return res.status(403).json({
+    if (!process.env.JWT_ADMIN_SECRET) {
+      console.error("❌ ERROR: JWT_ADMIN_SECRET is missing in .env");
+      return res.status(500).json({
         success: false,
-        message: "You no be Admin. Shift one side 😭",
+        message: "Server config error (missing admin secret)"
       });
     }
 
-    // Attach admin info to request object
+    // Verify with admin secret
+    const decoded: any = jwt.verify(token, process.env.JWT_ADMIN_SECRET);
+
+    if (!decoded || decoded.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "You are not an admin",
+      });
+    }
+
+    // Attach admin info
     // @ts-ignore
     req.adminId = decoded.adminId;
     // @ts-ignore

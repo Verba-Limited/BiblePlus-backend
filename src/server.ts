@@ -4,14 +4,16 @@ import dotenv from "dotenv";
 import cron from "node-cron";
 import { Server } from "socket.io";
 import http from "http";
+
 import { SocketNotify } from "./modules/notifications/socketNotify";
 import { EventReminderService } from "./modules/events/eventReminder.service";
+import { AdminService } from "./modules/admin/admin.service";
+import { VerseFinder } from "./modules/chatbot/helpers/verseFinder";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI as string;
-
 
 // -------------------------------
 // CREATE HTTP SERVER
@@ -19,36 +21,37 @@ const MONGO_URI = process.env.MONGO_URI as string;
 const server = http.createServer(app);
 
 // -------------------------------
-// INITIALIZE SOCKET.IO
+// SOCKET.IO INITIALIZATION
 // -------------------------------
 export const io = new Server(server, {
   cors: { origin: "*" }
 });
 
-// Initialize our Notification WebSocket System
+// Initialize socket notify system
 SocketNotify.init(io);
 
-// Handle connections
+// Handle socket events
 io.on("connection", (socket) => {
   console.log("🔥 User connected:", socket.id);
 
-  // Client registers userId → join user room
   socket.on("register", (userId: string) => {
     if (!userId) return;
 
     socket.join(userId);
-    console.log(`📌 User ${userId} joined their private room`);
+    console.log(`📌 User ${userId} joined room`);
   });
 
-  // Disconnect event
   socket.on("disconnect", () => {
     console.log("❌ User disconnected:", socket.id);
   });
 });
 
-// notification
+// -------------------------------
+// CRON: EVENT REMINDER ENGINE
+// Runs every 1 minute
+// -------------------------------
 cron.schedule("* * * * *", async () => {
-  console.log("🕒 Running Event Reminder Cron...");
+  console.log("⏳ Running Event Reminder Cron...");
   await EventReminderService.processReminders();
 });
 
@@ -57,10 +60,22 @@ cron.schedule("* * * * *", async () => {
 // -------------------------------
 mongoose
   .connect(MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log("✅ MongoDB Connected");
 
-    // Start server
+    // -----------------------------------------
+    // INITIALIZE SYSTEM MODULES
+    // -----------------------------------------
+
+    // 🟣 1. Load BibleVerse index for Chatbot
+    VerseFinder.init();
+
+    // 🟢 2. Create default admin IF missing
+    await AdminService.createDefaultAdmin();
+
+    // -----------------------------------------
+    // START SERVER
+    // -----------------------------------------
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });

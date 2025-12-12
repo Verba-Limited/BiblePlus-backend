@@ -1,44 +1,52 @@
 import { Router } from "express";
-import authMiddleware from "../../middleware/auth.middleware";
-import { adminOnly } from "../../middleware/admin.middleware";
 import { BlogController } from "./blog.controller";
+import { adminOnly } from "../../middleware/admin.middleware";
 import multer from "multer";
 
 const upload = multer({ dest: "uploads/blog" });
 
 const router = Router();
 
-// PUBLIC ROUTES
-router.get("/", BlogController.getAll);
-router.get("/search", BlogController.search);
-router.get("/:slug", BlogController.getOne);
+/* ======================================================
+   📌 PUBLIC BLOG ROUTES
+====================================================== */
+router.get("/", BlogController.getAll);         // List blogs
+router.get("/search", BlogController.search);   // Search blogs
 
-// ADMIN ROUTES
+// MUST COME LAST among public routes to avoid collisions
+router.get("/:slug", BlogController.getOne);    // Get by slug
+
+
+/* ======================================================
+   📌 ADMIN BLOG ROUTES
+   (NO authMiddleware — adminOnly is enough)
+====================================================== */
+
+// Create blog
 router.post(
-  "/",
-  authMiddleware,
+  "/admin",
   adminOnly,
   upload.single("coverImage"),
   BlogController.create
 );
 
+// Update blog
 router.put(
-  "/:id",
-  authMiddleware,
+  "/admin/:id",
   adminOnly,
   BlogController.update
 );
 
+// Publish blog
 router.put(
-  "/:id/publish",
-  authMiddleware,
+  "/admin/:id/publish",
   adminOnly,
   BlogController.publish
 );
 
+// Delete blog
 router.delete(
-  "/:id",
-  authMiddleware,
+  "/admin/:id",
   adminOnly,
   BlogController.delete
 );

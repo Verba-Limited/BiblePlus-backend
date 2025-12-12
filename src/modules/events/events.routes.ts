@@ -6,82 +6,77 @@ import authMiddleware from "../../middleware/auth.middleware";
 import { adminOnly } from "../../middleware/admin.middleware";
 import multer from "multer";
 
-/* ==========================================
-   UPLOAD HANDLERS
-========================================== */
+/* Uploads */
 const bannerUpload = multer({ dest: "uploads/events/banners" });
 const galleryUpload = multer({ dest: "uploads/events/gallery" });
 
 const router = Router();
 
-/* ==========================================
-   PUBLIC EVENT ROUTES
-========================================== */
+/* ======================================================
+    📌 PUBLIC EVENT ROUTES  (NO AUTH)
+====================================================== */
 router.get("/", EventController.getEvents);
 router.get("/upcoming", EventController.upcoming);
 router.get("/past", EventController.past);
 router.get("/search", EventController.search);
 
-// IMPORTANT: This stays LAST in public routes
+/* MUST COME BEFORE /:id TO AVOID ROUTE COLLISION */
+router.get("/speakers", SpeakerController.getAll);
+router.get("/speakers/:id", SpeakerController.getOne);
+
+/* This MUST stay last among public routes */
 router.get("/:id", EventController.getEvent);
 
-/* ==========================================
-   USER REMINDERS (NOT ADMIN)
-========================================== */
+/* ======================================================
+    📌 USER REMINDERS (USER AUTH)
+====================================================== */
 router.post("/reminders/add", authMiddleware, EventReminderController.add);
 router.post("/reminders/remove", authMiddleware, EventReminderController.remove);
 router.get("/reminders/all", authMiddleware, EventReminderController.all);
 
-/* ==========================================
-   SPEAKER MANAGEMENT (ADMIN ONLY)
-========================================== */
-router.post("/speakers", authMiddleware, adminOnly, SpeakerController.create);
-router.put("/speakers/:id", authMiddleware, adminOnly, SpeakerController.update);
-router.delete("/speakers/:id", authMiddleware, adminOnly, SpeakerController.delete);
+/* ======================================================
+    📌 SPEAKER MANAGEMENT (ADMIN ONLY)
+====================================================== */
+router.post("/admin/speakers", adminOnly, SpeakerController.create);
+router.put("/admin/speakers/:id", adminOnly, SpeakerController.update);
+router.delete("/admin/speakers/:id", adminOnly, SpeakerController.delete);
 
-// Public Speaker list
-router.get("/speakers", SpeakerController.getAll);
-router.get("/speakers/:id", SpeakerController.getOne);
-
-/* ==========================================
-   EVENT BANNER UPLOAD (ADMIN ONLY)
-========================================== */
+/* ======================================================
+    📌 EVENT BANNER UPLOAD (ADMIN ONLY)
+====================================================== */
 router.post(
-  "/upload-banner",
-  authMiddleware,
+  "/admin/upload-banner",
   adminOnly,
   bannerUpload.single("banner"),
   (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "No banner uploaded"
+        message: "No banner uploaded",
       });
     }
 
     res.json({
       success: true,
       file: req.file.filename,
-      url: `/uploads/events/banners/${req.file.filename}`
+      url: `/uploads/events/banners/${req.file.filename}`,
     });
   }
 );
 
-/* ==========================================
-   EVENT GALLERY UPLOAD (ADMIN ONLY)
-========================================== */
+/* ======================================================
+    📌 EVENT GALLERY UPLOAD (ADMIN ONLY)
+====================================================== */
 router.post(
-  "/gallery/upload",
-  authMiddleware,
+  "/admin/gallery/upload",
   adminOnly,
   galleryUpload.array("images", 10),
   (req, res) => {
     const files = req.files as Express.Multer.File[];
-
-    if (!files || files.length === 0) {
+    if (!files?.length) {
       return res.status(400).json({
         success: false,
-        message: "No images uploaded"
+        message: "No images uploaded",
       });
     }
 
@@ -89,22 +84,22 @@ router.post(
       success: true,
       images: files.map((f) => ({
         file: f.filename,
-        url: `/uploads/events/gallery/${f.filename}`
-      }))
+        url: `/uploads/events/gallery/${f.filename}`,
+      })),
     });
   }
 );
 
-/* ==========================================
-   LIVESTREAM UPDATE (ADMIN ONLY)
-========================================== */
-router.put("/:id/live", authMiddleware, adminOnly, EventController.updateLiveStream);
+/* ======================================================
+    📌 LIVESTREAM UPDATE (ADMIN ONLY)
+====================================================== */
+router.put("/admin/:id/live", adminOnly, EventController.updateLiveStream);
 
-/* ==========================================
-   EVENT CRUD (ADMIN ONLY)
-========================================== */
-router.post("/", authMiddleware, adminOnly, EventController.create);
-router.put("/:id", authMiddleware, adminOnly, EventController.update);
-router.delete("/:id", authMiddleware, adminOnly, EventController.delete);
+/* ======================================================
+    📌 EVENT CRUD (ADMIN ONLY)
+====================================================== */
+router.post("/admin", adminOnly, EventController.create);
+router.put("/admin/:id", adminOnly, EventController.update);
+router.delete("/admin/:id", adminOnly, EventController.delete);
 
 export default router;
