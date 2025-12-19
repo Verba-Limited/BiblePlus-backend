@@ -12,7 +12,7 @@ export const AuthService = {
   // -----------------------------------------------------
   // REGISTER USER
   // -----------------------------------------------------
-  register: async (email: string, password: string) => {
+  register: async (email: string, password: string, firstName: string, lastName: string) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) throw new AppError("Email already exists", 400);
 
@@ -21,6 +21,8 @@ export const AuthService = {
     await User.create({
       email,
       password: hashed,
+      firstName,
+      lastName,
       verified: false,
     });
 

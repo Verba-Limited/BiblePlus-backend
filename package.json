@@ -2,7 +2,7 @@
   "name": "bibleplus-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
@@ -10,7 +10,7 @@
     "import:books": "ts-node src/scripts/book.importer.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "HalxDocs",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {

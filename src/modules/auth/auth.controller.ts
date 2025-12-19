@@ -8,14 +8,14 @@ export const AuthController = {
   // -----------------------------------------------------
   register: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email, password } = req.body;
+      const { email, password, firstName, lastName } = req.body;
 
-      const result = await AuthService.register(email, password);
+      const result = await AuthService.register(email, password , firstName, lastName);
 
       res.status(200).json({
         success: true,
         message: "OTP sent to email",
-        data: result,
+        data: { firstName, lastName, ...result },
       });
     } catch (err) {
       next(err);
@@ -33,6 +33,7 @@ export const AuthController = {
         return res.status(400).json({
           success: false,
           message: "Email and OTP are required",
+          
         });
       }
 
