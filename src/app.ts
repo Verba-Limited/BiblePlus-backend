@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import { errorHandler } from "./middleware/error.middleware";
 
 import authRoutes from "./modules/auth/auth.routes";
+import profileRoutes from "./modules/profile/profile.routes";
+import profileStatsRoutes from "./modules/profile/profile.stats.routes";
 import bibleRoutes from "./modules/bible/bible.routes";
 import highlightRoutes from "./modules/bible/highlight.routes";
 import quizRoutes from "./modules/quiz/quiz.routes";
@@ -41,6 +43,8 @@ app.use(morgan("dev"));
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/profile/stats", profileRoutes);
 app.use("/api/bible", bibleRoutes);
 app.use("/api/highlights", highlightRoutes);
 app.use("/api/quiz", quizRoutes);
