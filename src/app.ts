@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import path from "path";
 import { errorHandler } from "./middleware/error.middleware";
 
 import authRoutes from "./modules/auth/auth.routes";
@@ -27,24 +29,36 @@ import prayerLikeRoutes from "./modules/prayer/prayerLike.routes";
 import prayerRoutes from "./modules/prayer/prayer.routes";
 
 import notificationRoutes from "./modules/notifications/notification.routes";
-import { BibleLoader } from "./modules/bible/bible.loader";
 import AdminRoutes from "./modules/admin/admin.routes";
 import chatbotRoutes from "./modules/chatbot/chatbot.routes";
+
+import { BibleLoader } from "./modules/bible/bible.loader";
 import { QuizLoader } from "./modules/quiz/quiz.loader";
 
 dotenv.config();
 
 const app = express();
 
-// Middlewares
+/* =====================
+   GLOBAL MIDDLEWARES
+===================== */
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+app.use(helmet());
 
-// Routes
+/* =====================
+   STATIC FILES (CRITICAL)
+===================== */
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+/* =====================
+   API ROUTES
+===================== */
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/profile/stats", profileRoutes);
+app.use("/api/profile/stats", profileStatsRoutes);
+
 app.use("/api/bible", bibleRoutes);
 app.use("/api/highlights", highlightRoutes);
 app.use("/api/quiz", quizRoutes);
@@ -61,22 +75,31 @@ app.use("/api/blog", blogRoutes);
 app.use("/api/blog/bookmark", blogBookmarkRoutes);
 app.use("/api/blog/trending", blogTrendingRoutes);
 
-
 app.use("/api/prayer/likes", prayerLikeRoutes);
 app.use("/api/prayer", prayerRoutes);
-app.use("/api/admin", AdminRoutes);
 
+app.use("/api/admin", AdminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+
+/* =====================
+   LOADERS
+===================== */
 BibleLoader.load();
 QuizLoader.load();
 
-// Test route
-app.get("/", (req, res) => {
+/* =====================
+   HEALTH & ROOT
+===================== */
+app.get("/", (_, res) => {
   res.json({ message: "BiblePlus API is running..." });
 });
 
-// Error Handler
+app.get("/health", (_, res) => res.status(200).send("OK"));
+
+/* =====================
+   ERROR HANDLER
+===================== */
 app.use(errorHandler);
 
 export default app;

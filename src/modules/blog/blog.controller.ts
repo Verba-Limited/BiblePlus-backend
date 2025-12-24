@@ -8,7 +8,7 @@ export const BlogController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
-      const authorId = req.userId;
+      const authorId = req.adminId;
 
       const data = await BlogService.createBlog({
         ...req.body,

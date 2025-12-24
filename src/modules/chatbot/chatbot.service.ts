@@ -3,15 +3,19 @@
 import axios from "axios";
 import AppError from "../../core/AppError";
 import { ChatMessage } from "./chatbot.model";
-import { VerseFinder } from "./helpers/verseFinder";
 
 export type ChatRole = "user" | "assistant";
+
+interface OpenAIMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
 
 export const ChatbotService = {
   // -----------------------------------------------------
   // SEND MESSAGE TO AI + GENERATE REPLY
   // -----------------------------------------------------
-  chat: async (userId: string, message: string) => {
+  chat: async (userId: string, message: string): Promise<string> => {
     if (!message) throw new AppError("Message is required", 400);
 
     // Save user message
@@ -21,39 +25,26 @@ export const ChatbotService = {
       message,
     });
 
-    // Load last 10 messages for conversation context
+    // Load last 10 messages for context
     const history = await ChatMessage.find({ userId })
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
 
-    const formattedHistory = history.reverse().map((msg: any) => ({
-      role: msg.role,
-      content: msg.message,
-    }));
-
-    // Extract Bible verses automatically
-    const verses = (VerseFinder as any).searchVerses(message, "kjv");
-
-    let verseContext = "";
-    if (verses.length > 0) {
-      verseContext =
-        "\n\nRelevant Bible Verses:\n" +
-        verses
-          .map(
-            (v: any) =>
-              `${v.book} ${v.chapter}:${v.verse} — ${v.text}`
-          )
-          .join("\n");
-    }
+    const formattedHistory: OpenAIMessage[] = history
+      .reverse()
+      .map((msg: any) => ({
+        role: msg.role,
+        content: msg.message,
+      }));
 
     // System Instructions
-    const systemPrompt = {
+    const systemPrompt: OpenAIMessage = {
       role: "system",
       content:
         "You are BiblePlus AI — a Christian faith assistant. " +
-        "You answer with biblical wisdom, encouragement, and relevant Bible verses. " +
-        "Always respond with love, compassion, and accuracy.",
+        "Give biblical explanations, encouragement, and scripture references when relevant. " +
+        "Always respond with love, clarity, and biblical accuracy.",
     };
 
     // Call OpenAI API
@@ -66,7 +57,7 @@ export const ChatbotService = {
           ...formattedHistory,
           {
             role: "user",
-            content: message + verseContext,
+            content: message,
           },
         ],
       },
@@ -78,7 +69,9 @@ export const ChatbotService = {
       }
     );
 
-    const reply = response.data.choices[0].message.content;
+    const reply: string =
+      response.data?.choices?.[0]?.message?.content ??
+      "I’m sorry, I couldn’t generate a response right now.";
 
     // Save bot reply
     await ChatMessage.create({
