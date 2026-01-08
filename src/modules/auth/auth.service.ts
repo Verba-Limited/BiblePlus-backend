@@ -31,7 +31,7 @@ export const AuthService = {
     await Otp.create({
       email,
       code: otpCode.toString(),
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
     console.log("OTP:", otpCode);
@@ -97,7 +97,7 @@ export const AuthService = {
     await Otp.create({
       email,
       code: otpCode.toString(),
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
     console.log("Reset OTP:", otpCode);
