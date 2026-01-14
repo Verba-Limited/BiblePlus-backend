@@ -3,7 +3,7 @@
     "title": "Faith That Moves Mountains",
     "author": "John C. Maxwell",
     "description": "A powerful devotional book about growing your faith and trusting God through every season.",
-    "coverImage": "https://example.com/covers/faith.jpg",
+    "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c",
     "category": "faith",
     "audience": "adults",
     "chapters": [
@@ -29,7 +29,7 @@
     "title": "The Power of Prayer",
     "author": "E.M. Bounds",
     "description": "A classic book about the importance, discipline, and power of prayer.",
-    "coverImage": "https://example.com/covers/prayer.jpg",
+    "coverImage": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
     "category": "prayer",
     "audience": "adults",
     "chapters": [
@@ -50,7 +50,7 @@
     "title": "Walking With God Daily",
     "author": "Joyce Meyer",
     "description": "A devotional focused on walking with God every day.",
-    "coverImage": "https://example.com/covers/walking.jpg",
+    "coverImage": "https://images.unsplash.com/photo-1504052434569-70ad5836ab65",
     "category": "devotional",
     "audience": "adults",
     "chapters": [
@@ -71,7 +71,7 @@
     "title": "Bible Stories for Kids",
     "author": "Sarah Johnson",
     "description": "Simple Bible stories retold for children.",
-    "coverImage": "https://example.com/covers/kids1.jpg",
+    "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c",
     "category": "stories",
     "audience": "kids",
     "chapters": [
@@ -92,7 +92,7 @@
     "title": "Brave Heroes of the Bible",
     "author": "Mark Daniels",
     "description": "Stories of brave men and women from the Bible.",
-    "coverImage": "https://example.com/covers/kids2.jpg",
+    "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c",
     "category": "heroes",
     "audience": "kids",
     "chapters": [
@@ -108,7 +108,7 @@
     "title": "Teen Devotional Guide",
     "author": "Emma Grace",
     "description": "Daily devotionals for teenagers.",
-    "coverImage": "https://example.com/covers/teens1.jpg",
+    "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c",
     "category": "devotional",
     "audience": "teens",
     "chapters": [
@@ -129,7 +129,7 @@
     "title": "The Fruit of the Spirit for Kids",
     "author": "Linda Scott",
     "description": "Teaching children the fruits of the Spirit.",
-    "coverImage": "https://example.com/covers/kids3.jpg",
+    "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c",
     "category": "character",
     "audience": "kids",
     "chapters": [
@@ -145,7 +145,7 @@
     "title": "Teen Prayer Starter Pack",
     "author": "James Cole",
     "description": "A simple guide to prayer for teenagers.",
-    "coverImage": "https://example.com/covers/teens2.jpg",
+    "coverImage": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c",
     "category": "prayer",
     "audience": "teens",
     "chapters": [
