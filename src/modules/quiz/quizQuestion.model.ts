@@ -1,38 +1,34 @@
-import mongoose from "mongoose";
+// src/modules/quiz/quizQuestion.model.ts
+import mongoose, { Schema, Document } from "mongoose";
 
-const quizQuestionSchema = new mongoose.Schema(
+export interface IQuizQuestion extends Document {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  image?: string;
+  mode: "general" | "puzzle" | "daily";
+  level: number; // 1–10
+  active: boolean;
+}
+
+const quizQuestionSchema = new Schema<IQuizQuestion>(
   {
     question: { type: String, required: true },
-    image: String,
-
-    options: {
-      type: [String],
-      required: true,
-      validate: (v: string[]) => v.length >= 2
-    },
-
+    options: [{ type: String, required: true }],
     correctAnswer: { type: Number, required: true },
-
+    image: { type: String },
     mode: {
       type: String,
-      enum: ["general", "daily", "puzzle"],
+      enum: ["general", "puzzle", "daily"],
       required: true
     },
-
-    level: { type: Number, default: 1 },
-
-    difficulty: {
-      type: String,
-      enum: ["easy", "medium", "hard"],
-      default: "easy"
-    },
-
+    level: { type: Number, min: 1, max: 10, required: true },
     active: { type: Boolean, default: true }
   },
   { timestamps: true }
 );
 
-export const QuizQuestion = mongoose.model(
+export const QuizQuestion = mongoose.model<IQuizQuestion>(
   "QuizQuestion",
   quizQuestionSchema
 );

@@ -1,14 +1,22 @@
+// src/modules/quiz/quiz.service.ts
 import AppError from "../../core/AppError";
 import { QuizQuestion } from "./quizQuestion.model";
 import { QuizAttempt } from "./quizAttempt.model";
 import { QuizDailyAttempt } from "./quizDailyAttempt";
 import { QuizLevelService } from "./quizLevel.service";
 
+type QuizMode = "general" | "puzzle" | "daily";
+
 export const QuizService = {
   /* =======================================================
-     PLAY QUIZ (Normal / Puzzle / Level)
+     PLAY QUIZ (GENERAL / PUZZLE / LEVEL)
   ======================================================= */
-  async play(mode: "normal" | "puzzle" | "daily", level: number) {
+  async play(mode: QuizMode, level: number) {
+    if (!mode) throw new AppError("Quiz mode is required", 400);
+    if (level < 1 || level > 10) {
+      throw new AppError("Invalid quiz level", 400);
+    }
+
     const questions = await QuizQuestion.find({
       mode,
       level,
@@ -27,55 +35,66 @@ export const QuizService = {
       questions: questions.map(q => ({
         _id: q._id,
         question: q.question,
-        image: q.image,
-        options: q.options
+        options: q.options,
+        image: q.image ?? null
       }))
     };
   },
 
   /* =======================================================
-     SUBMIT QUIZ (Grading + XP Update + Level Progress)
+     SUBMIT QUIZ (GRADE + XP + LEVEL PROGRESS)
   ======================================================= */
-  async submit(userId: string, payload: { mode: string; level: number; answers: any[] }) {
+  async submit(
+    userId: string,
+    payload: { mode: QuizMode; level: number; answers: any[] }
+  ) {
     const { mode, level, answers } = payload;
 
-    if (!answers?.length) throw new AppError("No answers submitted", 400);
+    if (!answers || !answers.length) {
+      throw new AppError("No answers submitted", 400);
+    }
+
+    const questions = await QuizQuestion.find({
+      _id: { $in: answers.map(a => a.questionId) }
+    });
 
     let correct = 0;
 
-    for (const a of answers) {
-      const q = await QuizQuestion.findById(a.questionId);
-      if (q && q.correctAnswer === a.answer) correct++;
+    for (const answer of answers) {
+      const q = questions.find(
+        q => q._id.toString() === answer.questionId
+      );
+      if (q && q.correctAnswer === answer.answer) correct++;
     }
 
-    const score = Math.round((correct / answers.length) * 100);
+    const total = answers.length;
+    const score = Math.round((correct / total) * 100);
 
-    // Save attempt
     await QuizAttempt.create({
       userId,
       mode,
       level,
       score,
       correct,
-      total: answers.length
+      total
     });
 
-    // XP logic: 10 XP per correct answer
-    const xpGained = correct * 10;
-    const progress = await QuizLevelService.addXp(userId, xpGained);
-
-    // Unlock next level if score >= 70%
-    const unlockedNextLevel = score >= 70;
+    // XP logic
+    const xpEarned = correct * 10;
+    const levelProgress = await QuizLevelService.addXp(
+      userId,
+      xpEarned
+    );
 
     return {
       mode,
       level,
       score,
       correct,
-      total: answers.length,
-      unlockedNextLevel,
-      xpEarned: xpGained,
-      levelProgress: progress
+      total,
+      unlockedNextLevel: score >= 70,
+      xpEarned,
+      levelProgress
     };
   },
 
@@ -85,12 +104,12 @@ export const QuizService = {
   async daily(userId: string) {
     const today = new Date().toISOString().split("T")[0];
 
-    const already = await QuizDailyAttempt.findOne({
+    const alreadyDone = await QuizDailyAttempt.findOne({
       userId,
       date: today
     });
 
-    if (already) {
+    if (alreadyDone) {
       throw new AppError("Daily quiz already completed", 400);
     }
 
@@ -98,6 +117,10 @@ export const QuizService = {
       { $match: { mode: "daily", active: true } },
       { $sample: { size: 5 } }
     ]);
+
+    if (!questions.length) {
+      throw new AppError("No daily quiz questions available", 404);
+    }
 
     return {
       date: today,
@@ -107,7 +130,7 @@ export const QuizService = {
         _id: q._id,
         question: q.question,
         options: q.options,
-        image: q.image
+        image: q.image ?? null
       }))
     };
   },
@@ -116,17 +139,36 @@ export const QuizService = {
      DAILY QUIZ SUBMIT
   ======================================================= */
   async submitDaily(userId: string, answers: any[]) {
-    if (!answers?.length) throw new AppError("Answers required", 400);
+    if (!answers || !answers.length) {
+      throw new AppError("Answers are required", 400);
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const existing = await QuizDailyAttempt.findOne({
+      userId,
+      date: today
+    });
+
+    if (existing) {
+      throw new AppError("Daily quiz already submitted", 400);
+    }
+
+    const questions = await QuizQuestion.find({
+      _id: { $in: answers.map(a => a.questionId) }
+    });
 
     let correct = 0;
 
-    for (const a of answers) {
-      const q = await QuizQuestion.findById(a.questionId);
-      if (q && q.correctAnswer === a.answer) correct++;
+    for (const answer of answers) {
+      const q = questions.find(
+        q => q._id.toString() === answer.questionId
+      );
+      if (q && q.correctAnswer === answer.answer) correct++;
     }
 
-    const score = Math.round((correct / answers.length) * 100);
-    const today = new Date().toISOString().split("T")[0];
+    const total = answers.length;
+    const score = Math.round((correct / total) * 100);
 
     await QuizDailyAttempt.create({
       userId,
@@ -136,17 +178,19 @@ export const QuizService = {
       }
     });
 
-    // Reward XP for daily completion
-    const xpGained = correct * 15; // slightly higher reward
-    const progress = await QuizLevelService.addXp(userId, xpGained);
+    const xpEarned = correct * 15;
+    const levelProgress = await QuizLevelService.addXp(
+      userId,
+      xpEarned
+    );
 
     return {
       message: "Daily quiz completed",
       score,
       correct,
-      total: answers.length,
-      xpEarned: xpGained,
-      levelProgress: progress
+      total,
+      xpEarned,
+      levelProgress
     };
   }
 };
