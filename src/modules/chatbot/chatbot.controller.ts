@@ -1,54 +1,85 @@
-// src/modules/chatbot/chatbot.controller.ts
-
 import { Request, Response, NextFunction } from "express";
 import { ChatbotService } from "./chatbot.service";
+import AppError from "../../core/AppError";
 
 export const ChatbotController = {
-  // -----------------------------------------------------
-  // CHATBOT MESSAGE
-  // -----------------------------------------------------
+  /* =====================================================
+      SEND MESSAGE TO CHATBOT
+      POST /api/chatbot/chat
+  ===================================================== */
   chat: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Injected from auth middleware
+      // Injected by auth middleware
       // @ts-ignore
       const userId = req.userId;
+
+      if (!userId) {
+        throw new AppError("Unauthorized", 401);
+      }
+
       const { message } = req.body;
 
-      const reply = await ChatbotService.chat(userId, message);
+      if (!message || typeof message !== "string") {
+        throw new AppError(
+          "Message is required and must be a string",
+          400
+        );
+      }
 
-      res.json({ success: true, data: reply });
+      const reply = await ChatbotService.chat(
+        userId,
+        message.trim()
+      );
+
+      res.status(200).json({
+        success: true,
+        data: reply,
+      });
     } catch (err) {
       next(err);
     }
   },
 
-  // -----------------------------------------------------
-  // GET CHAT HISTORY
-  // -----------------------------------------------------
+  /* =====================================================
+      GET CHAT HISTORY
+      GET /api/chatbot/history
+  ===================================================== */
   history: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
       const userId = req.userId;
 
+      if (!userId) {
+        throw new AppError("Unauthorized", 401);
+      }
+
       const history = await ChatbotService.history(userId);
 
-      res.json({ success: true, data: history });
+      res.status(200).json({
+        success: true,
+        data: history,
+      });
     } catch (err) {
       next(err);
     }
   },
 
-  // -----------------------------------------------------
-  // CLEAR USER CHAT HISTORY
-  // -----------------------------------------------------
+  /* =====================================================
+      CLEAR CHAT HISTORY
+      DELETE /api/chatbot/history
+  ===================================================== */
   clearHistory: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
       const userId = req.userId;
 
+      if (!userId) {
+        throw new AppError("Unauthorized", 401);
+      }
+
       await ChatbotService.clearHistory(userId);
 
-      res.json({
+      res.status(200).json({
         success: true,
         message: "Chat history cleared successfully",
       });
