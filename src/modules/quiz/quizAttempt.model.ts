@@ -1,25 +1,18 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose from "mongoose";
 
-export interface IDailyQuizAttempt extends Document {
-  userId: string;
-  date: string; // YYYY-MM-DD
-  answers: any[];
-  createdAt: Date;
-}
-
-const dailyQuizAttemptSchema = new Schema<IDailyQuizAttempt>(
+const quizAttemptSchema = new mongoose.Schema(
   {
-    userId: { type: String, required: true, index: true },
-    date: { type: String, required: true }, // Example: "2025-12-12"
-    answers: { type: [Schema.Types.Mixed as any], default: [] }
+    userId: String,
+    mode: String,
+    level: Number,
+    score: Number,
+    correct: Number,
+    total: Number
   },
   { timestamps: true }
 );
 
-// Prevent multiple submissions per day
-dailyQuizAttemptSchema.index({ userId: 1, date: 1 }, { unique: true });
-
-export const QuizAttempt = mongoose.model<IDailyQuizAttempt>(
+export const QuizAttempt = mongoose.model(
   "QuizAttempt",
-  dailyQuizAttemptSchema
+  quizAttemptSchema
 );

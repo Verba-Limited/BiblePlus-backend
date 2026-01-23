@@ -6,11 +6,16 @@ import helmet from "helmet";
 import path from "path";
 import { errorHandler } from "./middleware/error.middleware";
 
+/* =====================
+   ROUTES
+===================== */
 import authRoutes from "./modules/auth/auth.routes";
 import profileRoutes from "./modules/profile/profile.routes";
 import profileStatsRoutes from "./modules/profile/profile.stats.routes";
+
 import bibleRoutes from "./modules/bible/bible.routes";
 import highlightRoutes from "./modules/bible/highlight.routes";
+
 import quizRoutes from "./modules/quiz/quiz.routes";
 import bookRoutes from "./modules/books/book.routes";
 
@@ -32,6 +37,9 @@ import notificationRoutes from "./modules/notifications/notification.routes";
 import AdminRoutes from "./modules/admin/admin.routes";
 import chatbotRoutes from "./modules/chatbot/chatbot.routes";
 
+/* =====================
+   LOADERS
+===================== */
 import { BibleLoader } from "./modules/bible/bible.loader";
 import { QuizLoader } from "./modules/quiz/quiz.loader";
 
@@ -43,24 +51,32 @@ const app = express();
    GLOBAL MIDDLEWARES
 ===================== */
 app.use(cors());
-app.use(express.json());
-app.use(morgan("dev"));
 app.use(helmet());
+app.use(morgan("dev"));
+
+// Body parsers
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
 /* =====================
-   STATIC FILES (CRITICAL)
+   STATIC FILES (UPLOADS)
 ===================== */
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use(
+  "/uploads",
+  express.static(path.join(process.cwd(), "uploads"))
+);
 
 /* =====================
    API ROUTES
 ===================== */
 app.use("/api/auth", authRoutes);
+
 app.use("/api/profile", profileRoutes);
 app.use("/api/profile/stats", profileStatsRoutes);
 
 app.use("/api/bible", bibleRoutes);
 app.use("/api/highlights", highlightRoutes);
+
 app.use("/api/quiz", quizRoutes);
 app.use("/api/books", bookRoutes);
 
@@ -83,7 +99,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 
 /* =====================
-   LOADERS
+   LOAD DATA
 ===================== */
 BibleLoader.load();
 QuizLoader.load();
@@ -91,11 +107,13 @@ QuizLoader.load();
 /* =====================
    HEALTH & ROOT
 ===================== */
-app.get("/", (_, res) => {
-  res.json({ message: "BiblePlus API is running..." });
+app.get("/", (_req, res) => {
+  res.json({ message: "BiblePlus API is running 🚀" });
 });
 
-app.get("/health", (_, res) => res.status(200).send("OK"));
+app.get("/health", (_req, res) => {
+  res.status(200).send("OK");
+});
 
 /* =====================
    ERROR HANDLER

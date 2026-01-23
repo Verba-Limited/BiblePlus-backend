@@ -1,63 +1,27 @@
 import { Request, Response, NextFunction } from "express";
 import { QuizDailyService } from "./quizDaily.service";
-import { QuizService, UserAnswer } from "./quiz.service";
 
 export const QuizDailyController = {
-  // -------------------------------------------------------------
-  // GET TODAY'S QUIZ
-  // -------------------------------------------------------------
-  getDailyQuiz: async (req: Request, res: Response, next: NextFunction) => {
+  getDaily: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const quiz = await QuizDailyService.getDailyQuiz();
-
-      res.json({
-        success: true,
-        data: quiz
-      });
+      // @ts-ignore
+      const userId = req.userId;
+      const data = await QuizDailyService.getDailyQuiz(userId);
+      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }
   },
 
-  // -------------------------------------------------------------
-  // SUBMIT TODAY'S QUIZ
-  // -------------------------------------------------------------
-  submitDailyQuiz: async (req: Request, res: Response, next: NextFunction) => {
+  submit: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
-      const userId: string = req.userId;
-
-      const { answers, difficulty } = req.body;
-
-      if (!Array.isArray(answers) || answers.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Answers array is required"
-        });
-      }
-
-      const typedAnswers = answers as UserAnswer[];
-
-      // Grade quiz
-      const result = QuizService.gradeQuiz(typedAnswers, difficulty || "easy");
-
-      // Process streak + completion
-      const streakInfo = await QuizDailyService.completeDailyQuiz(
+      const userId = req.userId;
+      const result = await QuizDailyService.submitDailyQuiz(
         userId,
-        typedAnswers
+        req.body.answers
       );
-
-      res.json({
-        success: true,
-        message: "Daily quiz submitted",
-        score: result.score,
-        correct: result.correct,
-        total: result.total,
-        previousDifficulty: result.previousDifficulty,
-        newDifficulty: result.newDifficulty,
-        streak: streakInfo.streak,
-        completedAt: streakInfo.lastCompleted
-      });
+      res.json({ success: true, data: result });
     } catch (err) {
       next(err);
     }

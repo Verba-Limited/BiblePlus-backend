@@ -1,107 +1,152 @@
 import AppError from "../../core/AppError";
-import { QuizLoader } from "./quiz.loader";
-import { QuizStreak } from "./quizStreak.model";
-
-export interface UserAnswer {
-  index: number;
-  answer: number;
-}
+import { QuizQuestion } from "./quizQuestion.model";
+import { QuizAttempt } from "./quizAttempt.model";
+import { QuizDailyAttempt } from "./quizDailyAttempt";
+import { QuizLevelService } from "./quizLevel.service";
 
 export const QuizService = {
+  /* =======================================================
+     PLAY QUIZ (Normal / Puzzle / Level)
+  ======================================================= */
+  async play(mode: "normal" | "puzzle" | "daily", level: number) {
+    const questions = await QuizQuestion.find({
+      mode,
+      level,
+      active: true
+    }).limit(10);
 
-  // ---------------------------------------------------------------------
-  // 1. GET RANDOM QUESTIONS WITH FILTERS
-  // ---------------------------------------------------------------------
-  getQuestions: (
-    amount: number = 10,
-    category: string = "",
-    difficulty: string = ""
-  ) => {
-    // NEVER modify original pool — clone it
-    let questions = [...QuizLoader.questions];
-
-    // Filter by category
-    if (category.trim() !== "") {
-      questions = questions.filter(q => q.category === category);
+    if (!questions.length) {
+      throw new AppError("No questions available for this level", 404);
     }
 
-    // Filter by difficulty
-    if (difficulty.trim() !== "") {
-      questions = questions.filter(q => q.difficulty === difficulty);
-    }
-
-    if (questions.length === 0) {
-      throw new AppError("No questions available for this filter", 404);
-    }
-
-    // Fisher–Yates shuffle (best)
-    for (let i = questions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [questions[i], questions[j]] = [questions[j], questions[i]];
-    }
-
-    return questions.slice(0, amount);
+    return {
+      mode,
+      level,
+      timer: 30,
+      total: questions.length,
+      questions: questions.map(q => ({
+        _id: q._id,
+        question: q.question,
+        image: q.image,
+        options: q.options
+      }))
+    };
   },
 
-  // ---------------------------------------------------------------------
-  // 2. GRADE QUIZ (safe & validated)
-  // ---------------------------------------------------------------------
-  gradeQuiz: (answers: UserAnswer[], difficulty: string = "easy") => {
-    const total = answers.length;
+  /* =======================================================
+     SUBMIT QUIZ (Grading + XP Update + Level Progress)
+  ======================================================= */
+  async submit(userId: string, payload: { mode: string; level: number; answers: any[] }) {
+    const { mode, level, answers } = payload;
+
+    if (!answers?.length) throw new AppError("No answers submitted", 400);
+
     let correct = 0;
 
-    answers.forEach((userAnswer) => {
-      const { index, answer } = userAnswer;
+    for (const a of answers) {
+      const q = await QuizQuestion.findById(a.questionId);
+      if (q && q.correctAnswer === a.answer) correct++;
+    }
 
-      // Validate index exists
-      const question = QuizLoader.questions[index];
-      if (!question) return;
+    const score = Math.round((correct / answers.length) * 100);
 
-      // Check answer
-      if (question.correctAnswer === answer) {
-        correct++;
+    // Save attempt
+    await QuizAttempt.create({
+      userId,
+      mode,
+      level,
+      score,
+      correct,
+      total: answers.length
+    });
+
+    // XP logic: 10 XP per correct answer
+    const xpGained = correct * 10;
+    const progress = await QuizLevelService.addXp(userId, xpGained);
+
+    // Unlock next level if score >= 70%
+    const unlockedNextLevel = score >= 70;
+
+    return {
+      mode,
+      level,
+      score,
+      correct,
+      total: answers.length,
+      unlockedNextLevel,
+      xpEarned: xpGained,
+      levelProgress: progress
+    };
+  },
+
+  /* =======================================================
+     DAILY QUIZ FETCH
+  ======================================================= */
+  async daily(userId: string) {
+    const today = new Date().toISOString().split("T")[0];
+
+    const already = await QuizDailyAttempt.findOne({
+      userId,
+      date: today
+    });
+
+    if (already) {
+      throw new AppError("Daily quiz already completed", 400);
+    }
+
+    const questions = await QuizQuestion.aggregate([
+      { $match: { mode: "daily", active: true } },
+      { $sample: { size: 5 } }
+    ]);
+
+    return {
+      date: today,
+      timer: 30,
+      total: questions.length,
+      questions: questions.map(q => ({
+        _id: q._id,
+        question: q.question,
+        options: q.options,
+        image: q.image
+      }))
+    };
+  },
+
+  /* =======================================================
+     DAILY QUIZ SUBMIT
+  ======================================================= */
+  async submitDaily(userId: string, answers: any[]) {
+    if (!answers?.length) throw new AppError("Answers required", 400);
+
+    let correct = 0;
+
+    for (const a of answers) {
+      const q = await QuizQuestion.findById(a.questionId);
+      if (q && q.correctAnswer === a.answer) correct++;
+    }
+
+    const score = Math.round((correct / answers.length) * 100);
+    const today = new Date().toISOString().split("T")[0];
+
+    await QuizDailyAttempt.create({
+      userId,
+      date: today,
+      answers: {
+        score
       }
     });
 
-    const score = Math.round((correct / total) * 100);
-
-    // Difficulty progression
-    let newDifficulty = difficulty;
-
-    if (score >= 90) {
-      newDifficulty = "hard";
-    } else if (score >= 80) {
-      if (difficulty !== "hard") newDifficulty = "medium";
-    } else if (score < 50) {
-      newDifficulty = "easy";
-    }
+    // Reward XP for daily completion
+    const xpGained = correct * 15; // slightly higher reward
+    const progress = await QuizLevelService.addXp(userId, xpGained);
 
     return {
-      total,
-      correct,
+      message: "Daily quiz completed",
       score,
-      previousDifficulty: difficulty,
-      newDifficulty,
+      correct,
+      total: answers.length,
+      xpEarned: xpGained,
+      levelProgress: progress
     };
-  },
-
-  // ---------------------------------------------------------------------
-  // 3. DAILY QUIZ STREAK SUPPORT
-  // ---------------------------------------------------------------------
-  getUserStreak: async (userId: string) => {
-    const record = await QuizStreak.findOne({ userId });
-
-    if (!record) {
-      return {
-        streak: 0,
-        lastCompleted: null,
-      };
-    }
-
-    return {
-      streak: record.streak,
-      lastCompleted: record.lastCompleted,
-    };
-  },
-
+  }
 };
