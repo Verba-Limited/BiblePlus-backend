@@ -4,54 +4,56 @@ import { hashPassword, comparePassword } from "../../utils/bycrypt";
 import jwt from "jsonwebtoken";
 
 export const AdminService = {
-
-  // -----------------------------------------------------
-  // CREATE DEFAULT ADMIN (RUN MANUALLY ONLY)
-  // -----------------------------------------------------
+  /* =====================================================
+      CREATE DEFAULT ADMIN (RUN ONCE / SEED)
+  ===================================================== */
   createDefaultAdmin: async () => {
     const exists = await Admin.findOne({ username: "bibleplus" });
     if (exists) return;
 
-    const hashed = await hashPassword("adminbible12");
+    const hashedPassword = await hashPassword("adminbible12");
 
     await Admin.create({
       username: "bibleplus",
-      password: hashed,
+      password: hashedPassword,
       role: "admin"
     });
 
     console.log("✔ Default admin created: bibleplus / adminbible12");
   },
 
-  // -----------------------------------------------------
-  // ADMIN LOGIN
-  // -----------------------------------------------------
+  /* =====================================================
+      ADMIN LOGIN
+  ===================================================== */
   login: async (username: string, password: string) => {
     const admin = await Admin.findOne({ username });
-
     if (!admin) {
       throw new AppError("Invalid admin credentials", 401);
     }
 
-    const valid = await comparePassword(password, admin.password);
-    if (!valid) {
+    const isValid = await comparePassword(password, admin.password);
+    if (!isValid) {
       throw new AppError("Invalid admin credentials", 401);
     }
 
-    // Generate admin JWT
+    if (!process.env.JWT_SECRET) {
+      throw new AppError("JWT_SECRET not configured", 500);
+    }
+
+    // 🔐 SINGLE JWT SYSTEM (CRITICAL FIX)
     const token = jwt.sign(
       {
-        adminId: admin._id.toString(),
+        userId: admin._id.toString(), // must be userId
         role: "admin"
       },
-      process.env.JWT_ADMIN_SECRET!, 
+      process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
     return {
       token,
       admin: {
-        id: admin._id,
+        id: admin._id.toString(),
         username: admin.username,
         role: admin.role
       }

@@ -1,32 +1,54 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import AppError from "../core/AppError";
 
-interface DecodedToken {
+/* =====================================================
+   TOKEN PAYLOAD SHAPE
+===================================================== */
+interface DecodedToken extends JwtPayload {
   userId: string;
-  role: string; // "user" | "admin"
-  iat: number;
-  exp: number;
+  role: "user" | "admin";
 }
 
-const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const header = req.headers.authorization;
+/* =====================================================
+   AUTH MIDDLEWARE
+===================================================== */
+const authMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const authHeader = req.headers.authorization;
 
-  if (!header || !header.startsWith("Bearer ")) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({
       success: false,
-      message: "No authorization token provided",
+      message: "Authorization token missing",
     });
   }
 
-  const token = header.split(" ")[1];
+  const token = authHeader.split(" ")[1];
+
+  if (!process.env.JWT_SECRET) {
+    return res.status(500).json({
+      success: false,
+      message: "Server misconfiguration (JWT secret missing)",
+    });
+  }
 
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET!
+      process.env.JWT_SECRET
     ) as DecodedToken;
 
-    // Attach to request
+    if (!decoded.userId || !decoded.role) {
+      throw new AppError("Invalid token payload", 401);
+    }
+
+    /* ---------------------------------------------
+       ATTACH TO REQUEST (STANDARDIZED)
+    ---------------------------------------------- */
     // @ts-ignore
     req.userId = decoded.userId;
 
@@ -34,7 +56,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     req.userRole = decoded.role;
 
     return next();
-  } catch (err: any) {
+  } catch (error) {
     return res.status(401).json({
       success: false,
       message: "Invalid or expired token",
