@@ -1,3 +1,4 @@
+// src/modules/admin/admin.controller.ts
 import { Request, Response, NextFunction } from "express";
 import { AdminService } from "./admin.service";
 import AppError from "../../core/AppError";
@@ -10,18 +11,24 @@ export const AdminController = {
     try {
       const { username, password } = req.body;
 
-      // Validate input
       if (!username || !password) {
         throw new AppError("Username and password are required", 400);
       }
 
-      // Authenticate
+      /**
+       * AdminService.login MUST:
+       *  - validate credentials
+       *  - return { userId, role: "admin", token }
+       */
       const result = await AdminService.login(username, password);
 
       res.status(200).json({
         success: true,
         message: "Admin login successful",
-        token: result.token
+        data: {
+          token: result.token,
+          role: "admin"
+        }
       });
     } catch (err) {
       next(err);
