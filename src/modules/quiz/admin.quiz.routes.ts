@@ -6,10 +6,27 @@ import { AdminQuizController } from "./admin.quiz.controller";
 
 const router = Router();
 
-router.post("/", authMiddleware, adminOnly, AdminQuizController.create);
-router.post("/bulk", authMiddleware, adminOnly, AdminQuizController.bulkCreate);
-router.put("/:id", authMiddleware, adminOnly, AdminQuizController.update);
-router.patch("/:id/toggle", authMiddleware, adminOnly, AdminQuizController.toggle);
-router.delete("/:id", authMiddleware, adminOnly, AdminQuizController.delete);
+/* ============================
+   ADMIN QUIZ ROUTES
+   /api/admin/quiz
+============================ */
+
+router.use(authMiddleware);
+router.use(adminOnly);
+
+// Create single question
+router.post("/questions", AdminQuizController.create);
+
+// Bulk create questions
+router.post("/questions/bulk", AdminQuizController.bulkCreate);
+
+// Update question
+router.put("/questions/:id", AdminQuizController.update);
+
+// Toggle active/inactive
+router.patch("/questions/:id/toggle", AdminQuizController.toggle);
+
+// Delete question
+router.delete("/questions/:id", AdminQuizController.delete);
 
 export default router;
