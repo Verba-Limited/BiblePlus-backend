@@ -4,24 +4,37 @@ export interface IQuizQuestion extends Document {
   question: string;
   options: string[];
   correctAnswer: number;
-  mode: "normal" | "daily" | "puzzle";
-  level: number;
+  mode: "normal" | "puzzle" | "daily";
+  level?: number;
   image?: string;
   active: boolean;
 }
 
 const quizQuestionSchema = new Schema<IQuizQuestion>(
   {
-    question: { type: String, required: true },
+    question: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
     options: {
       type: [String],
-      validate: [(v: string[]) => v.length >= 2, "At least 2 options required"]
+      required: true,
+      validate: {
+        validator: (v: string[]) => v.length >= 2,
+        message: "At least 2 options are required"
+      }
     },
-    correctAnswer: { type: Number, required: true },
+
+    correctAnswer: {
+      type: Number,
+      required: true
+    },
 
     mode: {
       type: String,
-      enum: ["normal", "daily", "puzzle"],
+      enum: ["normal", "puzzle", "daily"],
       required: true
     },
 
@@ -29,11 +42,19 @@ const quizQuestionSchema = new Schema<IQuizQuestion>(
       type: Number,
       min: 1,
       max: 10,
-      required: true
+      required: function (this: IQuizQuestion) {
+        return this.mode !== "daily";
+      }
     },
 
-    image: { type: String },
-    active: { type: Boolean, default: true }
+    image: {
+      type: String
+    },
+
+    active: {
+      type: Boolean,
+      default: true
+    }
   },
   { timestamps: true }
 );
