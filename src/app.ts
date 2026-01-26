@@ -17,6 +17,7 @@ import bibleRoutes from "./modules/bible/bible.routes";
 import highlightRoutes from "./modules/bible/highlight.routes";
 
 import quizRoutes from "./modules/quiz/quiz.routes";
+import adminQuizRoutes from "./modules/quiz/admin.quiz.routes"; // ✅ ADD
 import bookRoutes from "./modules/books/book.routes";
 
 import eventRoutes from "./modules/events/events.routes";
@@ -53,18 +54,13 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
-
-// Body parsers
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 /* =====================
-   STATIC FILES (UPLOADS)
+   STATIC FILES
 ===================== */
-app.use(
-  "/uploads",
-  express.static(path.join(process.cwd(), "uploads"))
-);
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 /* =====================
    API ROUTES
@@ -77,9 +73,13 @@ app.use("/api/profile/stats", profileStatsRoutes);
 app.use("/api/bible", bibleRoutes);
 app.use("/api/highlights", highlightRoutes);
 
-app.use("/api/quiz", quizRoutes);
+/* ===== QUIZ ===== */
+app.use("/api/quiz", quizRoutes);               // user quiz
+app.use("/api/admin/quiz", adminQuizRoutes);    // ✅ admin quiz
+
 app.use("/api/books", bookRoutes);
 
+/* ===== EVENTS ===== */
 app.use("/api/events", eventRoutes);
 app.use("/api/speakers", speakerRoutes);
 app.use("/api/event-categories", eventCategoryRoutes);
@@ -87,14 +87,19 @@ app.use("/api/events/attendance", eventAttendanceRoutes);
 app.use("/api/events/comments", eventCommentRoutes);
 app.use("/api/events/gallery", eventGalleryRoutes);
 
+/* ===== BLOG ===== */
 app.use("/api/blog", blogRoutes);
 app.use("/api/blog/bookmark", blogBookmarkRoutes);
 app.use("/api/blog/trending", blogTrendingRoutes);
 
+/* ===== PRAYERS ===== */
 app.use("/api/prayer/likes", prayerLikeRoutes);
 app.use("/api/prayer", prayerRoutes);
 
+/* ===== ADMIN CORE ===== */
 app.use("/api/admin", AdminRoutes);
+
+/* ===== OTHER ===== */
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 
@@ -105,7 +110,7 @@ BibleLoader.load();
 QuizLoader.load();
 
 /* =====================
-   HEALTH & ROOT
+   HEALTH
 ===================== */
 app.get("/", (_req, res) => {
   res.json({ message: "BiblePlus API is running 🚀" });
