@@ -17,7 +17,8 @@ import bibleRoutes from "./modules/bible/bible.routes";
 import highlightRoutes from "./modules/bible/highlight.routes";
 
 import quizRoutes from "./modules/quiz/quiz.routes";
-import adminQuizRoutes from "./modules/quiz/admin.quiz.routes"; // ✅ ADD
+import adminQuizRoutes from "./modules/quiz/admin.quiz.routes";
+import quizLeaderboardRoutes from "./modules/quiz/quizLeaderboard.routes";
 import bookRoutes from "./modules/books/book.routes";
 
 import eventRoutes from "./modules/events/events.routes";
@@ -37,6 +38,7 @@ import prayerRoutes from "./modules/prayer/prayer.routes";
 import notificationRoutes from "./modules/notifications/notification.routes";
 import AdminRoutes from "./modules/admin/admin.routes";
 import chatbotRoutes from "./modules/chatbot/chatbot.routes";
+
 
 /* =====================
    LOADERS
@@ -74,8 +76,9 @@ app.use("/api/bible", bibleRoutes);
 app.use("/api/highlights", highlightRoutes);
 
 /* ===== QUIZ ===== */
-app.use("/api/quiz", quizRoutes);               // user quiz
-app.use("/api/admin/quiz", adminQuizRoutes);    // ✅ admin quiz
+app.use("/api/quiz", quizRoutes);               
+app.use("/api/admin/quiz", adminQuizRoutes);
+app.use("/api/quiz/leaderboard", quizLeaderboardRoutes);
 
 app.use("/api/books", bookRoutes);
 
