@@ -32,12 +32,15 @@ function validateQuestion(data: any) {
     );
   }
 
-  if (
-    typeof level !== "number" ||
-    level < MIN_LEVEL ||
-    level > MAX_LEVEL
-  ) {
-    throw new AppError("Level must be between 1 and 10", 400);
+  // 🔑 ONLY validate level when NOT daily
+  if (mode !== "daily") {
+    if (
+      typeof level !== "number" ||
+      level < MIN_LEVEL ||
+      level > MAX_LEVEL
+    ) {
+      throw new AppError("Level must be between 1 and 10", 400);
+    }
   }
 }
 
