@@ -131,7 +131,9 @@ export const QuizService = {
         _id: q._id,
         question: q.question,
         options: q.options,
-        image: q.image ?? null
+        image: q.image ?? null,
+
+        correctAnswer: q.correctAnswer + 1
       }))
     };
   },
