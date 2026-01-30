@@ -8,19 +8,35 @@ const router = Router();
 |--------------------------------------------------------------------------
 | QUIZ LEADERBOARD ROUTES
 |--------------------------------------------------------------------------
-| Mounted at: /api/quiz/leaderboard
-| Auth required (users only)
+| Base: /api/quiz/leaderboard
 |--------------------------------------------------------------------------
 */
 
-router.use(authMiddleware);
+// 🌍 Global leaderboard
+// GET /api/quiz/leaderboard?limit=20
+router.get(
+  "/",
+  authMiddleware,
+  QuizLeaderboardController.global
+);
 
-// Global leaderboard
-// GET /api/quiz/leaderboard
-router.get("/", QuizLeaderboardController.global);
+// 📅 Daily leaderboard
+// GET /api/quiz/leaderboard/daily?date=YYYY-MM-DD&limit=20
+router.get(
+  "/daily",
+  authMiddleware,
+  QuizLeaderboardController.daily
 
-// Daily leaderboard
-// GET /api/quiz/leaderboard/daily?date=YYYY-MM-DD
-router.get("/daily", QuizLeaderboardController.daily);
+  
+);
+
+/* =====================================================
+   LEADERBOARDS
+===================================================== */
+
+router.get("/leaderboard", QuizLeaderboardController.global);
+router.get("/leaderboard/daily", QuizLeaderboardController.daily);
+router.get("/leaderboard/weekly", QuizLeaderboardController.weekly);
+router.get("/leaderboard/monthly", QuizLeaderboardController.monthly);
 
 export default router;

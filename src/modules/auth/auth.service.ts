@@ -7,6 +7,7 @@ import {
   generateRefreshToken,
 } from "../../utils/jwt";
 import AppError from "../../core/AppError";
+import { database } from "firebase-admin";
 
 export const AuthService = {
   // -----------------------------------------------------
@@ -81,6 +82,7 @@ export const AuthService = {
     return {
       token: generateAccessToken(user._id.toString()),
       refreshToken: generateRefreshToken(user._id.toString()),
+      status: "success",
       user,
     };
   },

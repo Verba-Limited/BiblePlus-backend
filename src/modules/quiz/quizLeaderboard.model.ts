@@ -5,8 +5,10 @@ export interface IQuizLeaderboard extends Document {
   username?: string;
   avatar?: string;
 
-  type: "global" | "daily";
-  date?: string;
+  type: "global" | "daily" | "weekly" | "monthly";
+  date?: string;        // YYYY-MM-DD (daily)
+  week?: string;        // YYYY-WW (weekly)
+  month?: string;       // YYYY-MM (monthly)
 
   totalScore: number;
   totalCorrect: number;
@@ -15,21 +17,20 @@ export interface IQuizLeaderboard extends Document {
 
 const quizLeaderboardSchema = new Schema<IQuizLeaderboard>(
   {
-    userId: { type: String, required: true, index: true },
+    userId: { type: String, required: true },
+
     username: { type: String },
     avatar: { type: String },
 
     type: {
       type: String,
-      enum: ["global", "daily"],
-      default: "global",
-      index: true
+      enum: ["global", "daily", "weekly", "monthly"],
+      required: true
     },
 
-    date: {
-      type: String, // YYYY-MM-DD
-      index: true
-    },
+    date: { type: String },   // daily
+    week: { type: String },   // weekly
+    month: { type: String },  // monthly
 
     totalScore: { type: Number, default: 0 },
     totalCorrect: { type: Number, default: 0 },
@@ -38,13 +39,13 @@ const quizLeaderboardSchema = new Schema<IQuizLeaderboard>(
   { timestamps: true }
 );
 
-// Prevent duplicate rows
+// Prevent duplicates per period
 quizLeaderboardSchema.index(
-  { userId: 1, type: 1, date: 1 },
-  { unique: true, sparse: true }
+  { userId: 1, type: 1, date: 1, week: 1, month: 1 },
+  { unique: true }
 );
 
-export const QuizLeaderboard = mongoose.model<IQuizLeaderboard>(
+export const QuizLeaderboard = mongoose.model(
   "QuizLeaderboard",
   quizLeaderboardSchema
 );

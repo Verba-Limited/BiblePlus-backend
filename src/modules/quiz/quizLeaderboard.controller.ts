@@ -1,67 +1,54 @@
-// src/modules/quiz/quizLeaderboard.controller.ts
-
 import { Request, Response, NextFunction } from "express";
 import { QuizLeaderboardService } from "./quizLeaderboard.service";
+import {
+  getToday,
+  getWeekKey,
+  getMonthKey
+} from "./quizLeaderboard.utils";
 
 export const QuizLeaderboardController = {
-  /* =====================================================
-     GET GLOBAL LEADERBOARD
-     GET /api/quiz/leaderboard?limit=20
-  ===================================================== */
-  global: async (req: Request, res: Response, next: NextFunction) => {
+  global: async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      const limit =
-        typeof req.query.limit === "string"
-          ? Number(req.query.limit)
-          : 20;
-
-      const leaderboard = await QuizLeaderboardService.top({
-        type: "global",
-        limit
+      const data = await QuizLeaderboardService.getTop({
+        type: "global"
       });
-
-      res.status(200).json({
-        success: true,
-        data: leaderboard
-      });
+      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }
   },
 
-  /* =====================================================
-     GET DAILY LEADERBOARD
-     GET /api/quiz/leaderboard/daily?date=YYYY-MM-DD&limit=20
-  ===================================================== */
-  daily: async (req: Request, res: Response, next: NextFunction) => {
+  daily: async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      const date =
-        typeof req.query.date === "string"
-          ? req.query.date
-          : null;
-
-      if (!date) {
-        return res.status(400).json({
-          success: false,
-          message: "date query param is required (YYYY-MM-DD)"
-        });
-      }
-
-      const limit =
-        typeof req.query.limit === "string"
-          ? Number(req.query.limit)
-          : 20;
-
-      const leaderboard = await QuizLeaderboardService.top({
+      const data = await QuizLeaderboardService.getTop({
         type: "daily",
-        date,
-        limit
+        date: getToday()
       });
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  },
 
-      res.status(200).json({
-        success: true,
-        data: leaderboard
+  weekly: async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await QuizLeaderboardService.getTop({
+        type: "weekly",
+        week: getWeekKey()
       });
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  monthly: async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await QuizLeaderboardService.getTop({
+        type: "monthly",
+        month: getMonthKey()
+      });
+      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }

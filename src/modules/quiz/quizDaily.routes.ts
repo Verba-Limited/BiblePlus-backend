@@ -4,7 +4,32 @@ import { QuizDailyController } from "./quizDaily.controller";
 
 const router = Router();
 
-router.get("/", authMiddleware, QuizDailyController.getDaily);
-router.post("/submit", authMiddleware, QuizDailyController.submit);
+/* =====================================================
+   DAILY QUIZ (EXTENDED)
+===================================================== */
+
+router.get(
+  "/daily",
+  authMiddleware,
+  QuizDailyController.today
+);
+
+router.get(
+  "/daily/yesterday",
+  authMiddleware,
+  QuizDailyController.yesterday
+);
+
+router.get(
+  "/daily/history",
+  authMiddleware,
+  QuizDailyController.history
+);
+
+router.get(
+  "/daily/:date",
+  authMiddleware,
+  QuizDailyController.byDate
+);
 
 export default router;

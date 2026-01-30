@@ -1,60 +1,76 @@
 import AppError from "../../core/AppError";
 import { QuizQuestion } from "./quizQuestion.model";
-import { QuizDailyAttempt } from "./quizDailyAttempt";
+import { QuizDaily } from "./quizDaily.model";
+
+const DAILY_QUESTION_COUNT = 5;
+
+function today() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function yesterday() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split("T")[0];
+}
 
 export const QuizDailyService = {
-  async getDailyQuiz(userId: string) {
-    const today = new Date().toISOString().split("T")[0];
-
-    const already = await QuizDailyAttempt.findOne({
-      userId,
-      date: today
+  /* =====================================================
+     GET DAILY QUIZ BY DATE (today / yesterday / any)
+  ===================================================== */
+  async getByDate(date: string) {
+    let daily = await QuizDaily.findOne({ date }).populate({
+      path: "questions",
+      match: { active: true },
+      select: "question options image"
     });
 
-    if (already) {
-      throw new AppError("Daily quiz already completed", 400);
+    // Create daily quiz if not exists (only for today)
+    if (!daily) {
+      if (date !== today()) {
+        throw new AppError("Daily quiz not found for this date", 404);
+      }
+
+      const questions = await QuizQuestion.aggregate([
+        { $match: { mode: "daily", active: true } },
+        { $sample: { size: DAILY_QUESTION_COUNT } }
+      ]);
+
+      if (!questions.length) {
+        throw new AppError("No daily quiz questions available", 404);
+      }
+
+      daily = await QuizDaily.create({
+        date,
+        questions: questions.map(q => q._id)
+      });
+
+      daily = await daily.populate({
+        path: "questions",
+        select: "question options image"
+      });
     }
 
-    const questions = await QuizQuestion.aggregate([
-      { $match: { mode: "daily", active: true } },
-      { $sample: { size: 5 } }
-    ]);
-
     return {
-      date: today,
+      date,
+      total: daily.questions.length,
       timer: 30,
-      questions: questions.map(q => ({
-        _id: q._id,
-        question: q.question,
-        image: q.image,
-        options: q.options
-      }))
+      questions: daily.questions
     };
   },
 
-  async submitDailyQuiz(userId: string, answers: any[]) {
-    let correct = 0;
+  /* =====================================================
+     HELPERS
+  ===================================================== */
+  today: async () => QuizDailyService.getByDate(today()),
 
-    for (const a of answers) {
-      const q = await QuizQuestion.findById(a.questionId);
-      if (q && q.correctAnswer === a.answer) correct++;
-    }
+  yesterday: async () => QuizDailyService.getByDate(yesterday()),
 
-    const score = Math.round((correct / answers.length) * 100);
-    const today = new Date().toISOString().split("T")[0];
-
-    await QuizDailyAttempt.create({
-      userId,
-      date: today,
-      answers: {
-        score
-      }
-    });
-
-    return {
-      score,
-      correct,
-      total: answers.length
-    };
+  history: async (limit = 30) => {
+    return QuizDaily.find()
+      .sort({ date: -1 })
+      .limit(limit)
+      .select("date")
+      .lean();
   }
 };

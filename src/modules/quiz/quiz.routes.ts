@@ -41,35 +41,58 @@ router.post("/daily/submit", authMiddleware, QuizController.submitDaily);
 
 // ▶ Get puzzles by level
 // GET /api/quiz/puzzle/level/1
-router.get("/puzzle/level/:level", QuizPuzzleController.getByLevel);
+router.get(
+  "/puzzle/level/:level",
+  authMiddleware,
+  QuizPuzzleController.getByLevel
+);
 
 // ▶ Get today's puzzle
 // GET /api/quiz/puzzle/today
-router.get("/puzzle/today", QuizPuzzleController.getToday);
+router.get(
+  "/puzzle/today",
+  authMiddleware,
+  QuizPuzzleController.getToday
+);
 
 // ▶ Get puzzle history
 // GET /api/quiz/puzzle/history
-router.get("/puzzle/history", QuizPuzzleController.getHistory);
+router.get(
+  "/puzzle/history",
+  authMiddleware,
+  QuizPuzzleController.getHistory
+);
 
 // ▶ Get puzzle by date (YYYY-MM-DD)
 // GET /api/quiz/puzzle/2026-01-28
-router.get("/puzzle/:date", QuizPuzzleController.getByDate);
+router.get(
+  "/puzzle/:date",
+  authMiddleware,
+  QuizPuzzleController.getByDate
+);
 
 /* =====================================================
    LEADERBOARD
 ===================================================== */
 
-// ▶ Global leaderboard (normal + daily combined)
-// GET /api/quiz/leaderboard
-router.get("/leaderboard", QuizLeaderboardController.top);
+// ▶ Global leaderboard
+// GET /api/quiz/leaderboard?limit=20
+router.get(
+  "/leaderboard",
+  authMiddleware,
+  QuizLeaderboardController.global
+);
 
-// ▶ Daily leaderboard only
-// GET /api/quiz/leaderboard/daily
-router.get("/leaderboard/daily", QuizLeaderboardController.daily);
+// ▶ Daily leaderboard
+// GET /api/quiz/leaderboard/daily?date=YYYY-MM-DD
+router.get(
+  "/leaderboard/daily",
+  authMiddleware,
+  QuizLeaderboardController.daily
+);
 
 /* =====================================================
    ADMIN QUIZ ROUTES (QUESTIONS MANAGEMENT)
-   Protected by auth + adminOnly
 ===================================================== */
 
 // ▶ Create single question
