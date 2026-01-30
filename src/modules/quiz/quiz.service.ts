@@ -4,12 +4,16 @@ import { QuizQuestion } from "./quizQuestion.model";
 import { QuizAttempt } from "./quizAttempt.model";
 import { QuizDailyAttempt } from "./quizDailyAttempt";
 import { QuizLevelService } from "./quizLevel.service";
+import { QuizLeaderboardService } from "./quizLeaderboard.service";
 
-type QuizMode = "general" | "puzzle" | "daily";
+type QuizMode = "normal" | "puzzle";
+
+const getDayKey = (date = new Date()) =>
+  date.toISOString().split("T")[0];
 
 export const QuizService = {
   /* =======================================================
-     PLAY QUIZ (GENERAL / PUZZLE / LEVEL)
+     PLAY NORMAL / PUZZLE QUIZ (LEVEL BASED)
   ======================================================= */
   async play(mode: QuizMode, level: number) {
     if (!mode) throw new AppError("Quiz mode is required", 400);
@@ -24,7 +28,7 @@ export const QuizService = {
     }).limit(10);
 
     if (!questions.length) {
-      throw new AppError("No questions available for this level", 404);
+      throw new AppError("No questions available", 404);
     }
 
     return {
@@ -42,7 +46,7 @@ export const QuizService = {
   },
 
   /* =======================================================
-     SUBMIT QUIZ (GRADE + XP + LEVEL PROGRESS)
+     SUBMIT NORMAL / PUZZLE QUIZ
   ======================================================= */
   async submit(
     userId: string,
@@ -50,7 +54,7 @@ export const QuizService = {
   ) {
     const { mode, level, answers } = payload;
 
-    if (!answers || !answers.length) {
+    if (!answers?.length) {
       throw new AppError("No answers submitted", 400);
     }
 
@@ -60,11 +64,11 @@ export const QuizService = {
 
     let correct = 0;
 
-    for (const answer of answers) {
+    for (const a of answers) {
       const q = questions.find(
-        q => q._id.toString() === answer.questionId
+        q => q._id.toString() === a.questionId
       );
-      if (q && q.correctAnswer === answer.answer) correct++;
+      if (q && q.correctAnswer === a.answer) correct++;
     }
 
     const total = answers.length;
@@ -79,7 +83,6 @@ export const QuizService = {
       total
     });
 
-    // XP logic
     const xpEarned = correct * 10;
     const levelProgress = await QuizLevelService.addXp(
       userId,
@@ -87,8 +90,6 @@ export const QuizService = {
     );
 
     return {
-      mode,
-      level,
       score,
       correct,
       total,
@@ -99,17 +100,17 @@ export const QuizService = {
   },
 
   /* =======================================================
-     DAILY QUIZ FETCH
+     GET DAILY QUIZ (TODAY)
   ======================================================= */
-  async daily(userId: string) {
-    const today = new Date().toISOString().split("T")[0];
+  async dailyToday(userId: string) {
+    const todayKey = getDayKey();
 
-    const alreadyDone = await QuizDailyAttempt.findOne({
+    const already = await QuizDailyAttempt.findOne({
       userId,
-      date: today
+      date: todayKey
     });
 
-    if (alreadyDone) {
+    if (already) {
       throw new AppError("Daily quiz already completed", 400);
     }
 
@@ -119,14 +120,44 @@ export const QuizService = {
     ]);
 
     if (!questions.length) {
-      throw new AppError("No daily quiz questions available", 404);
+      throw new AppError("No daily quiz available", 404);
     }
 
     return {
-      date: today,
+      date: todayKey,
       timer: 30,
       total: questions.length,
-      questions: questions.map(q => ({
+      questions: questions.map((q: any) => ({
+        _id: q._id,
+        question: q.question,
+        options: q.options,
+        image: q.image ?? null
+      }))
+    };
+  },
+
+/* =======================================================
+     GET DAILY QUIZ BY DATE (READ-ONLY)
+     Used for yesterday / past quizzes
+  ======================================================= */
+  async dailyByDate(date: string) {
+    if (!date || typeof date !== "string") {
+      throw new AppError("Valid date is required (YYYY-MM-DD)", 400);
+    }
+
+    const questions = await QuizQuestion.aggregate([
+      { $match: { mode: "daily", active: true } },
+      { $sample: { size: 5 } }
+    ]);
+
+    if (!questions.length) {
+      throw new AppError("No daily quiz found for this date", 404);
+    }
+
+    return {
+      date,
+      total: questions.length,
+      questions: questions.map((q: any) => ({
         _id: q._id,
         question: q.question,
         options: q.options,
@@ -136,18 +167,41 @@ export const QuizService = {
   },
 
   /* =======================================================
-     DAILY QUIZ SUBMIT
+     DAILY QUIZ HISTORY (AVAILABLE DAYS)
+  ======================================================= */
+  async dailyHistory(limit = 30) {
+    return QuizDailyAttempt.aggregate([
+      {
+        $group: {
+          _id: "$date",
+          attempts: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: -1 } },
+      { $limit: limit },
+      {
+        $project: {
+          _id: 0,
+          date: "$_id",
+          attempts: 1
+        }
+      }
+    ]);
+  },
+
+  /* =======================================================
+     SUBMIT DAILY QUIZ
   ======================================================= */
   async submitDaily(userId: string, answers: any[]) {
-    if (!answers || !answers.length) {
-      throw new AppError("Answers are required", 400);
-    }
+    const todayKey = getDayKey();
 
-    const today = new Date().toISOString().split("T")[0];
+    if (!answers?.length) {
+      throw new AppError("Answers required", 400);
+    }
 
     const existing = await QuizDailyAttempt.findOne({
       userId,
-      date: today
+      date: todayKey
     });
 
     if (existing) {
@@ -160,11 +214,11 @@ export const QuizService = {
 
     let correct = 0;
 
-    for (const answer of answers) {
+    for (const a of answers) {
       const q = questions.find(
-        q => q._id.toString() === answer.questionId
+        q => q._id.toString() === a.questionId
       );
-      if (q && q.correctAnswer === answer.answer) correct++;
+      if (q && q.correctAnswer === a.answer) correct++;
     }
 
     const total = answers.length;
@@ -172,10 +226,15 @@ export const QuizService = {
 
     await QuizDailyAttempt.create({
       userId,
-      date: today,
-      answers: {
-        score
-      }
+      date: todayKey,
+      answers: { score }
+    });
+
+    // ✅ Update ALL leaderboards (global, daily, weekly, monthly)
+    await QuizLeaderboardService.updateFromDailyQuiz({
+      userId,
+      score,
+      correct
     });
 
     const xpEarned = correct * 15;
@@ -185,7 +244,7 @@ export const QuizService = {
     );
 
     return {
-      message: "Daily quiz completed",
+      date: todayKey,
       score,
       correct,
       total,

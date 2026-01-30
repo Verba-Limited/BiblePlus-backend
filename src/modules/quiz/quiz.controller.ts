@@ -1,3 +1,4 @@
+// src/modules/quiz/quiz.controller.ts
 import { Request, Response, NextFunction } from "express";
 import { QuizService } from "./quiz.service";
 import AppError from "../../core/AppError";
@@ -5,7 +6,7 @@ import AppError from "../../core/AppError";
 export const QuizController = {
   /* =====================================================
      PLAY QUIZ (NORMAL / PUZZLE / LEVEL)
-     GET /api/quiz/play?mode=&level=
+     GET /api/quiz/play?mode=normal&level=1
   ===================================================== */
   play: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -16,15 +17,15 @@ export const QuizController = {
         throw new AppError("Quiz mode is required", 400);
       }
 
-      if (!level || level < 1) {
-        throw new AppError("Valid quiz level is required", 400);
+      if (!Number.isInteger(level) || level < 1 || level > 10) {
+        throw new AppError("Quiz level must be between 1 and 10", 400);
       }
 
       const data = await QuizService.play(mode as any, level);
 
       res.status(200).json({
         success: true,
-        data
+        data,
       });
     } catch (err) {
       next(err);
@@ -32,7 +33,7 @@ export const QuizController = {
   },
 
   /* =====================================================
-     SUBMIT QUIZ (NORMAL / PUZZLE)
+     SUBMIT NORMAL / PUZZLE QUIZ
      POST /api/quiz/submit
   ===================================================== */
   submit: async (req: Request, res: Response, next: NextFunction) => {
@@ -44,19 +45,22 @@ export const QuizController = {
       const { mode, level, answers } = req.body;
 
       if (!mode || !level || !Array.isArray(answers)) {
-        throw new AppError("mode, level and answers are required", 400);
+        throw new AppError(
+          "mode, level and answers are required",
+          400
+        );
       }
 
       const data = await QuizService.submit(userId, {
         mode,
         level: Number(level),
-        answers
+        answers,
       });
 
       res.status(200).json({
         success: true,
         message: "Quiz submitted successfully",
-        data
+        data,
       });
     } catch (err) {
       next(err);
@@ -64,19 +68,59 @@ export const QuizController = {
   },
 
   /* =====================================================
-     GET DAILY QUIZ
+     GET TODAY'S DAILY QUIZ
      GET /api/quiz/daily
   ===================================================== */
-  daily: async (req: Request, res: Response, next: NextFunction) => {
+  dailyToday: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
       const userId: string = req.userId;
 
-      const data = await QuizService.daily(userId);
+      const data = await QuizService.dailyToday(userId);
 
       res.status(200).json({
         success: true,
-        data
+        data,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /* =====================================================
+     GET DAILY QUIZ BY DATE (READ-ONLY)
+     GET /api/quiz/daily/:date
+  ===================================================== */
+  dailyByDate: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { date } = req.params;
+
+      if (!date) {
+        throw new AppError("Date parameter is required", 400);
+      }
+
+      const data = await QuizService.dailyByDate(date);
+
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /* =====================================================
+     DAILY QUIZ HISTORY
+     GET /api/quiz/daily-history
+  ===================================================== */
+  dailyHistory: async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await QuizService.dailyHistory();
+
+      res.status(200).json({
+        success: true,
+        data,
       });
     } catch (err) {
       next(err);
@@ -91,7 +135,6 @@ export const QuizController = {
     try {
       // @ts-ignore
       const userId: string = req.userId;
-
       const { answers } = req.body;
 
       if (!Array.isArray(answers) || answers.length === 0) {
@@ -102,11 +145,11 @@ export const QuizController = {
 
       res.status(200).json({
         success: true,
-        message: "Daily quiz submitted",
-        data
+        message: "Daily quiz submitted successfully",
+        data,
       });
     } catch (err) {
       next(err);
     }
-  }
+  },
 };

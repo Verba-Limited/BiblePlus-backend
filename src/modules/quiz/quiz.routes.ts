@@ -15,7 +15,7 @@ const router = Router();
    Base: /api/quiz
 ===================================================== */
 
-// ▶ Play quiz (normal | puzzle | level-based)
+// ▶ Play normal / puzzle quiz
 // GET /api/quiz/play?mode=normal&level=1
 router.get("/play", authMiddleware, QuizController.play);
 
@@ -27,13 +27,37 @@ router.post("/submit", authMiddleware, QuizController.submit);
    DAILY QUIZ
 ===================================================== */
 
-// ▶ Get daily quiz
-// GET /api/quiz/daily
-router.get("/daily", authMiddleware, QuizController.daily);
+// ▶ Get TODAY’s daily quiz
+// GET /api/quiz/daily/today
+router.get(
+  "/daily/today",
+  authMiddleware,
+  QuizController.dailyToday
+);
 
-// ▶ Submit daily quiz
+// ▶ Submit TODAY’s daily quiz
 // POST /api/quiz/daily/submit
-router.post("/daily/submit", authMiddleware, QuizController.submitDaily);
+router.post(
+  "/daily/submit",
+  authMiddleware,
+  QuizController.submitDaily
+);
+
+// ▶ Daily quiz history (available dates)
+// GET /api/quiz/daily/history
+router.get(
+  "/daily/history",
+  authMiddleware,
+  QuizController.dailyHistory
+);
+
+// ▶ Get daily quiz by date (yesterday, past)
+// GET /api/quiz/daily/2026-01-28
+router.get(
+  "/daily/:date",
+  authMiddleware,
+  QuizController.dailyByDate
+);
 
 /* =====================================================
    PUZZLES
@@ -47,7 +71,7 @@ router.get(
   QuizPuzzleController.getByLevel
 );
 
-// ▶ Get today's puzzle
+// ▶ Get today’s puzzle
 // GET /api/quiz/puzzle/today
 router.get(
   "/puzzle/today",
@@ -55,7 +79,7 @@ router.get(
   QuizPuzzleController.getToday
 );
 
-// ▶ Get puzzle history
+// ▶ Puzzle history
 // GET /api/quiz/puzzle/history
 router.get(
   "/puzzle/history",
@@ -63,7 +87,7 @@ router.get(
   QuizPuzzleController.getHistory
 );
 
-// ▶ Get puzzle by date (YYYY-MM-DD)
+// ▶ Get puzzle by date
 // GET /api/quiz/puzzle/2026-01-28
 router.get(
   "/puzzle/:date",
@@ -89,55 +113,6 @@ router.get(
   "/leaderboard/daily",
   authMiddleware,
   QuizLeaderboardController.daily
-);
-
-/* =====================================================
-   ADMIN QUIZ ROUTES (QUESTIONS MANAGEMENT)
-===================================================== */
-
-// ▶ Create single question
-// POST /api/quiz/admin/questions
-router.post(
-  "/admin/questions",
-  authMiddleware,
-  adminOnly,
-  AdminQuizController.create
-);
-
-// ▶ Bulk create questions
-// POST /api/quiz/admin/questions/bulk
-router.post(
-  "/admin/questions/bulk",
-  authMiddleware,
-  adminOnly,
-  AdminQuizController.bulkCreate
-);
-
-// ▶ Update question
-// PUT /api/quiz/admin/questions/:id
-router.put(
-  "/admin/questions/:id",
-  authMiddleware,
-  adminOnly,
-  AdminQuizController.update
-);
-
-// ▶ Toggle question active/inactive
-// PATCH /api/quiz/admin/questions/:id/toggle
-router.patch(
-  "/admin/questions/:id/toggle",
-  authMiddleware,
-  adminOnly,
-  AdminQuizController.toggle
-);
-
-// ▶ Delete question
-// DELETE /api/quiz/admin/questions/:id
-router.delete(
-  "/admin/questions/:id",
-  authMiddleware,
-  adminOnly,
-  AdminQuizController.delete
 );
 
 export default router;

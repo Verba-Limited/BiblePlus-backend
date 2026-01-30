@@ -2,11 +2,18 @@
 import AppError from "../../core/AppError";
 import { QuizQuestion } from "./quizQuestion.model";
 
-const VALID_MODES = ["normal", "puzzle", "daily"];
+type QuizMode = "normal" | "puzzle" | "daily";
+
 const MIN_LEVEL = 1;
 const MAX_LEVEL = 10;
 
-function validateQuestion(data: any) {
+function validateQuestion(data: {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  mode: QuizMode;
+  level?: number;
+}) {
   const { question, options, correctAnswer, mode, level } = data;
 
   if (!question || typeof question !== "string") {
@@ -25,21 +32,24 @@ function validateQuestion(data: any) {
     throw new AppError("Invalid correctAnswer index", 400);
   }
 
-  if (!VALID_MODES.includes(mode)) {
+  if (!["normal", "puzzle", "daily"].includes(mode)) {
     throw new AppError(
-      `Invalid mode. Allowed: ${VALID_MODES.join(", ")}`,
+      "Mode must be normal, puzzle, or daily",
       400
     );
   }
 
-  // 🔑 ONLY validate level when NOT daily
+  // ✅ Only enforce level when NOT daily
   if (mode !== "daily") {
     if (
       typeof level !== "number" ||
       level < MIN_LEVEL ||
       level > MAX_LEVEL
     ) {
-      throw new AppError("Level must be between 1 and 10", 400);
+      throw new AppError(
+        "Level must be between 1 and 10",
+        400
+      );
     }
   }
 }
@@ -51,12 +61,12 @@ export const AdminQuizService = {
   async create(data: any) {
     validateQuestion(data);
 
-    return await QuizQuestion.create({
+    return QuizQuestion.create({
       question: data.question,
       options: data.options,
       correctAnswer: data.correctAnswer,
       mode: data.mode,
-      level: data.level,
+      level: data.mode === "daily" ? undefined : data.level,
       image: data.image ?? null,
       active: data.active ?? true
     });
@@ -68,35 +78,37 @@ export const AdminQuizService = {
   async update(id: string, data: any) {
     if (!id) throw new AppError("Question ID required", 400);
 
-    // Validate only if key fields are being changed
-    if (
-      data.question ||
-      data.options ||
-      data.correctAnswer !== undefined ||
-      data.mode ||
-      data.level
-    ) {
-      validateQuestion({
-        question: data.question ?? "temp",
-        options: data.options ?? ["a", "b"],
-        correctAnswer:
-          data.correctAnswer ?? 0,
-        mode: data.mode ?? "normal",
-        level: data.level ?? 1
-      });
-    }
-
-    const updated = await QuizQuestion.findByIdAndUpdate(
-      id,
-      data,
-      { new: true, runValidators: true }
-    );
-
-    if (!updated) {
+    const existing = await QuizQuestion.findById(id);
+    if (!existing) {
       throw new AppError("Question not found", 404);
     }
 
-    return updated;
+    // Merge old + new safely
+    const merged = {
+      question: data.question ?? existing.question,
+      options: data.options ?? existing.options,
+      correctAnswer:
+        data.correctAnswer ?? existing.correctAnswer,
+      mode: data.mode ?? existing.mode,
+      level:
+        (data.mode ?? existing.mode) === "daily"
+          ? undefined
+          : data.level ?? existing.level
+    };
+
+    validateQuestion(merged);
+
+    return QuizQuestion.findByIdAndUpdate(
+      id,
+      {
+        ...data,
+        level:
+          merged.mode === "daily"
+            ? undefined
+            : merged.level
+      },
+      { new: true, runValidators: true }
+    );
   },
 
   /* ============================
@@ -138,20 +150,20 @@ export const AdminQuizService = {
       throw new AppError("Questions array is required", 400);
     }
 
-    for (const q of questions) {
+    const docs = questions.map((q) => {
       validateQuestion(q);
-    }
 
-    return await QuizQuestion.insertMany(
-      questions.map(q => ({
+      return {
         question: q.question,
         options: q.options,
         correctAnswer: q.correctAnswer,
         mode: q.mode,
-        level: q.level,
+        level: q.mode === "daily" ? undefined : q.level,
         image: q.image ?? null,
         active: q.active ?? true
-      }))
-    );
+      };
+    });
+
+    return QuizQuestion.insertMany(docs);
   }
 };

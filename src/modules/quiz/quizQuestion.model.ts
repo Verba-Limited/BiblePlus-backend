@@ -42,13 +42,16 @@ const quizQuestionSchema = new Schema<IQuizQuestion>(
       type: Number,
       min: 1,
       max: 10,
-      required: function (this: IQuizQuestion) {
-        return this.mode !== "daily";
+      required: function () {
+       
+        const doc = this as IQuizQuestion;
+        return doc.mode !== "daily";
       }
     },
 
     image: {
-      type: String
+      type: String,
+      default: null
     },
 
     active: {
