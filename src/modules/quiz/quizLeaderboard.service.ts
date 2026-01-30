@@ -1,18 +1,29 @@
+// src/modules/quiz/quizLeaderboard.service.ts
+
+import AppError from "../../core/AppError";
 import { QuizLeaderboard } from "./quizLeaderboard.model";
 
 type LeaderboardType = "global" | "daily";
+
+interface UpdateLeaderboardParams {
+  userId: string;
+  score: number;
+  correct: number;
+  type?: LeaderboardType;
+  date?: string;
+}
+
+interface TopLeaderboardParams {
+  type?: LeaderboardType;
+  date?: string;
+  limit?: number;
+}
 
 export const QuizLeaderboardService = {
   /* =====================================================
      UPDATE LEADERBOARD (GLOBAL OR DAILY)
   ===================================================== */
-  async update(params: {
-    userId: string;
-    score: number;
-    correct: number;
-    type?: LeaderboardType;
-    date?: string;
-  }) {
+  async update(params: UpdateLeaderboardParams) {
     const {
       userId,
       score,
@@ -21,20 +32,23 @@ export const QuizLeaderboardService = {
       date
     } = params;
 
+    if (type === "daily" && !date) {
+      throw new AppError(
+        "Date is required for daily leaderboard",
+        400
+      );
+    }
+
     const query: any = {
       userId,
       type
     };
 
-    // Daily leaderboard requires date
     if (type === "daily") {
-      if (!date) {
-        throw new Error("Date is required for daily leaderboard");
-      }
       query.date = date;
     }
 
-    return await QuizLeaderboard.findOneAndUpdate(
+    return QuizLeaderboard.findOneAndUpdate(
       query,
       {
         $inc: {
@@ -48,35 +62,42 @@ export const QuizLeaderboardService = {
         new: true,
         setDefaultsOnInsert: true
       }
-    ).select("-__v");
+    )
+      .select("-__v")
+      .lean();
   },
 
   /* =====================================================
      GET TOP LEADERBOARD
   ===================================================== */
-  async top(params?: {
-    type?: LeaderboardType;
-    date?: string;
-    limit?: number;
-  }) {
+  async top(params: TopLeaderboardParams = {}) {
     const {
       type = "global",
       date,
       limit = 20
-    } = params || {};
+    } = params;
+
+    if (type === "daily" && !date) {
+      throw new AppError(
+        "Date is required for daily leaderboard",
+        400
+      );
+    }
 
     const query: any = { type };
 
     if (type === "daily") {
-      if (!date) {
-        throw new Error("Date is required for daily leaderboard");
-      }
       query.date = date;
     }
 
-    return await QuizLeaderboard.find(query)
-      .sort({ totalScore: -1, totalCorrect: -1 })
+    return QuizLeaderboard.find(query)
+      .sort({
+        totalScore: -1,
+        totalCorrect: -1,
+        updatedAt: 1
+      })
       .limit(limit)
-      .select("-__v");
+      .select("-__v")
+      .lean();
   }
 };

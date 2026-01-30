@@ -1,10 +1,35 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-const quizLeaderboardSchema = new mongoose.Schema(
+export interface IQuizLeaderboard extends Document {
+  userId: string;
+  username?: string;
+  avatar?: string;
+
+  type: "global" | "daily";
+  date?: string;
+
+  totalScore: number;
+  totalCorrect: number;
+  totalPlayed: number;
+}
+
+const quizLeaderboardSchema = new Schema<IQuizLeaderboard>(
   {
-    userId: { type: String, required: true },
-    username: { type: String }, // optional (cache)
+    userId: { type: String, required: true, index: true },
+    username: { type: String },
     avatar: { type: String },
+
+    type: {
+      type: String,
+      enum: ["global", "daily"],
+      default: "global",
+      index: true
+    },
+
+    date: {
+      type: String, // YYYY-MM-DD
+      index: true
+    },
 
     totalScore: { type: Number, default: 0 },
     totalCorrect: { type: Number, default: 0 },
@@ -13,7 +38,13 @@ const quizLeaderboardSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const QuizLeaderboard = mongoose.model(
+// Prevent duplicate rows
+quizLeaderboardSchema.index(
+  { userId: 1, type: 1, date: 1 },
+  { unique: true, sparse: true }
+);
+
+export const QuizLeaderboard = mongoose.model<IQuizLeaderboard>(
   "QuizLeaderboard",
   quizLeaderboardSchema
 );
