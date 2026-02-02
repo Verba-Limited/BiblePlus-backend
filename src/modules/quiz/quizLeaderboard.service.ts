@@ -21,7 +21,7 @@ interface UpdateDailyParams {
   userId: string;
   score: number;
   correct: number;
-  username?: string;
+  username: string;
   avatar?: string;
 }
 
@@ -45,11 +45,11 @@ export const QuizLeaderboardService = {
     username,
     avatar
   }: UpdateDailyParams): Promise<void> {
-    if (!userId) {
-      throw new AppError("userId is required", 400);
+    if (!userId || !username) {
+      throw new AppError("userId and username are required", 400);
     }
 
-    const leaderboardScopes = [
+    const scopes = [
       { type: "global" as const },
       { type: "daily" as const, date: getToday() },
       { type: "weekly" as const, week: getWeekKey() },
@@ -57,7 +57,7 @@ export const QuizLeaderboardService = {
     ];
 
     await Promise.all(
-      leaderboardScopes.map((scope) =>
+      scopes.map((scope) =>
         QuizLeaderboard.findOneAndUpdate(
           { userId, ...scope },
           {
@@ -66,6 +66,7 @@ export const QuizLeaderboardService = {
               totalCorrect: correct,
               totalPlayed: 1
             },
+            // ✅ always keep username/avatar in sync
             $set: {
               username,
               avatar
@@ -93,24 +94,33 @@ export const QuizLeaderboardService = {
   }: GetTopParams) {
     const query: Record<string, any> = { type };
 
-    // Validate required keys
+    // 🔒 Validate time keys
     if (type === "daily") {
       if (!date) {
-        throw new AppError("date is required for daily leaderboard", 400);
+        throw new AppError(
+          "date is required for daily leaderboard",
+          400
+        );
       }
       query.date = date;
     }
 
     if (type === "weekly") {
       if (!week) {
-        throw new AppError("week is required for weekly leaderboard", 400);
+        throw new AppError(
+          "week is required for weekly leaderboard",
+          400
+        );
       }
       query.week = week;
     }
 
     if (type === "monthly") {
       if (!month) {
-        throw new AppError("month is required for monthly leaderboard", 400);
+        throw new AppError(
+          "month is required for monthly leaderboard",
+          400
+        );
       }
       query.month = month;
     }
@@ -122,7 +132,8 @@ export const QuizLeaderboardService = {
         updatedAt: 1
       })
       .limit(limit)
-      .select("-__v")
+      
+      .select("username avatar totalScore totalCorrect totalPlayed")
       .lean();
   }
 };
