@@ -42,7 +42,8 @@ export const QuizService = {
         options: q.options,
         image: q.image ?? null,
 
-        correctAnswer: q.correctAnswer 
+        // ⚠️ TEMP: exposing answer (remove later)
+        correctAnswer: q.correctAnswer
       }))
     };
   },
@@ -135,45 +136,14 @@ export const QuizService = {
         options: q.options,
         image: q.image ?? null,
 
-        correctAnswer: q.correctAnswer 
-      }))
-    };
-  },
-
-/* =======================================================
-     GET DAILY QUIZ BY DATE (READ-ONLY)
-     Used for yesterday / past quizzes
-  ======================================================= */
-  async dailyByDate(date: string) {
-    if (!date || typeof date !== "string") {
-      throw new AppError("Valid date is required (YYYY-MM-DD)", 400);
-    }
-
-    const questions = await QuizQuestion.aggregate([
-      { $match: { mode: "daily", active: true } },
-      { $sample: { size: 5 } }
-    ]);
-
-    if (!questions.length) {
-      throw new AppError("No daily quiz found for this date", 404);
-    }
-
-    return {
-      date,
-      total: questions.length,
-      questions: questions.map((q: any) => ({
-        _id: q._id,
-        question: q.question,
-        options: q.options,
-        image: q.image ?? null,
-
-        correctAnswer: q.correctAnswer + 1
+        // ⚠️ TEMP
+        correctAnswer: q.correctAnswer
       }))
     };
   },
 
   /* =======================================================
-     DAILY QUIZ HISTORY (AVAILABLE DAYS)
+     GET DAILY QUIZ HISTORY (DATES)
   ======================================================= */
   async dailyHistory(limit = 30) {
     return QuizDailyAttempt.aggregate([
@@ -198,7 +168,12 @@ export const QuizService = {
   /* =======================================================
      SUBMIT DAILY QUIZ
   ======================================================= */
-  async submitDaily(userId: string, answers: any[]) {
+  async submitDaily(params: {
+    userId: string;
+    username: string;
+    answers: any[];
+  }) {
+    const { userId, username, answers } = params;
     const todayKey = getDayKey();
 
     if (!answers?.length) {
@@ -236,11 +211,12 @@ export const QuizService = {
       answers: { score }
     });
 
-    // ✅ Update ALL leaderboards (global, daily, weekly, monthly)
+    // ✅ leaderboard update (fixed)
     await QuizLeaderboardService.updateFromDailyQuiz({
       userId,
       score,
-      correct
+      correct,
+      username
     });
 
     const xpEarned = correct * 15;
