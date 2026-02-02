@@ -72,7 +72,7 @@ export const QuizDailyService = {
         image: q.image ?? null,
 
         ...(canReveal && {
-          // ✅ convert to 1-based index
+        
           correctAnswer: q.correctAnswer + 1
         })
       }))

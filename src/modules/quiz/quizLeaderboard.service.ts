@@ -66,7 +66,7 @@ export const QuizLeaderboardService = {
               totalCorrect: correct,
               totalPlayed: 1
             },
-            // ✅ always keep username/avatar in sync
+            
             $set: {
               username,
               avatar

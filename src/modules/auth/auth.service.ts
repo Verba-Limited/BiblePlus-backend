@@ -7,24 +7,31 @@ import {
   generateRefreshToken,
 } from "../../utils/jwt";
 import AppError from "../../core/AppError";
-import { database } from "firebase-admin";
 
 export const AuthService = {
-  // -----------------------------------------------------
-  // REGISTER USER
-  // -----------------------------------------------------
-  register: async (email: string, password: string, firstName: string, lastName: string) => {
+  /* =====================================================
+     REGISTER USER
+  ===================================================== */
+  register: async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string
+  ) => {
     const existingUser = await User.findOne({ email });
-    if (existingUser) throw new AppError("Email already exists", 400);
+    if (existingUser) {
+      throw new AppError("Email already exists", 400);
+    }
 
-    const hashed = await hashPassword(password);
+    const hashedPassword = await hashPassword(password);
 
     await User.create({
       email,
-      password: hashed,
+      password: hashedPassword,
       firstName,
       lastName,
       verified: false,
+      role: "user",
     });
 
     const otpCode = generateOtp();
@@ -32,67 +39,105 @@ export const AuthService = {
     await Otp.create({
       email,
       code: otpCode.toString(),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 mins
     });
 
-    console.log("OTP:", otpCode);
-
-    return { message: "OTP sent to email", email };
-  },
-
-  // -----------------------------------------------------
-  // VERIFY OTP
-  // -----------------------------------------------------
-  verifyOtp: async (email: string, code: string) => {
-    const cleanCode = String(code).trim(); // FIX ➜ normalize OTP
-
-    console.log("Verifying OTP:", cleanCode);
-
-    const otp = await Otp.findOne({ email, code: cleanCode });
-
-    if (!otp) throw new AppError("Invalid OTP", 400);
-
-    if (otp.expiresAt < new Date()) throw new AppError("OTP expired", 400);
-
-    await User.findOneAndUpdate({ email }, { verified: true });
-    await Otp.deleteMany({ email });
-
-    const user = await User.findOne({ email });
-    if (!user) throw new AppError("User not found", 404);
+    console.log("REGISTER OTP:", otpCode);
 
     return {
-      token: generateAccessToken(user._id.toString()),
+      message: "OTP sent to email",
+      email,
+    };
+  },
+
+  /* =====================================================
+     VERIFY OTP
+  ===================================================== */
+  verifyOtp: async (email: string, code: string) => {
+    const cleanCode = String(code).trim();
+
+    const otp = await Otp.findOne({
+      email,
+      code: cleanCode,
+    });
+
+    if (!otp) {
+      throw new AppError("Invalid OTP", 400);
+    }
+
+    if (otp.expiresAt < new Date()) {
+      throw new AppError("OTP expired", 400);
+    }
+
+    const user = await User.findOneAndUpdate(
+      { email },
+      { verified: true },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    await Otp.deleteMany({ email });
+
+    const username = `${user.firstName} ${user.lastName}`;
+
+    return {
+      token: generateAccessToken({
+        userId: user._id.toString(),
+        role: user.role,
+        username,
+      }),
       refreshToken: generateRefreshToken(user._id.toString()),
       user,
     };
   },
 
-  // -----------------------------------------------------
-  // LOGIN USER
-  // -----------------------------------------------------
+  /* =====================================================
+     LOGIN USER
+  ===================================================== */
   login: async (email: string, password: string) => {
     const user = await User.findOne({ email });
-    if (!user) throw new AppError("Invalid email or password", 400);
+    if (!user) {
+      throw new AppError("Invalid email or password", 400);
+    }
 
-    const valid = await comparePassword(password, user.password);
-    if (!valid) throw new AppError("Invalid email or password", 400);
+    const validPassword = await comparePassword(
+      password,
+      user.password
+    );
 
-    if (!user.verified) throw new AppError("Account not verified", 400);
+    if (!validPassword) {
+      throw new AppError("Invalid email or password", 400);
+    }
+
+    if (!user.verified) {
+      throw new AppError("Account not verified", 400);
+    }
+
+    const username = `${user.firstName} ${user.lastName}`;
 
     return {
-      token: generateAccessToken(user._id.toString()),
+      token: generateAccessToken({
+        userId: user._id.toString(),
+        role: user.role,
+        username,
+      }),
       refreshToken: generateRefreshToken(user._id.toString()),
       status: "success",
       user,
     };
   },
 
-  // -----------------------------------------------------
-  // FORGOT PASSWORD → SEND OTP
-  // -----------------------------------------------------
+  /* =====================================================
+     FORGOT PASSWORD (SEND OTP)
+  ===================================================== */
   forgotPassword: async (email: string) => {
     const user = await User.findOne({ email });
-    if (!user) throw new AppError("Email not found", 404);
+    if (!user) {
+      throw new AppError("Email not found", 404);
+    }
 
     const otpCode = generateOtp();
 
@@ -102,50 +147,74 @@ export const AuthService = {
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
-    console.log("Reset OTP:", otpCode);
+    console.log("RESET OTP:", otpCode);
 
-    return { message: "Reset OTP sent" };
+    return {
+      message: "Reset OTP sent to email",
+    };
   },
 
-  // -----------------------------------------------------
-  // RESET PASSWORD
-  // -----------------------------------------------------
-  resetPassword: async (email: string, otp: string, newPassword: string) => {
-    const cleanCode = String(otp).trim(); 
+  /* =====================================================
+     RESET PASSWORD
+  ===================================================== */
+  resetPassword: async (
+    email: string,
+    otp: string,
+    newPassword: string
+  ) => {
+    const cleanCode = String(otp).trim();
 
     const verifiedOtp = await Otp.findOne({
       email,
       code: cleanCode,
     });
 
-    if (!verifiedOtp) throw new AppError("Invalid OTP", 400);
+    if (!verifiedOtp) {
+      throw new AppError("Invalid OTP", 400);
+    }
+
+    if (verifiedOtp.expiresAt < new Date()) {
+      throw new AppError("OTP expired", 400);
+    }
 
     const hashed = await hashPassword(newPassword);
 
-    await User.findOneAndUpdate({ email }, { password: hashed });
+    await User.findOneAndUpdate(
+      { email },
+      { password: hashed }
+    );
+
     await Otp.deleteMany({ email });
 
-    return { message: "Password reset successful" };
+    return {
+      message: "Password reset successful",
+    };
   },
 
-  // -----------------------------------------------------
-  // GET USER PROFILE
-  // -----------------------------------------------------
+  /* =====================================================
+     GET USER PROFILE
+  ===================================================== */
   profile: async (userId: string) => {
     const user = await User.findById(userId).select("-password");
-    if (!user) throw new AppError("User not found", 404);
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
     return user;
   },
 
-  // -----------------------------------------------------
-  // UPDATE PROFILE
-  // -----------------------------------------------------
+  /* =====================================================
+     UPDATE PROFILE
+  ===================================================== */
   updateProfile: async (userId: string, data: any) => {
-    const user = await User.findByIdAndUpdate(userId, data, {
-      new: true,
-    }).select("-password");
+    const user = await User.findByIdAndUpdate(
+      userId,
+      data,
+      { new: true }
+    ).select("-password");
 
-    if (!user) throw new AppError("User not found", 404);
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
 
     return user;
   },
