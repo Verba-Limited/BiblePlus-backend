@@ -38,7 +38,6 @@ export const QuizController = {
   ===================================================== */
   submit: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // injected by auth middleware
       // @ts-ignore
       const userId: string = req.userId;
 
@@ -135,13 +134,25 @@ export const QuizController = {
     try {
       // @ts-ignore
       const userId: string = req.userId;
+
+      // OPTIONAL (safe default)
+      // @ts-ignore
+      const username: string =
+        req.user?.username ??
+        req.user?.firstName ??
+        "Anonymous";
+
       const { answers } = req.body;
 
       if (!Array.isArray(answers) || answers.length === 0) {
         throw new AppError("Answers array is required", 400);
       }
 
-      const data = await QuizService.submitDaily(userId, answers);
+      const data = await QuizService.submitDaily({
+        userId,
+        username,
+        answers,
+      });
 
       res.status(200).json({
         success: true,
