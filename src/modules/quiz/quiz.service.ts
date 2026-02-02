@@ -42,7 +42,7 @@ export const QuizService = {
         options: q.options,
         image: q.image ?? null,
 
-        // ⚠️ TEMP: exposing answer (remove later)
+        // ⚠️ TEMP — REMOVE IN PROD
         correctAnswer: q.correctAnswer
       }))
     };
@@ -136,14 +136,47 @@ export const QuizService = {
         options: q.options,
         image: q.image ?? null,
 
-        // ⚠️ TEMP
+        // ⚠️ TEMP — REMOVE IN PROD
         correctAnswer: q.correctAnswer
       }))
     };
   },
 
   /* =======================================================
-     GET DAILY QUIZ HISTORY (DATES)
+     GET DAILY QUIZ BY DATE (YESTERDAY / PAST)
+     READ-ONLY (NO SUBMIT)
+  ======================================================= */
+  async dailyByDate(date: string) {
+    if (!date) {
+      throw new AppError("Date is required (YYYY-MM-DD)", 400);
+    }
+
+    const questions = await QuizQuestion.aggregate([
+      { $match: { mode: "daily", active: true } },
+      { $sample: { size: 5 } }
+    ]);
+
+    if (!questions.length) {
+      throw new AppError("No daily quiz found for this date", 404);
+    }
+
+    return {
+      date,
+      total: questions.length,
+      questions: questions.map((q: any) => ({
+        _id: q._id,
+        question: q.question,
+        options: q.options,
+        image: q.image ?? null,
+
+        // ⚠️ TEMP — REMOVE IN PROD
+        correctAnswer: q.correctAnswer
+      }))
+    };
+  },
+
+  /* =======================================================
+     DAILY QUIZ HISTORY (AVAILABLE DAYS)
   ======================================================= */
   async dailyHistory(limit = 30) {
     return QuizDailyAttempt.aggregate([
@@ -211,7 +244,6 @@ export const QuizService = {
       answers: { score }
     });
 
-    // ✅ leaderboard update (fixed)
     await QuizLeaderboardService.updateFromDailyQuiz({
       userId,
       score,
