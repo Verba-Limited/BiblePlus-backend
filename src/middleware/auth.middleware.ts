@@ -1,3 +1,5 @@
+// src/middleware/auth.middleware.ts
+
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import AppError from "../core/AppError";
@@ -8,6 +10,8 @@ import AppError from "../core/AppError";
 interface DecodedToken extends JwtPayload {
   userId: string;
   role: "user" | "admin";
+  username?: string;
+  avatar?: string;
 }
 
 /* =====================================================
@@ -54,6 +58,13 @@ const authMiddleware = (
 
     // @ts-ignore
     req.userRole = decoded.role;
+
+    // ✅ NEW (USED BY LEADERBOARD)
+    // @ts-ignore
+    req.username = decoded.username ?? null;
+
+    // @ts-ignore
+    req.avatar = decoded.avatar ?? null;
 
     return next();
   } catch (error) {
