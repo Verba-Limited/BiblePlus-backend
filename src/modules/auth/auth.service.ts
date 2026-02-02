@@ -111,7 +111,7 @@ export const AuthService = {
   // RESET PASSWORD
   // -----------------------------------------------------
   resetPassword: async (email: string, otp: string, newPassword: string) => {
-    const cleanCode = String(otp).trim(); // FIX
+    const cleanCode = String(otp).trim(); 
 
     const verifiedOtp = await Otp.findOne({
       email,
