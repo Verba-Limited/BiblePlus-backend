@@ -24,7 +24,8 @@ export const QuizLeaderboardController = {
         type: "daily",
         date: getToday()
       });
-      res.json({ success: true, data });
+      res.json({ success: true, data
+       });
     } catch (err) {
       next(err);
     }
