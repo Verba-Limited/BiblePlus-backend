@@ -1,3 +1,5 @@
+// src/modules/quiz/quizLeaderboard.service.ts
+
 import AppError from "../../core/AppError";
 import { QuizLeaderboard } from "./quizLeaderboard.model";
 import { User } from "../auth/auth.model";
@@ -7,24 +9,84 @@ import {
   getMonthKey
 } from "./quizLeaderboard.utils";
 
+/* ======================================
+   TYPES
+====================================== */
 export type LeaderboardType =
   | "global"
   | "daily"
   | "weekly"
   | "monthly";
 
+interface UpdateParams {
+  userId: string;
+  score: number;
+  correct: number;
+}
+
+interface GetTopParams {
+  type: LeaderboardType;
+  date?: string;
+  week?: string;
+  month?: string;
+  limit?: number;
+}
+
 export const QuizLeaderboardService = {
   /* =====================================================
-     UPDATE LEADERBOARD (CALLED FROM ANY QUIZ TYPE)
-     normal | puzzle | daily
+     UPDATE LEADERBOARD FROM NORMAL / PUZZLE QUIZ
+     (GLOBAL ONLY)
   ===================================================== */
-  async update(params: {
-    userId: string;
-    score: number;
-    correct: number;
-  }) {
-    const { userId, score, correct } = params;
+  async updateFromQuizAttempt({
+    userId,
+    score,
+    correct
+  }: UpdateParams): Promise<void> {
+    if (!userId) {
+      throw new AppError("userId is required", 400);
+    }
 
+    const user = await User.findById(userId)
+      .select("username avatar")
+      .lean();
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    await QuizLeaderboard.findOneAndUpdate(
+      {
+        userId,
+        type: "global"
+      },
+      {
+        $inc: {
+          totalScore: score,
+          totalCorrect: correct,
+          totalPlayed: 1
+        },
+        $set: {
+          username: user.username,
+          avatar: user.avatar
+        }
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true
+      }
+    );
+  },
+
+  /* =====================================================
+     UPDATE ALL LEADERBOARDS FROM DAILY QUIZ
+     (GLOBAL + DAILY + WEEKLY + MONTHLY)
+  ===================================================== */
+  async updateFromDailyQuiz({
+    userId,
+    score,
+    correct
+  }: UpdateParams): Promise<void> {
     if (!userId) {
       throw new AppError("userId is required", 400);
     }
@@ -70,23 +132,15 @@ export const QuizLeaderboardService = {
   },
 
   /* =====================================================
-     GET LEADERBOARD (ALL USERS)
+     GET LEADERBOARD WITH RANK
   ===================================================== */
-  async getTop(params: {
-    type: LeaderboardType;
-    date?: string;
-    week?: string;
-    month?: string;
-    limit?: number;
-  }) {
-    const {
-      type,
-      date,
-      week,
-      month,
-      limit = 20
-    } = params;
-
+  async getTop({
+    type,
+    date,
+    week,
+    month,
+    limit = 20
+  }: GetTopParams) {
     const query: Record<string, any> = { type };
 
     if (type === "daily") {
@@ -104,14 +158,22 @@ export const QuizLeaderboardService = {
       query.month = month;
     }
 
-    return QuizLeaderboard.find(query)
+    const rows = await QuizLeaderboard.find(query)
       .sort({
         totalScore: -1,
         totalCorrect: -1,
-        totalPlayed: 1
+        updatedAt: 1
       })
       .limit(limit)
-      .select("username avatar totalScore totalCorrect totalPlayed")
+      .select(
+        "username avatar totalScore totalCorrect totalPlayed"
+      )
       .lean();
+
+    // ✅ ADD RANK (1,2,3…)
+    return rows.map((row, index) => ({
+      rank: index + 1,
+      ...row
+    }));
   }
 };

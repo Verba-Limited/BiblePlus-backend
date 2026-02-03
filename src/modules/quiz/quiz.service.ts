@@ -87,7 +87,7 @@ export const QuizService = {
     });
 
     // 🔥 UPDATE LEADERBOARD (NORMAL / PUZZLE INCLUDED)
-    await QuizLeaderboardService.update({
+    await QuizLeaderboardService.updateFromQuizAttempt({
       userId,
       score,
       correct
@@ -250,7 +250,7 @@ export const QuizService = {
     });
 
     // 🔥 UPDATE LEADERBOARD (DAILY INCLUDED)
-    await QuizLeaderboardService.update({
+    await QuizLeaderboardService.updateFromDailyQuiz({
       userId,
       score,
       correct
