@@ -42,7 +42,7 @@ export const QuizService = {
         options: q.options,
         image: q.image ?? null,
 
-        // ⚠️ TEMP — REMOVE IN PROD
+        // ⚠️ TEMP (REMOVE IN PROD)
         correctAnswer: q.correctAnswer
       }))
     };
@@ -84,6 +84,13 @@ export const QuizService = {
       score,
       correct,
       total
+    });
+
+    // 🔥 UPDATE LEADERBOARD (NORMAL / PUZZLE INCLUDED)
+    await QuizLeaderboardService.update({
+      userId,
+      score,
+      correct
     });
 
     const xpEarned = correct * 10;
@@ -136,15 +143,14 @@ export const QuizService = {
         options: q.options,
         image: q.image ?? null,
 
-        // ⚠️ TEMP — REMOVE IN PROD
+        // ⚠️ TEMP (REMOVE IN PROD)
         correctAnswer: q.correctAnswer
       }))
     };
   },
 
   /* =======================================================
-     GET DAILY QUIZ BY DATE (YESTERDAY / PAST)
-     READ-ONLY (NO SUBMIT)
+     GET DAILY QUIZ BY DATE (READ-ONLY)
   ======================================================= */
   async dailyByDate(date: string) {
     if (!date) {
@@ -169,14 +175,14 @@ export const QuizService = {
         options: q.options,
         image: q.image ?? null,
 
-        // ⚠️ TEMP — REMOVE IN PROD
+        // ⚠️ TEMP (REMOVE IN PROD)
         correctAnswer: q.correctAnswer
       }))
     };
   },
 
   /* =======================================================
-     DAILY QUIZ HISTORY (AVAILABLE DAYS)
+     DAILY QUIZ HISTORY
   ======================================================= */
   async dailyHistory(limit = 30) {
     return QuizDailyAttempt.aggregate([
@@ -203,10 +209,9 @@ export const QuizService = {
   ======================================================= */
   async submitDaily(params: {
     userId: string;
-    username: string;
     answers: any[];
   }) {
-    const { userId, username, answers } = params;
+    const { userId, answers } = params;
     const todayKey = getDayKey();
 
     if (!answers?.length) {
@@ -244,10 +249,11 @@ export const QuizService = {
       answers: { score }
     });
 
-    await QuizLeaderboardService.updateFromDailyQuiz({
+    // 🔥 UPDATE LEADERBOARD (DAILY INCLUDED)
+    await QuizLeaderboardService.update({
       userId,
       score,
-      correct,
+      correct
     });
 
     const xpEarned = correct * 15;

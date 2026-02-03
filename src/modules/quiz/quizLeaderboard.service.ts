@@ -1,5 +1,3 @@
-// src/modules/quiz/quizLeaderboard.service.ts
-
 import AppError from "../../core/AppError";
 import { QuizLeaderboard } from "./quizLeaderboard.model";
 import { User } from "../auth/auth.model";
@@ -9,45 +7,28 @@ import {
   getMonthKey
 } from "./quizLeaderboard.utils";
 
-/* ======================================
-   TYPES
-====================================== */
 export type LeaderboardType =
   | "global"
   | "daily"
   | "weekly"
   | "monthly";
 
-interface UpdateDailyParams {
-  userId: string;
-  score: number;
-  correct: number;
-}
-
-interface GetTopParams {
-  type: LeaderboardType;
-  date?: string;
-  week?: string;
-  month?: string;
-  limit?: number;
-}
-
 export const QuizLeaderboardService = {
   /* =====================================================
-     UPDATE ALL LEADERBOARDS
-     (GLOBAL + DAILY + WEEKLY + MONTHLY)
-     ➜ Called when DAILY quiz is submitted
+     UPDATE LEADERBOARD (CALLED FROM ANY QUIZ TYPE)
+     normal | puzzle | daily
   ===================================================== */
-  async updateFromDailyQuiz({
-    userId,
-    score,
-    correct
-  }: UpdateDailyParams): Promise<void> {
+  async update(params: {
+    userId: string;
+    score: number;
+    correct: number;
+  }) {
+    const { userId, score, correct } = params;
+
     if (!userId) {
       throw new AppError("userId is required", 400);
     }
 
-    // 🔐 Single source of truth
     const user = await User.findById(userId)
       .select("username avatar")
       .lean();
@@ -64,7 +45,7 @@ export const QuizLeaderboardService = {
     ];
 
     await Promise.all(
-      scopes.map((scope) =>
+      scopes.map(scope =>
         QuizLeaderboard.findOneAndUpdate(
           { userId, ...scope },
           {
@@ -90,50 +71,47 @@ export const QuizLeaderboardService = {
 
   /* =====================================================
      GET LEADERBOARD (ALL USERS)
-     ➜ NO userId filtering here
   ===================================================== */
-  async getTop({
-    type,
-    date,
-    week,
-    month,
-    limit = 20
-  }: GetTopParams) {
+  async getTop(params: {
+    type: LeaderboardType;
+    date?: string;
+    week?: string;
+    month?: string;
+    limit?: number;
+  }) {
+    const {
+      type,
+      date,
+      week,
+      month,
+      limit = 20
+    } = params;
+
     const query: Record<string, any> = { type };
 
-    // ⏱ Time scoping validation
     if (type === "daily") {
-      if (!date) {
-        throw new AppError("date is required for daily leaderboard", 400);
-      }
+      if (!date) throw new AppError("date required", 400);
       query.date = date;
     }
 
     if (type === "weekly") {
-      if (!week) {
-        throw new AppError("week is required for weekly leaderboard", 400);
-      }
+      if (!week) throw new AppError("week required", 400);
       query.week = week;
     }
 
     if (type === "monthly") {
-      if (!month) {
-        throw new AppError("month is required for monthly leaderboard", 400);
-      }
+      if (!month) throw new AppError("month required", 400);
       query.month = month;
     }
 
-    // ✅ CRITICAL: returns ALL users
     return QuizLeaderboard.find(query)
       .sort({
         totalScore: -1,
         totalCorrect: -1,
-        totalPlayed: -1
+        totalPlayed: 1
       })
       .limit(limit)
-      .select(
-        "username avatar totalScore totalCorrect totalPlayed"
-      )
+      .select("username avatar totalScore totalCorrect totalPlayed")
       .lean();
   }
 };

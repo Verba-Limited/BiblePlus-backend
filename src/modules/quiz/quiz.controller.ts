@@ -25,7 +25,7 @@ export const QuizController = {
 
       res.status(200).json({
         success: true,
-        data,
+        data
       });
     } catch (err) {
       next(err);
@@ -38,6 +38,7 @@ export const QuizController = {
   ===================================================== */
   submit: async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // injected by auth middleware
       // @ts-ignore
       const userId: string = req.userId;
 
@@ -53,13 +54,13 @@ export const QuizController = {
       const data = await QuizService.submit(userId, {
         mode,
         level: Number(level),
-        answers,
+        answers
       });
 
       res.status(200).json({
         success: true,
         message: "Quiz submitted successfully",
-        data,
+        data
       });
     } catch (err) {
       next(err);
@@ -79,7 +80,7 @@ export const QuizController = {
 
       res.status(200).json({
         success: true,
-        data,
+        data
       });
     } catch (err) {
       next(err);
@@ -102,7 +103,7 @@ export const QuizController = {
 
       res.status(200).json({
         success: true,
-        data,
+        data
       });
     } catch (err) {
       next(err);
@@ -119,7 +120,7 @@ export const QuizController = {
 
       res.status(200).json({
         success: true,
-        data,
+        data
       });
     } catch (err) {
       next(err);
@@ -132,15 +133,9 @@ export const QuizController = {
   ===================================================== */
   submitDaily: async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // injected by auth middleware
       // @ts-ignore
       const userId: string = req.userId;
-
-      // OPTIONAL (safe default)
-      // @ts-ignore
-      const username: string =
-        req.user?.username ??
-        req.user?.firstName ??
-        "Anonymous";
 
       const { answers } = req.body;
 
@@ -150,17 +145,16 @@ export const QuizController = {
 
       const data = await QuizService.submitDaily({
         userId,
-        username,
-        answers,
+        answers
       });
 
       res.status(200).json({
         success: true,
         message: "Daily quiz submitted successfully",
-        data,
+        data
       });
     } catch (err) {
       next(err);
     }
-  },
+  }
 };
