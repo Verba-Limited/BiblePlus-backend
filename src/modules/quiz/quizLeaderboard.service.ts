@@ -46,10 +46,10 @@ export const QuizLeaderboardService = {
       throw new AppError("userId is required", 400);
     }
 
-    // 🔐 Always fetch source of truth
-    const user = await User.findById(userId).select(
-      "username avatar"
-    );
+    // 🔐 Source of truth
+    const user = await User.findById(userId)
+      .select("username avatar")
+      .lean();
 
     if (!user) {
       throw new AppError("User not found", 404);
@@ -63,7 +63,7 @@ export const QuizLeaderboardService = {
     ];
 
     await Promise.all(
-      scopes.map((scope) =>
+      scopes.map(scope =>
         QuizLeaderboard.findOneAndUpdate(
           { userId, ...scope },
           {

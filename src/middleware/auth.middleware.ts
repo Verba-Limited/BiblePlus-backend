@@ -1,17 +1,19 @@
 // src/middleware/auth.middleware.ts
 
 import { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import AppError from "../core/AppError";
+import { verifyAccessToken } from "../utils/jwt";
 
 /* =====================================================
-   TOKEN PAYLOAD SHAPE
+   EXTEND EXPRESS REQUEST (TYPE-SAFE)
 ===================================================== */
-interface DecodedToken extends JwtPayload {
-  userId: string;
-  role: "user" | "admin";
-  username?: string;
-  avatar?: string;
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+      userRole?: "user" | "admin";
+    }
+  }
 }
 
 /* =====================================================
@@ -33,44 +35,23 @@ const authMiddleware = (
 
   const token = authHeader.split(" ")[1];
 
-  if (!process.env.JWT_SECRET) {
-    return res.status(500).json({
-      success: false,
-      message: "Server misconfiguration (JWT secret missing)",
-    });
-  }
-
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    ) as DecodedToken;
-
-    if (!decoded.userId || !decoded.role) {
-      throw new AppError("Invalid token payload", 401);
-    }
+    const decoded = verifyAccessToken(token);
 
     /* ---------------------------------------------
-       ATTACH TO REQUEST (STANDARDIZED)
+       ATTACH IDENTITY TO REQUEST
     ---------------------------------------------- */
-    // @ts-ignore
     req.userId = decoded.userId;
-
-    // @ts-ignore
     req.userRole = decoded.role;
-
-    // ✅ NEW (USED BY LEADERBOARD)
-    // @ts-ignore
-    req.username = decoded.username ?? null;
-
-    // @ts-ignore
-    req.avatar = decoded.avatar ?? null;
 
     return next();
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Invalid or expired token",
+      message:
+        error instanceof AppError
+          ? error.message
+          : "Invalid or expired token",
     });
   }
 };
