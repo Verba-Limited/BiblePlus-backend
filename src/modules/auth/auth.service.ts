@@ -8,7 +8,29 @@ import {
 } from "../../utils/jwt";
 import AppError from "../../core/AppError";
 
+const generateUsername = async (
+  email: string,
+  firstName?: string
+): Promise<string> => {
+  const base =
+    (firstName || email.split("@")[0])
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+
+  let username = "";
+  let exists = true;
+
+  while (exists) {
+    const suffix = Math.floor(1000 + Math.random() * 9000);
+    username = `${base}_${suffix}`;
+    exists = !!(await User.findOne({ username }));
+  }
+
+  return username;
+};
+
 export const AuthService = {
+
   /* =====================================================
      REGISTER USER
   ===================================================== */
