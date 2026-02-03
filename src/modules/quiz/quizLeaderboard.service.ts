@@ -36,6 +36,7 @@ export const QuizLeaderboardService = {
   /* =====================================================
      UPDATE ALL LEADERBOARDS
      (GLOBAL + DAILY + WEEKLY + MONTHLY)
+     ➜ Called when DAILY quiz is submitted
   ===================================================== */
   async updateFromDailyQuiz({
     userId,
@@ -46,7 +47,7 @@ export const QuizLeaderboardService = {
       throw new AppError("userId is required", 400);
     }
 
-    // 🔐 Source of truth
+    // 🔐 Single source of truth
     const user = await User.findById(userId)
       .select("username avatar")
       .lean();
@@ -63,7 +64,7 @@ export const QuizLeaderboardService = {
     ];
 
     await Promise.all(
-      scopes.map(scope =>
+      scopes.map((scope) =>
         QuizLeaderboard.findOneAndUpdate(
           { userId, ...scope },
           {
@@ -88,7 +89,8 @@ export const QuizLeaderboardService = {
   },
 
   /* =====================================================
-     GET LEADERBOARD
+     GET LEADERBOARD (ALL USERS)
+     ➜ NO userId filtering here
   ===================================================== */
   async getTop({
     type,
@@ -99,41 +101,34 @@ export const QuizLeaderboardService = {
   }: GetTopParams) {
     const query: Record<string, any> = { type };
 
+    // ⏱ Time scoping validation
     if (type === "daily") {
       if (!date) {
-        throw new AppError(
-          "date is required for daily leaderboard",
-          400
-        );
+        throw new AppError("date is required for daily leaderboard", 400);
       }
       query.date = date;
     }
 
     if (type === "weekly") {
       if (!week) {
-        throw new AppError(
-          "week is required for weekly leaderboard",
-          400
-        );
+        throw new AppError("week is required for weekly leaderboard", 400);
       }
       query.week = week;
     }
 
     if (type === "monthly") {
       if (!month) {
-        throw new AppError(
-          "month is required for monthly leaderboard",
-          400
-        );
+        throw new AppError("month is required for monthly leaderboard", 400);
       }
       query.month = month;
     }
 
+    // ✅ CRITICAL: returns ALL users
     return QuizLeaderboard.find(query)
       .sort({
         totalScore: -1,
         totalCorrect: -1,
-        updatedAt: 1
+        totalPlayed: -1
       })
       .limit(limit)
       .select(
