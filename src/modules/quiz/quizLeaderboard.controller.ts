@@ -1,3 +1,5 @@
+// src/modules/quiz/quizLeaderboard.controller.ts
+
 import { Request, Response, NextFunction } from "express";
 import { QuizLeaderboardService } from "./quizLeaderboard.service";
 import {
@@ -7,31 +9,32 @@ import {
 } from "./quizLeaderboard.utils";
 
 export const QuizLeaderboardController = {
-  /* =========================
+  /* =====================================================
      GLOBAL LEADERBOARD
      GET /api/quiz/leaderboard?limit=20
-  ========================== */
+  ===================================================== */
   global: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const limit = req.query.limit
-        ? Number(req.query.limit)
-        : 20;
+      const limit = Number(req.query.limit) || 20;
 
       const data = await QuizLeaderboardService.getTop({
         type: "global",
         limit
       });
 
-      res.json({ success: true, data });
+      return res.status(200).json({
+        success: true,
+        data
+      });
     } catch (err) {
       next(err);
     }
   },
 
-  /* =========================
+  /* =====================================================
      DAILY LEADERBOARD
-     GET /api/quiz/leaderboard/daily?date=YYYY-MM-DD
-  ========================== */
+     GET /api/quiz/leaderboard/daily?date=YYYY-MM-DD&limit=20
+  ===================================================== */
   daily: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const date =
@@ -39,9 +42,7 @@ export const QuizLeaderboardController = {
           ? req.query.date
           : getToday();
 
-      const limit = req.query.limit
-        ? Number(req.query.limit)
-        : 20;
+      const limit = Number(req.query.limit) || 20;
 
       const data = await QuizLeaderboardService.getTop({
         type: "daily",
@@ -49,41 +50,56 @@ export const QuizLeaderboardController = {
         limit
       });
 
-      res.json({ success: true, data });
+      return res.status(200).json({
+        success: true,
+        data
+      });
     } catch (err) {
       next(err);
     }
   },
 
-  /* =========================
+  /* =====================================================
      WEEKLY LEADERBOARD
-     GET /api/quiz/leaderboard/weekly
-  ========================== */
-  weekly: async (_req: Request, res: Response, next: NextFunction) => {
+     GET /api/quiz/leaderboard/weekly?limit=20
+  ===================================================== */
+  weekly: async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const limit = Number(req.query.limit) || 20;
+
       const data = await QuizLeaderboardService.getTop({
         type: "weekly",
-        week: getWeekKey()
+        week: getWeekKey(),
+        limit
       });
 
-      res.json({ success: true, data });
+      return res.status(200).json({
+        success: true,
+        data
+      });
     } catch (err) {
       next(err);
     }
   },
 
-  /* =========================
+  /* =====================================================
      MONTHLY LEADERBOARD
-     GET /api/quiz/leaderboard/monthly
-  ========================== */
-  monthly: async (_req: Request, res: Response, next: NextFunction) => {
+     GET /api/quiz/leaderboard/monthly?limit=20
+  ===================================================== */
+  monthly: async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const limit = Number(req.query.limit) || 20;
+
       const data = await QuizLeaderboardService.getTop({
         type: "monthly",
-        month: getMonthKey()
+        month: getMonthKey(),
+        limit
       });
 
-      res.json({ success: true, data });
+      return res.status(200).json({
+        success: true,
+        data
+      });
     } catch (err) {
       next(err);
     }
