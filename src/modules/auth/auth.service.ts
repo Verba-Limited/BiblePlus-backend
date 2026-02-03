@@ -8,6 +8,9 @@ import {
 } from "../../utils/jwt";
 import AppError from "../../core/AppError";
 
+/* =====================================================
+   HELPERS
+===================================================== */
 const generateUsername = async (
   email: string,
   firstName?: string
@@ -29,53 +32,52 @@ const generateUsername = async (
   return username;
 };
 
+/* =====================================================
+   AUTH SERVICE
+===================================================== */
 export const AuthService = {
-
   /* =====================================================
      REGISTER USER
   ===================================================== */
-register: async (
-  email: string,
-  password: string,
-  firstName: string,
-  lastName: string
-) => {
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    throw new AppError("Email already exists", 400);
-  }
+  register: async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string
+  ) => {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new AppError("Email already exists", 400);
+    }
 
-  const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(password);
+    const username = await generateUsername(email, firstName);
 
-  
-  const username = await generateUsername(email, firstName);
+    await User.create({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      username,
+      role: "user",
+      verified: false,
+    });
 
-  await User.create({
-    email,
-    password: hashedPassword,
-    firstName,
-    lastName,
-    username,         
-    verified: false,
-    role: "user",
-  });
+    const otpCode = generateOtp();
 
-  const otpCode = generateOtp();
+    await Otp.create({
+      email,
+      code: otpCode.toString(),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+    });
 
-  await Otp.create({
-    email,
-    code: otpCode.toString(),
-    expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-  });
+    console.log("REGISTER OTP:", otpCode);
 
-  console.log("REGISTER OTP:", otpCode);
-
-  return {
-    message: "OTP sent to email",
-    email,
-  };
-},
-
+    return {
+      message: "OTP sent to email",
+      email,
+    };
+  },
 
   /* =====================================================
      VERIFY OTP
@@ -108,13 +110,11 @@ register: async (
 
     await Otp.deleteMany({ email });
 
-    const username = `${user.firstName} ${user.lastName}`;
-
     return {
       token: generateAccessToken({
         userId: user._id.toString(),
         role: user.role,
-        username,
+        username: user.username,
       }),
       refreshToken: generateRefreshToken(user._id.toString()),
       user,
@@ -130,12 +130,8 @@ register: async (
       throw new AppError("Invalid email or password", 400);
     }
 
-    const validPassword = await comparePassword(
-      password,
-      user.password
-    );
-
-    if (!validPassword) {
+    const valid = await comparePassword(password, user.password);
+    if (!valid) {
       throw new AppError("Invalid email or password", 400);
     }
 
@@ -143,13 +139,11 @@ register: async (
       throw new AppError("Account not verified", 400);
     }
 
-    const username = `${user.firstName} ${user.lastName}`;
-
     return {
       token: generateAccessToken({
         userId: user._id.toString(),
         role: user.role,
-        username,
+        username: user.username,
       }),
       refreshToken: generateRefreshToken(user._id.toString()),
       status: "success",
@@ -233,6 +227,10 @@ register: async (
      UPDATE PROFILE
   ===================================================== */
   updateProfile: async (userId: string, data: any) => {
+    // Prevent username change
+    delete data.username;
+    delete data.role;
+
     const user = await User.findByIdAndUpdate(
       userId,
       data,
