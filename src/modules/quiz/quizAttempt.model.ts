@@ -28,19 +28,15 @@ const quizAttemptSchema = new Schema<IQuizAttempt>(
       index: true
     },
 
-    // Only required for non-daily quizzes
-    level: {
-      type: Number,
-      min: 1,
-      max: 10,
-      required: function () {
-        // `this` is the document
-        // daily quizzes do NOT have levels
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const self = this as IQuizAttempt;
-        return self.mode !== "daily";
-      }
-    },
+    // Only for normal & puzzle quizzes
+   level: {
+  type: Number,
+  min: 1,
+  max: 10,
+  required: function (this: IQuizAttempt): boolean {
+    return this.mode !== "daily";
+  }
+},
 
     score: {
       type: Number,
@@ -67,17 +63,14 @@ const quizAttemptSchema = new Schema<IQuizAttempt>(
 );
 
 /* ============================
-   INDEXES (CRITICAL)
+   INDEXES (SAFE)
 ============================ */
 
-// Prevent duplicate daily attempts
-quizAttemptSchema.index(
-  { userId: 1, mode: 1, createdAt: 1 },
-  { name: "quiz_attempt_user_mode_date" }
-);
-
-// Fast leaderboard queries
+// Fast leaderboard aggregation
 quizAttemptSchema.index({ mode: 1, score: -1 });
+
+// User history lookups
+quizAttemptSchema.index({ userId: 1, createdAt: -1 });
 
 export const QuizAttempt = mongoose.model<IQuizAttempt>(
   "QuizAttempt",
