@@ -248,7 +248,6 @@ export const QuizService = {
       userId,
       score,
       correct,
-      username
     });
 
     const xpEarned = correct * 15;

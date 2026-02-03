@@ -2,6 +2,7 @@
 
 import AppError from "../../core/AppError";
 import { QuizLeaderboard } from "./quizLeaderboard.model";
+import { User } from "../auth/auth.model";
 import {
   getToday,
   getWeekKey,
@@ -21,8 +22,6 @@ interface UpdateDailyParams {
   userId: string;
   score: number;
   correct: number;
-  username: string;
-  avatar?: string;
 }
 
 interface GetTopParams {
@@ -35,18 +34,25 @@ interface GetTopParams {
 
 export const QuizLeaderboardService = {
   /* =====================================================
-     UPDATE ALL LEADERBOARDS FROM DAILY QUIZ RESULT
+     UPDATE ALL LEADERBOARDS
      (GLOBAL + DAILY + WEEKLY + MONTHLY)
   ===================================================== */
   async updateFromDailyQuiz({
     userId,
     score,
-    correct,
-    username,
-    avatar
+    correct
   }: UpdateDailyParams): Promise<void> {
-    if (!userId || !username) {
-      throw new AppError("userId and username are required", 400);
+    if (!userId) {
+      throw new AppError("userId is required", 400);
+    }
+
+    // 🔐 Always fetch source of truth
+    const user = await User.findById(userId).select(
+      "username avatar"
+    );
+
+    if (!user) {
+      throw new AppError("User not found", 404);
     }
 
     const scopes = [
@@ -66,10 +72,9 @@ export const QuizLeaderboardService = {
               totalCorrect: correct,
               totalPlayed: 1
             },
-            
             $set: {
-              username,
-              avatar
+              username: user.username,
+              avatar: user.avatar
             }
           },
           {
@@ -83,7 +88,7 @@ export const QuizLeaderboardService = {
   },
 
   /* =====================================================
-     GET LEADERBOARD (GLOBAL / DAILY / WEEKLY / MONTHLY)
+     GET LEADERBOARD
   ===================================================== */
   async getTop({
     type,
@@ -94,7 +99,6 @@ export const QuizLeaderboardService = {
   }: GetTopParams) {
     const query: Record<string, any> = { type };
 
-    // 🔒 Validate time keys
     if (type === "daily") {
       if (!date) {
         throw new AppError(
@@ -132,8 +136,9 @@ export const QuizLeaderboardService = {
         updatedAt: 1
       })
       .limit(limit)
-      
-      .select("username avatar totalScore totalCorrect totalPlayed")
+      .select(
+        "username avatar totalScore totalCorrect totalPlayed"
+      )
       .lean();
   }
 };
