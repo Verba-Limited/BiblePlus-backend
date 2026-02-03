@@ -34,43 +34,48 @@ export const AuthService = {
   /* =====================================================
      REGISTER USER
   ===================================================== */
-  register: async (
-    email: string,
-    password: string,
-    firstName: string,
-    lastName: string
-  ) => {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      throw new AppError("Email already exists", 400);
-    }
+register: async (
+  email: string,
+  password: string,
+  firstName: string,
+  lastName: string
+) => {
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    throw new AppError("Email already exists", 400);
+  }
 
-    const hashedPassword = await hashPassword(password);
+  const hashedPassword = await hashPassword(password);
 
-    await User.create({
-      email,
-      password: hashedPassword,
-      firstName,
-      lastName,
-      verified: false,
-      role: "user",
-    });
+  
+  const username = await generateUsername(email, firstName);
 
-    const otpCode = generateOtp();
+  await User.create({
+    email,
+    password: hashedPassword,
+    firstName,
+    lastName,
+    username,         
+    verified: false,
+    role: "user",
+  });
 
-    await Otp.create({
-      email,
-      code: otpCode.toString(),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 mins
-    });
+  const otpCode = generateOtp();
 
-    console.log("REGISTER OTP:", otpCode);
+  await Otp.create({
+    email,
+    code: otpCode.toString(),
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+  });
 
-    return {
-      message: "OTP sent to email",
-      email,
-    };
-  },
+  console.log("REGISTER OTP:", otpCode);
+
+  return {
+    message: "OTP sent to email",
+    email,
+  };
+},
+
 
   /* =====================================================
      VERIFY OTP
