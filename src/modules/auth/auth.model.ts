@@ -6,10 +6,10 @@ export interface IUser extends Document {
 
   firstName?: string;
   lastName?: string;
-  username?: string;     
+  username: string;
   avatar?: string;
 
-  role: "user" | "admin"; 
+  role: "user" | "admin";
   verified: boolean;
 }
 
@@ -21,46 +21,52 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
+      index: true
     },
 
     password: {
       type: String,
-      required: true,
+      required: true
     },
 
     firstName: {
       type: String,
-      trim: true,
+      trim: true
     },
 
     lastName: {
       type: String,
-      trim: true,
+      trim: true
     },
 
     username: {
       type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
       trim: true,
+      index: true
     },
 
     avatar: {
-      type: String,
+      type: String
     },
 
     role: {
       type: String,
       enum: ["user", "admin"],
-      default: "user",
+      default: "user"
     },
 
     verified: {
       type: Boolean,
-      default: false,
-    },
+      default: false
+    }
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
+
+
+userSchema.index({ username: 1 }, { unique: true });
 
 export const User = mongoose.model<IUser>("User", userSchema);
