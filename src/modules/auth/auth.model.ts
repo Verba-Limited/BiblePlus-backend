@@ -63,10 +63,20 @@ const userSchema = new Schema<IUser>(
       default: false
     }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
+/* =====================================================
+   HOOKS
+===================================================== */
 
-userSchema.index({ username: 1 }, { unique: true });
+// Always normalize username
+userSchema.pre("save", function (next) {
+  if (this.username) {
+    this.username = this.username.toLowerCase();
+  }
+});
 
 export const User = mongoose.model<IUser>("User", userSchema);

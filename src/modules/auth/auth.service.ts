@@ -15,18 +15,18 @@ const generateUsername = async (
   email: string,
   firstName?: string
 ): Promise<string> => {
-  const base =
-    (firstName || email.split("@")[0])
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
+  const base = (
+    firstName || email.split("@")[0]
+  )
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
 
-  let username = "";
-  let exists = true;
+  let username = base;
+  let counter = 0;
 
-  while (exists) {
-    const suffix = Math.floor(1000 + Math.random() * 9000);
-    username = `${base}_${suffix}`;
-    exists = !!(await User.findOne({ username }));
+  while (await User.exists({ username })) {
+    counter += 1;
+    username = `${base}_${counter}`;
   }
 
   return username;
@@ -39,14 +39,14 @@ export const AuthService = {
   /* =====================================================
      REGISTER USER
   ===================================================== */
-  register: async (
+  async register(
     email: string,
     password: string,
     firstName: string,
     lastName: string
-  ) => {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+  ) {
+    const existing = await User.findOne({ email });
+    if (existing) {
       throw new AppError("Email already exists", 400);
     }
 
@@ -68,10 +68,8 @@ export const AuthService = {
     await Otp.create({
       email,
       code: otpCode.toString(),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
-
-    console.log("REGISTER OTP:", otpCode);
 
     return {
       message: "OTP sent to email",
@@ -82,21 +80,13 @@ export const AuthService = {
   /* =====================================================
      VERIFY OTP
   ===================================================== */
-  verifyOtp: async (email: string, code: string) => {
+  async verifyOtp(email: string, code: string) {
     const cleanCode = String(code).trim();
 
-    const otp = await Otp.findOne({
-      email,
-      code: cleanCode,
-    });
-
-    if (!otp) {
-      throw new AppError("Invalid OTP", 400);
-    }
-
-    if (otp.expiresAt < new Date()) {
+    const otp = await Otp.findOne({ email, code: cleanCode });
+    if (!otp) throw new AppError("Invalid OTP", 400);
+    if (otp.expiresAt < new Date())
       throw new AppError("OTP expired", 400);
-    }
 
     const user = await User.findOneAndUpdate(
       { email },
@@ -104,9 +94,7 @@ export const AuthService = {
       { new: true }
     );
 
-    if (!user) {
-      throw new AppError("User not found", 404);
-    }
+    if (!user) throw new AppError("User not found", 404);
 
     await Otp.deleteMany({ email });
 
@@ -114,7 +102,6 @@ export const AuthService = {
       token: generateAccessToken({
         userId: user._id.toString(),
         role: user.role,
-        username: user.username,
       }),
       refreshToken: generateRefreshToken(user._id.toString()),
       user,
@@ -124,41 +111,32 @@ export const AuthService = {
   /* =====================================================
      LOGIN USER
   ===================================================== */
-  login: async (email: string, password: string) => {
+  async login(email: string, password: string) {
     const user = await User.findOne({ email });
-    if (!user) {
-      throw new AppError("Invalid email or password", 400);
-    }
+    if (!user) throw new AppError("Invalid credentials", 400);
 
     const valid = await comparePassword(password, user.password);
-    if (!valid) {
-      throw new AppError("Invalid email or password", 400);
-    }
+    if (!valid) throw new AppError("Invalid credentials", 400);
 
-    if (!user.verified) {
+    if (!user.verified)
       throw new AppError("Account not verified", 400);
-    }
 
     return {
       token: generateAccessToken({
         userId: user._id.toString(),
         role: user.role,
-        username: user.username,
       }),
       refreshToken: generateRefreshToken(user._id.toString()),
-      status: "success",
       user,
     };
   },
 
   /* =====================================================
-     FORGOT PASSWORD (SEND OTP)
+     FORGOT PASSWORD
   ===================================================== */
-  forgotPassword: async (email: string) => {
+  async forgotPassword(email: string) {
     const user = await User.findOne({ email });
-    if (!user) {
-      throw new AppError("Email not found", 404);
-    }
+    if (!user) throw new AppError("Email not found", 404);
 
     const otpCode = generateOtp();
 
@@ -168,35 +146,27 @@ export const AuthService = {
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
-    console.log("RESET OTP:", otpCode);
-
-    return {
-      message: "Reset OTP sent to email",
-    };
+    return { message: "Reset OTP sent" };
   },
 
   /* =====================================================
      RESET PASSWORD
   ===================================================== */
-  resetPassword: async (
+  async resetPassword(
     email: string,
     otp: string,
     newPassword: string
-  ) => {
+  ) {
     const cleanCode = String(otp).trim();
 
-    const verifiedOtp = await Otp.findOne({
+    const record = await Otp.findOne({
       email,
       code: cleanCode,
     });
 
-    if (!verifiedOtp) {
-      throw new AppError("Invalid OTP", 400);
-    }
-
-    if (verifiedOtp.expiresAt < new Date()) {
+    if (!record) throw new AppError("Invalid OTP", 400);
+    if (record.expiresAt < new Date())
       throw new AppError("OTP expired", 400);
-    }
 
     const hashed = await hashPassword(newPassword);
 
@@ -207,29 +177,23 @@ export const AuthService = {
 
     await Otp.deleteMany({ email });
 
-    return {
-      message: "Password reset successful",
-    };
+    return { message: "Password reset successful" };
   },
 
   /* =====================================================
-     GET USER PROFILE
+     PROFILE
   ===================================================== */
-  profile: async (userId: string) => {
+  async profile(userId: string) {
     const user = await User.findById(userId).select("-password");
-    if (!user) {
-      throw new AppError("User not found", 404);
-    }
+    if (!user) throw new AppError("User not found", 404);
     return user;
   },
 
-  /* =====================================================
-     UPDATE PROFILE
-  ===================================================== */
-  updateProfile: async (userId: string, data: any) => {
-    // Prevent username change
+  async updateProfile(userId: string, data: any) {
+    // Lock sensitive fields
     delete data.username;
     delete data.role;
+    delete data.verified;
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -237,10 +201,7 @@ export const AuthService = {
       { new: true }
     ).select("-password");
 
-    if (!user) {
-      throw new AppError("User not found", 404);
-    }
-
+    if (!user) throw new AppError("User not found", 404);
     return user;
   },
 };
