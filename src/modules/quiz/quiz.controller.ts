@@ -5,7 +5,7 @@ import AppError from "../../core/AppError";
 
 export const QuizController = {
   /* =====================================================
-     PLAY QUIZ (NORMAL / PUZZLE / LEVEL)
+     PLAY QUIZ (NORMAL / PUZZLE)
      GET /api/quiz/play?mode=normal&level=1
   ===================================================== */
   play: async (req: Request, res: Response, next: NextFunction) => {
@@ -23,10 +23,7 @@ export const QuizController = {
 
       const data = await QuizService.play(mode as any, level);
 
-      res.status(200).json({
-        success: true,
-        data
-      });
+      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }
@@ -38,16 +35,13 @@ export const QuizController = {
   ===================================================== */
   submit: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore (set by auth middleware)
+      // @ts-ignore
       const userId: string = req.userId;
 
       const { mode, level, answers } = req.body;
 
       if (!mode || !level || !Array.isArray(answers)) {
-        throw new AppError(
-          "mode, level and answers are required",
-          400
-        );
+        throw new AppError("mode, level and answers are required", 400);
       }
 
       const data = await QuizService.submit(userId, {
@@ -56,7 +50,7 @@ export const QuizController = {
         answers
       });
 
-      res.status(200).json({
+      res.json({
         success: true,
         message: "Quiz submitted successfully",
         data
@@ -77,19 +71,29 @@ export const QuizController = {
 
       const data = await QuizService.dailyToday(userId);
 
-      res.status(200).json({
-        success: true,
-        data
-      });
+      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }
   },
 
   /* =====================================================
-     GET DAILY QUIZ BY DATE (PAST / TODAY)
+     LIST AVAILABLE DAILY QUIZ DATES
+     GET /api/quiz/daily/dates
+  ===================================================== */
+  dailyDates: async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await QuizService.dailyDates();
+
+      res.json({ success: true, data });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /* =====================================================
+     GET DAILY QUIZ BY DATE (READ-ONLY)
      GET /api/quiz/daily/:date
-     Example: /api/quiz/daily/2026-01-15
   ===================================================== */
   dailyByDate: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -99,35 +103,10 @@ export const QuizController = {
         throw new AppError("Date parameter is required", 400);
       }
 
-      // userId is OPTIONAL here (read-only for past dates)
-      // @ts-ignore
-      const userId: string | undefined = req.userId;
+      // ❗ DO NOT pass userId here (history must be viewable)
+      const data = await QuizService.dailyByDate(date);
 
-      const data = await QuizService.dailyByDate(date, userId);
-
-      res.status(200).json({
-        success: true,
-        data
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  /* =====================================================
-     LIST AVAILABLE DAILY QUIZ DATES
-     GET /api/quiz/daily/dates
-     Response:
-     [{ date: '2026-02-04', total: 5 }, ...]
-  ===================================================== */
-  dailyDates: async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await QuizService.dailyDates();
-
-      res.status(200).json({
-        success: true,
-        data
-      });
+      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }
@@ -153,7 +132,7 @@ export const QuizController = {
         answers
       });
 
-      res.status(200).json({
+      res.json({
         success: true,
         message: "Daily quiz submitted successfully",
         data
