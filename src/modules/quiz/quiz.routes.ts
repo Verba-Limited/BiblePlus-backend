@@ -19,7 +19,7 @@ const router = Router();
 // GET /api/quiz/play?mode=normal&level=1
 router.get("/play", authMiddleware, QuizController.play);
 
-// ▶ Submit quiz answers
+// ▶ Submit normal / puzzle quiz
 // POST /api/quiz/submit
 router.post("/submit", authMiddleware, QuizController.submit);
 
@@ -35,6 +35,14 @@ router.get(
   QuizController.dailyToday
 );
 
+// ▶ List ALL available daily quiz dates
+// GET /api/quiz/daily/dates
+router.get(
+  "/daily/dates",
+  authMiddleware,
+  QuizController.dailyDates
+);
+
 // ▶ Submit TODAY’s daily quiz
 // POST /api/quiz/daily/submit
 router.post(
@@ -43,16 +51,8 @@ router.post(
   QuizController.submitDaily
 );
 
-// ▶ Daily quiz history (available dates)
-// GET /api/quiz/daily/history
-router.get(
-  "/daily/history",
-  authMiddleware,
-  QuizController.dailyHistory
-);
-
-// ▶ Get daily quiz by date (yesterday, past)
-// GET /api/quiz/daily/2026-01-28
+// ▶ Get daily quiz by date (past or today)
+// GET /api/quiz/daily/2026-01-15
 router.get(
   "/daily/:date",
   authMiddleware,
