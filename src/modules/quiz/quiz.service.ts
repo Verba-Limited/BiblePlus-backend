@@ -208,7 +208,9 @@ export const QuizService = {
     await QuizDailyAttempt.create({
       userId,
       date,
-      score,
+      answers: {
+        score,
+      }
     });
 
     // 🔥 DAILY LEADERBOARD
