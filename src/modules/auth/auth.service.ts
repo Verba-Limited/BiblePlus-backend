@@ -168,7 +168,7 @@ export const AuthService = {
 
     if (!record) throw new AppError("Invalid OTP", 400);
     if (record.expiresAt < new Date())
-      throw new AppError("OTP expired", 400);
+      throw new AppError("OTP expired", 400); 
 
     const hashed = await hashPassword(newPassword);
 
