@@ -262,7 +262,6 @@ export const QuizService = {
     const total = questions.length;
     const score = Math.round((correct / total) * 100);
 
-    // ✅ FIXED: store score directly
     await QuizDailyAttempt.create({
       userId,
       date,
