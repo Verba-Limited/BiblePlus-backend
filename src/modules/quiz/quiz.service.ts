@@ -233,18 +233,18 @@ export const QuizService = {
   ======================================================= */
   async submitDaily(params: { userId: string; answers: any[] }) {
     const { userId, answers } = params;
-    const date = getDayKey();
+    const today = getDayKey();
 
     if (!answers?.length) {
       throw new AppError("Answers required", 400);
     }
 
-    const daily = await QuizDaily.findOne({ date });
+    const daily = await QuizDaily.findOne({ date: today });
     if (!daily) {
       throw new AppError("No daily quiz today", 404);
     }
 
-    const existing = await QuizDailyAttempt.findOne({ userId, date });
+    const existing = await QuizDailyAttempt.findOne({ userId, date: today });
     if (existing) {
       throw new AppError("Daily quiz already submitted", 400);
     }
@@ -264,7 +264,7 @@ export const QuizService = {
 
     await QuizDailyAttempt.create({
       userId,
-      date,
+      date: today,
       answers: {
         score,
       }
@@ -284,7 +284,7 @@ export const QuizService = {
     );
 
     return {
-      date,
+      date: today,
       score,
       correct,
       total,
