@@ -59,12 +59,20 @@ export const generateRefreshToken = (userId: string) => {
 /* =====================================================
    VERIFY ACCESS TOKEN
 ===================================================== */
-export const verifyAccessToken = (token: string) => {
+export const verifyAccessToken = (
+  token: string
+): AccessTokenPayload => {
   try {
-    return jwt.verify(token, JWT_SECRET, {
+    const decoded = jwt.verify(token, JWT_SECRET, {
       issuer: ISSUER,
       audience: AUDIENCE
     }) as AccessTokenPayload;
+
+    if (!decoded.userId || !decoded.role) {
+      throw new AppError("Invalid token payload", 401);
+    }
+
+    return decoded;
   } catch {
     throw new AppError("Invalid or expired access token", 401);
   }
