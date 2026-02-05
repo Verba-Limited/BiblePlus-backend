@@ -38,8 +38,7 @@ export const QuizController = {
   ===================================================== */
   submit: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // injected by auth middleware
-      // @ts-ignore
+      // @ts-ignore (set by auth middleware)
       const userId: string = req.userId;
 
       const { mode, level, answers } = req.body;
@@ -69,7 +68,7 @@ export const QuizController = {
 
   /* =====================================================
      GET TODAY'S DAILY QUIZ
-     GET /api/quiz/daily
+     GET /api/quiz/daily/today
   ===================================================== */
   dailyToday: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -88,8 +87,9 @@ export const QuizController = {
   },
 
   /* =====================================================
-     GET DAILY QUIZ BY DATE (READ-ONLY)
+     GET DAILY QUIZ BY DATE (PAST / TODAY)
      GET /api/quiz/daily/:date
+     Example: /api/quiz/daily/2026-01-15
   ===================================================== */
   dailyByDate: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -99,7 +99,11 @@ export const QuizController = {
         throw new AppError("Date parameter is required", 400);
       }
 
-      const data = await QuizService.dailyByDate(date);
+      // userId is OPTIONAL here (read-only for past dates)
+      // @ts-ignore
+      const userId: string | undefined = req.userId;
+
+      const data = await QuizService.dailyByDate(date, userId);
 
       res.status(200).json({
         success: true,
@@ -111,12 +115,14 @@ export const QuizController = {
   },
 
   /* =====================================================
-     DAILY QUIZ HISTORY
-     GET /api/quiz/daily-history
+     LIST AVAILABLE DAILY QUIZ DATES
+     GET /api/quiz/daily/dates
+     Response:
+     [{ date: '2026-02-04', total: 5 }, ...]
   ===================================================== */
-  dailyHistory: async (_req: Request, res: Response, next: NextFunction) => {
+  dailyDates: async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await QuizService.dailyHistory();
+      const data = await QuizService.dailyDates();
 
       res.status(200).json({
         success: true,
@@ -133,7 +139,6 @@ export const QuizController = {
   ===================================================== */
   submitDaily: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // injected by auth middleware
       // @ts-ignore
       const userId: string = req.userId;
 
