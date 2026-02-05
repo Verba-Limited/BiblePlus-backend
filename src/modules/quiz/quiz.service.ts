@@ -1,4 +1,3 @@
-// src/modules/quiz/quiz.service.ts
 import AppError from "../../core/AppError";
 import { QuizQuestion } from "./quizQuestion.model";
 import { QuizAttempt } from "./quizAttempt.model";
@@ -91,7 +90,10 @@ export const QuizService = {
     });
 
     const xpEarned = correct * 10;
-    const levelProgress = await QuizLevelService.addXp(userId, xpEarned);
+    const levelProgress = await QuizLevelService.addXp(
+      userId,
+      xpEarned
+    );
 
     return {
       score,
@@ -103,11 +105,66 @@ export const QuizService = {
   },
 
   /* =======================================================
+     ENSURE DAILY QUIZ EXISTS (AUTO CREATE)
+  ======================================================= */
+  async ensureDailyQuiz(date: string) {
+    let daily = await QuizDaily.findOne({ date });
+
+    if (!daily) {
+      const questions = await QuizQuestion.aggregate([
+        { $match: { mode: "daily", active: true } },
+        { $sample: { size: 5 } }
+      ]);
+
+      if (!questions.length) {
+        throw new AppError("No daily quiz questions available", 404);
+      }
+
+      daily = await QuizDaily.create({
+        date,
+        questions: questions.map(q => q._id)
+      });
+    }
+
+    return daily;
+  },
+
+  /* =======================================================
      GET TODAY'S DAILY QUIZ
   ======================================================= */
   async dailyToday(userId: string) {
     const today = getDayKey();
-    return QuizService.dailyByDate(today, userId);
+
+    const alreadyPlayed = await QuizDailyAttempt.findOne({
+      userId,
+      date: today
+    });
+
+    if (alreadyPlayed) {
+      throw new AppError("Daily quiz already completed", 400);
+    }
+
+    const daily = await this.ensureDailyQuiz(today);
+
+    const questions = await QuizQuestion.find({
+      _id: { $in: daily.questions },
+      active: true
+    });
+
+    return {
+      date: today,
+      timer: 30,
+      total: questions.length,
+      questions: questions.map(q => ({
+        _id: q._id,
+        question: q.question,
+        options: q.options,
+        image: q.image ?? null,
+
+        // ⚠️ TEMP — REMOVE IN PROD
+        correctAnswer: q.correctAnswer
+      }))
+    };
   },
 
   /* =======================================================
@@ -118,7 +175,7 @@ export const QuizService = {
       throw new AppError("Date is required (YYYY-MM-DD)", 400);
     }
 
-    const daily = await QuizDaily.findOne({ date }).lean();
+    const daily = await QuizDaily.findOne({ date });
     if (!daily) {
       throw new AppError("No daily quiz for this date", 404);
     }
@@ -205,12 +262,11 @@ export const QuizService = {
     const total = questions.length;
     const score = Math.round((correct / total) * 100);
 
+    // ✅ FIXED: store score directly
     await QuizDailyAttempt.create({
       userId,
       date,
-      answers: {
-        score,
-      }
+      score
     });
 
     // 🔥 DAILY LEADERBOARD
@@ -221,7 +277,10 @@ export const QuizService = {
     });
 
     const xpEarned = correct * 15;
-    const levelProgress = await QuizLevelService.addXp(userId, xpEarned);
+    const levelProgress = await QuizLevelService.addXp(
+      userId,
+      xpEarned
+    );
 
     return {
       date,
