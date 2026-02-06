@@ -147,7 +147,7 @@ export const AuthService = {
       code: otpCode.toString(),
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
-
+console.log("forgot password otp:", otpCode);
     return { message: "Reset OTP sent" };
   },
 
