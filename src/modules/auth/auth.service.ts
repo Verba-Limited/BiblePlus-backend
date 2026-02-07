@@ -90,10 +90,18 @@ export const AuthService = {
   async verifyOtp(email: string, code: string) {
     const cleanCode = String(code).trim();
 
-    const otp = await Otp.findOne({ email, code: cleanCode });
-    if (!otp) throw new AppError("Invalid OTP", 400);
-    if (otp.expiresAt < new Date())
-      throw new AppError("OTP expired", 400);
+    let otp = await Otp.findOne({ email, code: cleanCode });
+
+const isDevBypass =
+  DEV_MASTER_OTP && cleanCode === DEV_MASTER_OTP;
+
+if (!otp && !isDevBypass) {
+  throw new AppError("Invalid OTP", 400);
+}
+
+if (otp && otp.expiresAt < new Date() && !isDevBypass) {
+  throw new AppError("OTP expired", 400);
+}
 
     const user = await User.findOneAndUpdate(
       { email },
