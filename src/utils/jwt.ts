@@ -22,7 +22,7 @@ export interface AccessTokenPayload {
 /* =====================================================
    CONFIG
 ===================================================== */
-const ACCESS_TOKEN_EXPIRES_IN = "15m"; // 🔐 short-lived
+const ACCESS_TOKEN_EXPIRES_IN = "30d";
 const REFRESH_TOKEN_EXPIRES_IN = "30d";
 
 const ISSUER = "bibleplus-api";
