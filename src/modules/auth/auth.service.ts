@@ -34,7 +34,7 @@ const generateUsername = async (
 
 const DEV_MASTER_OTP =
   process.env.NODE_ENV === "development"
-    ? process.env.DEV_MASTER_OTP || "1111"
+    ? process.env.DEV_MASTER_OTP || "0000"
     : null;
 
 /* =====================================================
