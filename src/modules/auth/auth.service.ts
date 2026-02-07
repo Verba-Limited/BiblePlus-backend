@@ -32,6 +32,11 @@ const generateUsername = async (
   return username;
 };
 
+const DEV_MASTER_OTP =
+  process.env.NODE_ENV === "development"
+    ? process.env.DEV_MASTER_OTP || "1111"
+    : null;
+
 /* =====================================================
    AUTH SERVICE
 ===================================================== */
