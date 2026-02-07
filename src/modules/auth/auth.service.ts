@@ -9,6 +9,14 @@ import {
 import AppError from "../../core/AppError";
 
 /* =====================================================
+   DEV CONFIG
+===================================================== */
+const DEV_MASTER_OTP =
+  process.env.NODE_ENV === "development"
+    ? process.env.DEV_MASTER_OTP || "0000"
+    : null;
+
+/* =====================================================
    HELPERS
 ===================================================== */
 const generateUsername = async (
@@ -31,11 +39,6 @@ const generateUsername = async (
 
   return username;
 };
-
-const DEV_MASTER_OTP =
-  process.env.NODE_ENV === "development"
-    ? process.env.DEV_MASTER_OTP || "0000"
-    : null;
 
 /* =====================================================
    AUTH SERVICE
@@ -92,16 +95,20 @@ export const AuthService = {
 
     let otp = await Otp.findOne({ email, code: cleanCode });
 
-const isDevBypass =
-  DEV_MASTER_OTP && cleanCode === DEV_MASTER_OTP;
+    const isDevBypass =
+      DEV_MASTER_OTP && cleanCode === DEV_MASTER_OTP;
 
-if (!otp && !isDevBypass) {
-  throw new AppError("Invalid OTP", 400);
-}
+    if (!otp && !isDevBypass) {
+      throw new AppError("Invalid OTP", 400);
+    }
 
-if (otp && otp.expiresAt < new Date() && !isDevBypass) {
-  throw new AppError("OTP expired", 400);
-}
+    if (otp && otp.expiresAt < new Date() && !isDevBypass) {
+      throw new AppError("OTP expired", 400);
+    }
+
+    if (isDevBypass) {
+      console.warn("⚠ DEV MASTER OTP USED");
+    }
 
     const user = await User.findOneAndUpdate(
       { email },
@@ -160,7 +167,9 @@ if (otp && otp.expiresAt < new Date() && !isDevBypass) {
       code: otpCode.toString(),
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
-console.log("forgot password otp:", otpCode);
+
+    console.log("forgot password otp:", otpCode);
+
     return { message: "Reset OTP sent" };
   },
 
@@ -174,21 +183,25 @@ console.log("forgot password otp:", otpCode);
   ) {
     const cleanCode = String(otp).trim();
 
-   let record = await Otp.findOne({
-  email,
-  code: cleanCode,
-});
+    let record = await Otp.findOne({
+      email,
+      code: cleanCode,
+    });
 
-const isDevBypass =
-  DEV_MASTER_OTP && cleanCode === DEV_MASTER_OTP;
+    const isDevBypass =
+      DEV_MASTER_OTP && cleanCode === DEV_MASTER_OTP;
 
-if (!record && !isDevBypass) {
-  throw new AppError("Invalid OTP", 400);
-}
+    if (!record && !isDevBypass) {
+      throw new AppError("Invalid OTP", 400);
+    }
 
-if (record && record.expiresAt < new Date() && !isDevBypass) {
-  throw new AppError("OTP expired", 400);
-}
+    if (record && record.expiresAt < new Date() && !isDevBypass) {
+      throw new AppError("OTP expired", 400);
+    }
+
+    if (isDevBypass) {
+      console.warn("⚠ DEV MASTER OTP USED FOR PASSWORD RESET");
+    }
 
     const hashed = await hashPassword(newPassword);
 
@@ -212,7 +225,6 @@ if (record && record.expiresAt < new Date() && !isDevBypass) {
   },
 
   async updateProfile(userId: string, data: any) {
-    // Lock sensitive fields
     delete data.username;
     delete data.role;
     delete data.verified;
