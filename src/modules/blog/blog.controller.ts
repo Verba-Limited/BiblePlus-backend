@@ -2,6 +2,23 @@ import { Request, Response, NextFunction } from "express";
 import { BlogService } from "./blog.service";
 
 export const BlogController = {
+
+  // -----------------------------------------------------
+  // ADMIN: GET SINGLE BLOG BY ID
+  // -----------------------------------------------------
+  getOneById: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await BlogService.getBlogById(req.params.id);
+
+      res.json({
+        success: true,
+        data
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   // -----------------------------------------------------
   // ADMIN: CREATE BLOG
   // -----------------------------------------------------

@@ -7,6 +7,8 @@ const upload = multer({ dest: "uploads/blog" });
 
 const router = Router();
 
+
+router.get("/:id", BlogController.getOneById); //
 /* ======================================================
    📌 PUBLIC BLOG ROUTES
 ====================================================== */
