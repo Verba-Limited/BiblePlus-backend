@@ -1,6 +1,6 @@
 // src/modules/verse/verse.service.ts
 import AppError from "../../core/AppError";
-import { VerseOfDay } from "./verseOfDay.model";
+import { VerseOfDay } from "./verseOFDay.model";
 import axios from "axios";
 
 const todayKey = () =>
