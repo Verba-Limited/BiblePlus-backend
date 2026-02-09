@@ -3,9 +3,15 @@ import AppError from "../../core/AppError";
 import { NotificationService } from "../notifications/notification.service";
 import { HydratedDocument } from "mongoose";
 import { IBlog } from "./blog.types"; // <-- we will add this interface
+import { get } from "http";
 
 export const BlogService = {
 
+  async getBlogById(id: string) {
+    const blog = await Blog.findById(id) as HydratedDocument<IBlog> | null;
+    if (!blog) throw new AppError("Blog not found", 404);
+    return blog;
+  },
   // -----------------------------------------------------
   // ADMIN: CREATE BLOG
   // -----------------------------------------------------
