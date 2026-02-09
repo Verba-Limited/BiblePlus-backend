@@ -1,6 +1,6 @@
 import AppError from "../../core/AppError";
 import { Verse } from "./verse.model";
-import { VerseOfDay } from "./verseOfDay.model";
+import { VerseOfDay } from "./verseOFDay.model";
 import axios from "axios";
 
 const todayKey = () =>
