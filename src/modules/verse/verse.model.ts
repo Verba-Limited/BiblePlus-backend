@@ -35,13 +35,13 @@ const verseSchema = new Schema<IVerse>(
       type: Number,
       min: 1,
       validate: {
-        validator: function (value: number) {
-          // `this` is the mongoose document
-          // eslint-disable-next-line @typescript-eslint/no-this-alias
-          const doc = this as IVerse;
-          return value === undefined || value >= doc.startVerse;
+        // 👇 TS-safe mongoose validator
+        validator: function (this: any, value?: number) {
+          if (value === undefined) return true;
+          return value >= this.startVerse;
         },
-        message: "endVerse must be greater than or equal to startVerse"
+        message:
+          "endVerse must be greater than or equal to startVerse"
       }
     },
 
@@ -68,8 +68,17 @@ const verseSchema = new Schema<IVerse>(
 
 // Prevent duplicate verses per translation
 verseSchema.index(
-  { book: 1, chapter: 1, startVerse: 1, endVerse: 1, translation: 1 },
+  {
+    book: 1,
+    chapter: 1,
+    startVerse: 1,
+    endVerse: 1,
+    translation: 1
+  },
   { unique: true }
 );
 
-export const Verse = mongoose.model<IVerse>("Verse", verseSchema);
+export const Verse = mongoose.model<IVerse>(
+  "Verse",
+  verseSchema
+);
