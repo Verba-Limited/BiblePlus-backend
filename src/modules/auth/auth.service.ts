@@ -185,25 +185,26 @@ export const AuthService = {
   ) {
     const cleanCode = String(otp).trim();
 
-    let record = await Otp.findOne({
-      email,
-      code: cleanCode,
-    });
+const isDevBypass =
+  DEV_MASTER_OTP !== null && cleanCode === DEV_MASTER_OTP;
 
-    const isDevBypass =
-      DEV_MASTER_OTP && cleanCode === DEV_MASTER_OTP;
+let record = null;
 
-    if (!record && !isDevBypass) {
-      throw new AppError("Invalid OTP", 400);
-    }
+if (!isDevBypass) {
+  record = await Otp.findOne({ email, code: cleanCode });
 
-    if (record && record.expiresAt < new Date() && !isDevBypass) {
-      throw new AppError("OTP expired", 400);
-    }
+  if (!record) {
+    throw new AppError("Invalid OTP", 400);
+  }
 
-    if (isDevBypass) {
-      console.warn("⚠ DEV MASTER OTP USED FOR PASSWORD RESET");
-    }
+  if (record.expiresAt < new Date()) {
+    throw new AppError("OTP expired", 400);
+  }
+} else {
+  console.warn("⚠ DEV MASTER OTP USED FOR PASSWORD RESET");
+}
+
+   
 
     const hashed = await hashPassword(newPassword);
 
