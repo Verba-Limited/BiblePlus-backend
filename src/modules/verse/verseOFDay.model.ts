@@ -3,14 +3,12 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IVerseOfDay extends Document {
   date: string; // YYYY-MM-DD
-
-  reference: string; // Revelation 21:3-4
-  book: string;      // Revelation
-  chapter: number;   // 21
-  verse: number;     // 3 (first verse)
-  text: string;      // Verse content
-  translation: string; // WEB, KJV, etc
-
+  reference: string; // Rev 21:3-4
+  book: string;
+  chapter: number;
+  verse: number;
+  text: string;
+  translation: string;
   source: "admin" | "auto";
   locked: boolean;
 }
@@ -31,17 +29,20 @@ const verseOfDaySchema = new Schema<IVerseOfDay>(
 
     book: {
       type: String,
-      required: true
+      required: true,
+      index: true
     },
 
     chapter: {
       type: Number,
-      required: true
+      required: true,
+      min: 1
     },
 
     verse: {
       type: Number,
-      required: true
+      required: true,
+      min: 1
     },
 
     text: {
