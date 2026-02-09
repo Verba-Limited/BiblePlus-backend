@@ -9,12 +9,23 @@ const todayKey = () =>
 const BIBLE_API = "https://bible-api.com";
 
 /* =====================================================
+   TYPES
+===================================================== */
+interface FetchedVerse {
+  book: string;
+  chapter: number;
+  startVerse: number;
+  text: string;
+  translation: string;
+}
+
+/* =====================================================
    HELPERS
 ===================================================== */
-const fetchRandomVerse = async () => {
+const fetchRandomVerse = async (): Promise<FetchedVerse> => {
   const res = await axios.get(`${BIBLE_API}/random`);
 
-  if (!res.data) {
+  if (!res.data?.text) {
     throw new AppError("Failed to fetch verse", 500);
   }
 
@@ -32,24 +43,33 @@ const fetchRandomVerse = async () => {
 ===================================================== */
 export const VerseService = {
   /* =====================================================
-     GET VERSE OF THE DAY (AUTO CREATE & LOCK)
+     GET VERSE OF THE DAY (AUTO + LOCK)
   ===================================================== */
   async getToday() {
     const today = todayKey();
 
-    let record = await VerseOfDay.findOne({ date: today })
+    // ✅ already exists → return
+    const existing = await VerseOfDay.findOne({ date: today })
       .populate("verse")
       .lean();
 
-    if (record) return record;
+    if (existing) return existing;
 
-    // 🔁 auto fetch verse
+    // 🔁 fetch verse
     const fetched = await fetchRandomVerse();
 
-    // ✅ save verse
-    const verse = await Verse.create(fetched);
+    // ♻️ reuse verse if already exists
+    let verse = await Verse.findOne({
+      book: fetched.book,
+      chapter: fetched.chapter,
+      startVerse: fetched.startVerse,
+      translation: fetched.translation
+    });
 
-    // ✅ lock verse of day
+    if (!verse) {
+      verse = await Verse.create(fetched);
+    }
+
     const vod = await VerseOfDay.create({
       date: today,
       verse: verse._id,
@@ -63,7 +83,7 @@ export const VerseService = {
   },
 
   /* =====================================================
-     LIST HISTORY
+     LIST VERSE HISTORY
   ===================================================== */
   async history(limit = 30) {
     return VerseOfDay.find()
@@ -77,6 +97,10 @@ export const VerseService = {
      ADMIN: SET VERSE FOR DATE (OVERRIDE)
   ===================================================== */
   async setForDate(date: string, verseId: string) {
+    if (!date) {
+      throw new AppError("Date is required", 400);
+    }
+
     const verse = await Verse.findById(verseId);
     if (!verse) {
       throw new AppError("Verse not found", 404);
@@ -106,6 +130,16 @@ export const VerseService = {
     text: string;
     translation?: string;
   }) {
+    const exists = await Verse.findOne({
+      book: payload.book,
+      chapter: payload.chapter,
+      startVerse: payload.startVerse,
+      endVerse: payload.endVerse ?? null,
+      translation: payload.translation ?? "NWT"
+    });
+
+    if (exists) return exists;
+
     return Verse.create(payload);
   }
 };

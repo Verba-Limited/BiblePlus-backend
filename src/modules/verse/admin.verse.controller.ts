@@ -38,12 +38,14 @@ export const AdminVerseController = {
       }
 
       const record = await VerseService.setForDate(date, {
+        
         reference,
         book,
         chapter,
         verse,
         text,
         translation
+
       });
 
       res.status(200).json({

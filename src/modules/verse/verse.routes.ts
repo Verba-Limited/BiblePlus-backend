@@ -12,12 +12,7 @@ router.get("/today", VerseController.today);
 router.get("/history", VerseController.history);
 
 /* ADMIN */
-router.post(
-  "/admin/add",
-  authMiddleware,
-  adminOnly,
-  AdminVerseController.addVerse
-);
+
 
 router.post(
   "/admin/set",
