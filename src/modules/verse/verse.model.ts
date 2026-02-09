@@ -2,12 +2,12 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IVerse extends Document {
-  book: string;            // Revelation
-  chapter: number;         // 21
-  startVerse: number;      // 3
-  endVerse?: number;       // 4 (optional)
-  text: string;            // Full verse text
-  translation: string;     // NWT, NIV, KJV
+  book: string;
+  chapter: number;
+  startVerse: number;
+  endVerse?: number;
+  text: string;
+  translation: string;
 }
 
 const verseSchema = new Schema<IVerse>(
@@ -35,8 +35,11 @@ const verseSchema = new Schema<IVerse>(
       type: Number,
       min: 1,
       validate: {
-        validator: function (this: IVerse, value: number) {
-          return !value || value >= this.startVerse;
+        validator: function (value: number) {
+          // `this` is the mongoose document
+          // eslint-disable-next-line @typescript-eslint/no-this-alias
+          const doc = this as IVerse;
+          return value === undefined || value >= doc.startVerse;
         },
         message: "endVerse must be greater than or equal to startVerse"
       }
@@ -56,13 +59,11 @@ const verseSchema = new Schema<IVerse>(
       index: true
     }
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
 /* =====================================================
-   INDEXES (CRITICAL)
+   INDEXES
 ===================================================== */
 
 // Prevent duplicate verses per translation
@@ -71,10 +72,4 @@ verseSchema.index(
   { unique: true }
 );
 
-// Fast random verse selection
-verseSchema.index({ book: 1, translation: 1 });
-
-export const Verse = mongoose.model<IVerse>(
-  "Verse",
-  verseSchema
-);
+export const Verse = mongoose.model<IVerse>("Verse", verseSchema);
