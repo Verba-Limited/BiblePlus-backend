@@ -90,45 +90,47 @@ export const AuthService = {
   /* =====================================================
      VERIFY OTP
   ===================================================== */
-  async verifyOtp(email: string, code: string) {
-    const cleanCode = String(code).trim();
+ async verifyOtp(email: string, code: string) {
+  const cleanCode = String(code).trim();
 
-    let otp = await Otp.findOne({ email, code: cleanCode });
+  const isDevBypass =
+    DEV_MASTER_OTP !== null && cleanCode === DEV_MASTER_OTP;
 
-    const isDevBypass =
-      DEV_MASTER_OTP && cleanCode === DEV_MASTER_OTP;
+  let otp = null;
 
-    if (!otp && !isDevBypass) {
+  if (!isDevBypass) {
+    otp = await Otp.findOne({ email, code: cleanCode });
+
+    if (!otp) {
       throw new AppError("Invalid OTP", 400);
     }
 
-    if (otp && otp.expiresAt < new Date() && !isDevBypass) {
+    if (otp.expiresAt < new Date()) {
       throw new AppError("OTP expired", 400);
     }
+  } else {
+    console.warn("⚠ DEV MASTER OTP USED");
+  }
 
-    if (isDevBypass) {
-      console.warn("⚠ DEV MASTER OTP USED");
-    }
+  const user = await User.findOneAndUpdate(
+    { email },
+    { verified: true },
+    { new: true }
+  );
 
-    const user = await User.findOneAndUpdate(
-      { email },
-      { verified: true },
-      { new: true }
-    );
+  if (!user) throw new AppError("User not found", 404);
 
-    if (!user) throw new AppError("User not found", 404);
+  await Otp.deleteMany({ email });
 
-    await Otp.deleteMany({ email });
-
-    return {
-      token: generateAccessToken({
-        userId: user._id.toString(),
-        role: user.role,
-      }),
-      refreshToken: generateRefreshToken(user._id.toString()),
-      user,
-    };
-  },
+  return {
+    token: generateAccessToken({
+      userId: user._id.toString(),
+      role: user.role,
+    }),
+    refreshToken: generateRefreshToken(user._id.toString()),
+    user,
+  };
+},
 
   /* =====================================================
      LOGIN USER
