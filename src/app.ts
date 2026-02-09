@@ -38,6 +38,7 @@ import prayerRoutes from "./modules/prayer/prayer.routes";
 import notificationRoutes from "./modules/notifications/notification.routes";
 import AdminRoutes from "./modules/admin/admin.routes";
 import chatbotRoutes from "./modules/chatbot/chatbot.routes";
+import verseRoutes from "./modules/verse/verse.routes";
 
 
 /* =====================
@@ -92,6 +93,7 @@ app.use("/api/events/gallery", eventGalleryRoutes);
 
 /* ===== BLOG ===== */
 app.use("/api/blog", blogRoutes);
+app.use("/api/verse", verseRoutes);
 app.use("/api/blog/bookmark", blogBookmarkRoutes);
 app.use("/api/blog/trending", blogTrendingRoutes);
 
