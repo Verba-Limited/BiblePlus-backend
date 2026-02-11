@@ -29,7 +29,7 @@ const ISSUER = "bibleplus-api";
 const AUDIENCE = "bibleplus-client";
 
 /* =====================================================
-   GENERATE ACCESS TOKEN
+   GENERATE ACCESS TOKEN...
 ===================================================== */
 export const generateAccessToken = (
   payload: AccessTokenPayload
