@@ -6,7 +6,7 @@ import axios from "axios";
 const todayKey = () =>
   new Date().toISOString().split("T")[0];
 
-const BIBLE_API = "https://bible-api.com";
+
 
 const BIBLE_API_KEY = process.env.BIBLE_API_KEY;
 const BIBLE_ID = process.env.BIBLE_ID || "de4e12af7f28f599-01"; // default KJV
@@ -25,44 +25,27 @@ const bibleClient = axios.create({
 /* =====================================================
    HELPERS
 ===================================================== */
+const BIBLE_API = "https://bible-api.com";
+
 const fetchRandomVerse = async () => {
-  try {
-    const response = await bibleClient.get(
-      `/bibles/${BIBLE_ID}/verses/random`
-    );
+  const res = await axios.get(`${BIBLE_API}/random`);
 
-    const data = response.data?.data;
-
-    if (!data?.reference || !data?.content) {
-      throw new Error("Invalid API response");
-    }
-
-    const reference = data.reference;
-    const [bookPart, chapterVerse] = reference.split(" ");
-    const [chapter, verse] = chapterVerse.split(":");
-
-    return {
-      reference,
-      book: bookPart,
-      chapter: Number(chapter),
-      verse: Number(verse),
-      text: data.content.replace(/<[^>]*>/g, ""),
-      translation: data.bibleId
-    };
-
-  } catch (error) {
-    console.warn("⚠ API failed — using fallback verse");
-
-    // 🔁 Fallback verse
-    return {
-      reference: "John 3:16",
-      book: "John",
-      chapter: 3,
-      verse: 16,
-      text: "For God so loved the world that he gave his only begotten Son so that whoever exercises faith in him might not be destroyed but have everlasting life",
-      translation: "KJV"
-    };
+  if (!res.data?.text) {
+    throw new AppError("Failed to fetch verse", 500);
   }
+
+  const book = res.data.book_name;
+  const chapter = res.data.chapter;
+  const verse = res.data.verse;
+
+  return {
+    reference: `${book} ${chapter}:${verse}`,
+    book,
+    chapter,
+    verse,
+    text: res.data.text,
+    translation: "WEB"
+  };
 };
 
 /* =====================================================
