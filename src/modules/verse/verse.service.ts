@@ -15,6 +15,13 @@ if (!BIBLE_API_KEY) {
   throw new Error("BIBLE_API_KEY is not defined in environment variables");
 }
 
+const bibleClient = axios.create({
+  baseURL: "https://api.scripture.api.bible/v1",
+  headers: {
+    "api-key": BIBLE_API_KEY
+  }
+});
+
 /* =====================================================
    HELPERS
 ===================================================== */
