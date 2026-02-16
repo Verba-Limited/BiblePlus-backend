@@ -16,7 +16,7 @@ const todayKey = () =>
 const BIBLE_API = "https://bible-api.com";
 
 const fetchRandomVerse = async () => {
-  const res = await axios.get(`${BIBLE_API}/random`);
+  const res = await axios.get(`${BIBLE_API}/random=verse`);
 
   if (!res.data?.text) {
     throw new AppError("Failed to fetch verse", 500);
