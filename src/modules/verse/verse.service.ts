@@ -8,19 +8,7 @@ const todayKey = () =>
 
 
 
-const BIBLE_API_KEY = process.env.BIBLE_API_KEY;
-const BIBLE_ID = process.env.BIBLE_ID || "de4e12af7f28f599-01"; // default KJV
 
-if (!BIBLE_API_KEY) {
-  throw new Error("BIBLE_API_KEY is not defined in environment variables");
-}
-
-const bibleClient = axios.create({
-  baseURL: "https://api.scripture.api.bible/v1",
-  headers: {
-    "api-key": BIBLE_API_KEY
-  }
-});
 
 /* =====================================================
    HELPERS
