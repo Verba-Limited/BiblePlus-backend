@@ -8,6 +8,13 @@ const todayKey = () =>
 
 const BIBLE_API = "https://bible-api.com";
 
+const BIBLE_API_KEY = process.env.BIBLE_API_KEY;
+const BIBLE_ID = process.env.BIBLE_ID || "de4e12af7f28f599-01"; // default KJV
+
+if (!BIBLE_API_KEY) {
+  throw new Error("BIBLE_API_KEY is not defined in environment variables");
+}
+
 /* =====================================================
    HELPERS
 ===================================================== */
