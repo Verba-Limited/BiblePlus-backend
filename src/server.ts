@@ -9,6 +9,9 @@ import { SocketNotify } from "./modules/notifications/socketNotify";
 import { EventReminderService } from "./modules/events/eventReminder.service";
 import { AdminService } from "./modules/admin/admin.service";
 import { VerseFinder } from "./modules/chatbot/helpers/verseFinder";
+import { startVerseScheduler } from "./modules/verse/verse.schedular";
+
+
 
 dotenv.config();
 
@@ -54,6 +57,8 @@ cron.schedule("* * * * *", async () => {
   console.log("⏳ Running Event Reminder Cron...");
   await EventReminderService.processReminders();
 });
+
+startVerseScheduler();
 
 // -------------------------------
 // CONNECT TO MONGO DB
