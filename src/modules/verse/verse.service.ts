@@ -46,6 +46,13 @@ const fetchRandomVerse = async () => {
     text: res.data.text,
     translation: "WEB"
   };
+
+try {
+   const res = await axios.get(`${BIBLE_API}/random`);
+} catch (error) {
+   throw new AppError("Verse provider unavailable", 503);
+}
+
 };
 
 /* =====================================================
