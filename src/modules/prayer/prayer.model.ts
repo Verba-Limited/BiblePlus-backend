@@ -1,11 +1,11 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IPrayer extends Document {
-  userId: string;
+  user: Types.ObjectId; // reference to User
   title: string;
   description: string;
   visibility: "public" | "private";
-  status: "pending" | "approved" | "answered";
+  isAnswered: boolean;
   image?: string;
   prayCount: number;
   createdAt: Date;
@@ -14,27 +14,63 @@ export interface IPrayer extends Document {
 
 const prayerSchema = new Schema<IPrayer>(
   {
-    userId: { type: String, required: true },
-    title: { type: String, required: true },
-    description: { type: String, required: true },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true
+    },
+
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 150
+    },
+
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 2000
+    },
 
     visibility: {
       type: String,
       enum: ["public", "private"],
-      default: "public"
+      default: "public",
+      index: true
     },
 
-    status: {
+    // ✅ user can mark their prayer answered
+    isAnswered: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+
+    image: {
       type: String,
-      enum: ["pending", "approved", "answered"],
-      default: "pending"
+      default: ""
     },
 
-    image: { type: String, default: "" },
-
-    prayCount: { type: Number, default: 0 }
+    prayCount: {
+      type: Number,
+      default: 0,
+      min: 0
+    }
   },
   { timestamps: true }
 );
+
+/* =========================================
+   INDEXES (important for scaling)
+========================================= */
+
+// Public feed performance
+prayerSchema.index({ visibility: 1, createdAt: -1 });
+
+// User profile performance
+prayerSchema.index({ user: 1, createdAt: -1 });
 
 export const Prayer = mongoose.model<IPrayer>("Prayer", prayerSchema);
