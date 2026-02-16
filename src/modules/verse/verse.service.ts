@@ -16,31 +16,25 @@ const todayKey = () =>
 const BIBLE_API = "https://bible-api.com";
 
 const fetchRandomVerse = async () => {
-  const res = await axios.get(`${BIBLE_API}/random=verse`);
+  const res = await axios.get(`${BIBLE_API}/?random=verse`);
 
-  if (!res.data?.text) {
+  if (!res.data?.reference) {
     throw new AppError("Failed to fetch verse", 500);
   }
 
-  const book = res.data.book_name;
-  const chapter = res.data.chapter;
-  const verse = res.data.verse;
+  const reference = res.data.reference; // "John 3:16"
+  const book = res.data.reference.split(" ")[0];
+  const chapter = parseInt(res.data.reference.split(" ")[1].split(":")[0]);
+  const verse = parseInt(res.data.reference.split(":")[1]);
 
   return {
-    reference: `${book} ${chapter}:${verse}`,
+    reference,
     book,
     chapter,
     verse,
     text: res.data.text,
-    translation: "WEB"
+    translation: res.data.translation_id || "WEB"
   };
-
-try {
-   const res = await axios.get(`${BIBLE_API}/random`);
-} catch (error) {
-   throw new AppError("Verse provider unavailable", 503);
-}
-
 };
 
 /* =====================================================
