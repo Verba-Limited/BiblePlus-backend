@@ -1,7 +1,5 @@
 import AppError from "../../core/AppError";
 import { Prayer } from "./prayer.model";
-import { PrayerLikeService } from "./prayerLike.service";
-import { NotificationService } from "../notifications/notification.service";
 import mongoose from "mongoose";
 
 export const PrayerService = {
@@ -10,9 +8,14 @@ export const PrayerService = {
      CREATE PRAYER
   ============================================ */
   async create(userId: string, data: any) {
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new AppError("Invalid user ID", 400);
+    }
+
     return Prayer.create({
       ...data,
-      userId,
+      user: new mongoose.Types.ObjectId(userId), // ✅ FIXED
       visibility: data.visibility || "public"
     });
   },
@@ -22,14 +25,14 @@ export const PrayerService = {
   ============================================ */
   async getPublic(
     page = 1,
-    limit = 20,
-    userId?: string
+    limit = 20
   ) {
     const skip = (page - 1) * limit;
 
     const prayers = await Prayer.find({
       visibility: "public"
     })
+      .populate("user", "username email") // ✅ better for frontend
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -45,7 +48,14 @@ export const PrayerService = {
      USER'S OWN PRAYERS
   ============================================ */
   async getUserPrayers(userId: string) {
-    return Prayer.find({ userId })
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new AppError("Invalid user ID", 400);
+    }
+
+    return Prayer.find({
+      user: userId   // ✅ FIXED
+    })
       .sort({ createdAt: -1 });
   },
 
@@ -53,6 +63,11 @@ export const PrayerService = {
      DELETE PRAYER (ADMIN)
   ============================================ */
   async delete(id: string) {
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new AppError("Invalid prayer ID", 400);
+    }
+
     const removed = await Prayer.findByIdAndDelete(id);
 
     if (!removed) {
