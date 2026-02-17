@@ -2,28 +2,30 @@ import AppError from "../../core/AppError";
 import { Prayer } from "./prayer.model";
 import { PrayerLikeService } from "./prayerLike.service";
 import { NotificationService } from "../notifications/notification.service";
+import mongoose from "mongoose";
 
 export const PrayerService = {
 
   /* ======================================================
-        CREATE PRAYER REQUEST
+        CREATE PRAYER
+        Auto published if visibility = public
   ====================================================== */
-  create: async (data: any) => {
-    const prayer = await Prayer.create(data);
+  create: async (userId: string, data: any) => {
+    const prayer = await new Prayer({
+      ...data,
+      user: userId
+    }).save();
 
-    // Ensure we have a single document
-    const created = Array.isArray(prayer) ? prayer[0] : prayer;
-
-    // Notify admin that a prayer request was submitted
+    // Optional: notify admin (informational only)
     NotificationService.create(
       "ADMIN",
-      "New Prayer Request Submitted",
-      `A new prayer request has been submitted for review.`,
+      "New Prayer Submitted",
+      "A new prayer has been posted.",
       "prayer-new",
-      { prayerId: created?._id?.toString() }
+      { prayerId: prayer._id.toString() }
     ).catch(() => {});
 
-    return created;
+    return prayer;
   },
 
   /* ======================================================
@@ -32,26 +34,24 @@ export const PrayerService = {
   getPublic: async (page = 1, limit = 20, userId?: string) => {
     const skip = (page - 1) * limit;
 
-    const requests = await Prayer.find({
-      visibility: "public",
-      status: "approved"
+    const prayers = await Prayer.find({
+      visibility: "public"
     })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .populate("user", "username");
 
     const total = await Prayer.countDocuments({
-      visibility: "public",
-      status: "approved"
+      visibility: "public"
     });
 
-    // Add prayCount + userPrayed to each request
-    const enrichedRequests = await Promise.all(
-      requests.map(async (req) => {
-        const id = req._id.toString();
+    const enriched = await Promise.all(
+      prayers.map(async (prayer) => {
+        const id = prayer._id.toString();
 
         return {
-          ...req.toObject(),
+          ...prayer.toObject(),
           prayCount: await PrayerLikeService.count(id),
           userPrayed: userId
             ? await PrayerLikeService.userPrayed(userId, id)
@@ -60,80 +60,72 @@ export const PrayerService = {
       })
     );
 
-    return { requests: enrichedRequests, total };
+    return { prayers: enriched, total };
   },
 
   /* ======================================================
-        GET USER'S OWN REQUESTS
+        GET USER PRAYERS
   ====================================================== */
-  getUserRequests: async (userId: string) => {
-    return await Prayer.find({ userId }).sort({ createdAt: -1 });
+  getUserPrayers: async (userId: string) => {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new AppError("Invalid user ID", 400);
+    }
+
+    return Prayer.find({ user: userId })
+      .sort({ createdAt: -1 });
   },
 
   /* ======================================================
-        ADMIN: APPROVE PRAYER REQUEST
+        USER: MARK AS ANSWERED
+        Only owner can mark answered
   ====================================================== */
-  approve: async (id: string) => {
-    const updated = await Prayer.findByIdAndUpdate(
-      id,
-      { status: "approved" },
-      { new: true }
-    );
+  markAnswered: async (prayerId: string, userId: string) => {
+    const prayer = await Prayer.findById(prayerId);
 
-    if (!updated) throw new AppError("Prayer request not found", 404);
+    if (!prayer) {
+      throw new AppError("Prayer not found", 404);
+    }
 
-    // Notify user that prayer is approved
-    NotificationService.create(
-      updated.userId,
-      "Prayer Approved",
-      "Your prayer request has been approved and is now visible publicly.",
-      "prayer-approved",
-      { prayerId: updated._id.toString() }
-    ).catch(() => {});
+    if (prayer.user.toString() !== userId) {
+      throw new AppError("Unauthorized", 403);
+    }
 
-    return updated;
-  },
+    prayer.isAnswered = true;
+    await prayer.save();
 
-  /* ======================================================
-        ADMIN: MARK PRAYER AS ANSWERED
-  ====================================================== */
-  markAnswered: async (id: string) => {
-    const updated = await Prayer.findByIdAndUpdate(
-      id,
-      { status: "answered" },
-      { new: true }
-    );
-
-    if (!updated) throw new AppError("Prayer request not found", 404);
-
-    // Notify user privately
-    NotificationService.create(
-      updated.userId,
-      "Prayer Answered",
-      "Your prayer has been marked as answered.",
-      "prayer-answered",
-      { prayerId: updated._id.toString() }
-    ).catch(() => {});
-
-    // OPTIONAL: notify all users
+    // Optional: notify community
     NotificationService.create(
       "ALL",
       "A Prayer Has Been Answered!",
-      "A prayer request in the community has been answered!",
-      "prayer-answered-public",
-      { prayerId: updated._id.toString() }
+      "One of the community prayers has been marked as answered.",
+      "prayer-answered",
+      { prayerId: prayer._id.toString() }
     ).catch(() => {});
 
-    return updated;
+    return prayer;
   },
 
   /* ======================================================
-        ADMIN: DELETE PRAYER REQUEST
+        DELETE PRAYER
+        - Owner can delete
+        - Admin can delete
   ====================================================== */
-  delete: async (id: string) => {
-    const removed = await Prayer.findByIdAndDelete(id);
-    if (!removed) throw new AppError("Prayer request not found", 404);
+  delete: async (prayerId: string, userId: string, role: string) => {
+    const prayer = await Prayer.findById(prayerId);
 
-    return removed;
+    if (!prayer) {
+      throw new AppError("Prayer not found", 404);
+    }
+
+    const isOwner = prayer.user.toString() === userId;
+    const isAdmin = role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      throw new AppError("Unauthorized", 403);
+    }
+
+    await prayer.deleteOne();
+
+    return { message: "Prayer deleted successfully" };
   }
 };
