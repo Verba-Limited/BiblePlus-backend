@@ -84,6 +84,24 @@ export const QuizDailyService = {
     daily = created.toObject();
   }
 
+let questions;
+
+try {
+  questions = await generateDailyQuizFromAI();
+} catch (err) {
+  console.log("AI failed, using fallback");
+
+  questions = [
+    {
+      question: "Who built the ark?",
+      options: ["Moses", "Noah", "Abraham", "David"],
+      correctAnswer: "Noah",
+      reference: "Genesis 6:14"
+    },
+    
+  ];
+}
+
   return {
     date: daily.date,
     total: daily.questions.length,
