@@ -9,8 +9,11 @@ export interface IQuizProgress extends Document {
   totalCorrect: number;
   totalAttempts: number;
 
-  createdAt: Date;
-  updatedAt: Date;
+  weeklyXp: number;
+  weeklyCorrect: number;
+  weeklyAttempts: number;
+
+  lastWeeklyReset: string; // YYYY-WW format
 }
 
 const quizProgressSchema = new Schema<IQuizProgress>(
@@ -23,30 +26,22 @@ const quizProgressSchema = new Schema<IQuizProgress>(
       index: true
     },
 
-    highestLevel: {
-      type: Number,
-      default: 1
-    },
+    highestLevel: { type: Number, default: 1 },
 
-    totalXp: {
-      type: Number,
-      default: 0
-    },
+    totalXp: { type: Number, default: 0 },
+    totalCorrect: { type: Number, default: 0 },
+    totalAttempts: { type: Number, default: 0 },
 
-    totalCorrect: {
-      type: Number,
-      default: 0
-    },
+    weeklyXp: { type: Number, default: 0 },
+    weeklyCorrect: { type: Number, default: 0 },
+    weeklyAttempts: { type: Number, default: 0 },
 
-    totalAttempts: {
-      type: Number,
-      default: 0
-    }
+    lastWeeklyReset: { type: String, default: "" }
   },
   { timestamps: true }
 );
 
-quizProgressSchema.index({ totalXp: -1 });
+quizProgressSchema.index({ weeklyXp: -1 });
 
 export const QuizProgress = mongoose.model<IQuizProgress>(
   "QuizProgress",
