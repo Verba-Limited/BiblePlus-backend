@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { PrayerService } from "./prayer.service";
+import AppError from "../../core/AppError";
 
 export const PrayerController = {
   /* ============================================
@@ -7,16 +8,17 @@ export const PrayerController = {
   ============================================ */
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
-      const userId = req.userId;
+      if (!req.userId) {
+        throw new AppError("Authentication required", 401);
+      }
 
       const data = await PrayerService.create({
         ...req.body,
-        userId,
+        userId: req.userId,
         image: req.file?.filename || ""
       });
 
-      res.json({
+      res.status(201).json({
         success: true,
         message: "Prayer request submitted successfully",
         data
@@ -28,17 +30,18 @@ export const PrayerController = {
 
   /* ============================================
         PUBLIC: PRAYER WALL
+        No approval needed
   ============================================ */
   getPublic: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page = 1, limit = 20 } = req.query;
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 20;
 
-      // @ts-ignore (optional user context)
-      const userId = req.userId || null;
+      const userId = req.userId || undefined;
 
       const data = await PrayerService.getPublic(
-        Number(page),
-        Number(limit),
+        page,
+        limit,
         userId
       );
 
@@ -56,10 +59,11 @@ export const PrayerController = {
   ============================================ */
   getUserRequests: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
-      const userId = req.userId;
+      if (!req.userId) {
+        throw new AppError("Authentication required", 401);
+      }
 
-      const data = await PrayerService.getUserRequests(userId);
+      const data = await PrayerService.getUserRequests(req.userId);
 
       res.json({
         success: true,
@@ -71,41 +75,8 @@ export const PrayerController = {
   },
 
   /* ============================================
-        ADMIN: APPROVE PRAYER REQUEST
-  ============================================ */
-  approve: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await PrayerService.approve(req.params.id);
-
-      res.json({
-        success: true,
-        message: "Prayer request approved",
-        data
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  /* ============================================
-        ADMIN: MARK REQUEST AS ANSWERED
-  ============================================ */
-  markAnswered: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await PrayerService.markAnswered(req.params.id);
-
-      res.json({
-        success: true,
-        message: "Prayer request marked as answered",
-        data
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  /* ============================================
-        OPTIONAL ADMIN: DELETE REQUEST
+        ADMIN: DELETE PRAYER REQUEST
+        (ONLY ADMIN POWER)
   ============================================ */
   delete: async (req: Request, res: Response, next: NextFunction) => {
     try {
