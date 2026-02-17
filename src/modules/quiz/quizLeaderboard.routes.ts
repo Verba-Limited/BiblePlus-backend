@@ -1,28 +1,41 @@
-// src/modules/quiz/quizLeaderboard.routes.ts
-
 import { Router } from "express";
 import authMiddleware from "../../middleware/auth.middleware";
 import { QuizLeaderboardController } from "./quizLeaderboard.controller";
 
 const router = Router();
 
-/*
-|--------------------------------------------------------------------------
-| XP LEADERBOARD
-|--------------------------------------------------------------------------
-*/
+/* ============================================
+   PUBLIC LEADERBOARDS
+============================================ */
 
-// 🌍 Global ranking
+// Global leaderboard
 router.get(
-  "/",
-  QuizLeaderboardController.global
+  "/leaderboard/global",
+  QuizLeaderboardController.getGlobal
 );
 
-// 👤 My rank
+// Weekly leaderboard
 router.get(
-  "/me",
+  "/leaderboard/weekly",
+  QuizLeaderboardController.getWeekly
+);
+
+/* ============================================
+   AUTHENTICATED USER RANK
+============================================ */
+
+// My global rank
+router.get(
+  "/leaderboard/global/me",
   authMiddleware,
-  QuizLeaderboardController.me
+  QuizLeaderboardController.getMyGlobalRank
+);
+
+// My weekly rank
+router.get(
+  "/leaderboard/weekly/me",
+  authMiddleware,
+  QuizLeaderboardController.getMyWeeklyRank
 );
 
 export default router;
