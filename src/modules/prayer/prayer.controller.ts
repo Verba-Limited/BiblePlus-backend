@@ -7,7 +7,7 @@ export const PrayerController = {
   /* ============================================
      CREATE PRAYER
   ============================================ */
-  create: async (req, res, next) => {
+  create: async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.userId) {
         throw new AppError("Authentication required", 401);
@@ -34,7 +34,7 @@ export const PrayerController = {
   /* ============================================
      PUBLIC WALL
   ============================================ */
-  getPublic: async (req, res, next) => {
+  getPublic: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 20;
@@ -54,7 +54,7 @@ export const PrayerController = {
   /* ============================================
      USER PRAYERS
   ============================================ */
-  getUserRequests: async (req, res, next) => {
+  getUserRequests: async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.userId) {
         throw new AppError("Authentication required", 401);
@@ -73,7 +73,7 @@ export const PrayerController = {
   /* ============================================
      ADMIN DELETE
   ============================================ */
-  delete: async (req, res, next) => {
+  delete: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await PrayerService.delete(
         req.params.id

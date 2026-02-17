@@ -11,16 +11,19 @@ const router = Router();
 /* =====================================
       PUBLIC PRAYER WALL
 ===================================== */
+// GET /api/prayer/public
 router.get("/public", PrayerController.getPublic);
 
 /* =====================================
       USER PRAYER REQUESTS
 ===================================== */
+// GET /api/prayer/mine
 router.get("/mine", authMiddleware, PrayerController.getUserRequests);
 
 /* =====================================
       CREATE PRAYER REQUEST
 ===================================== */
+// POST /api/prayer
 router.post(
   "/",
   authMiddleware,
@@ -31,43 +34,43 @@ router.post(
 /* =====================================
       PRAYER LIKE SYSTEM
 ===================================== */
+
 // User prays for a request
-router.post("/like/pray", authMiddleware, PrayerLikeController.pray);
+router.post(
+  "/like/pray",
+  authMiddleware,
+  PrayerLikeController.pray
+);
 
 // Undo prayer
-router.post("/like/unpray", authMiddleware, PrayerLikeController.unpray);
+router.post(
+  "/like/unpray",
+  authMiddleware,
+  PrayerLikeController.unpray
+);
 
 // Check if user prayed
-router.get("/like/status", authMiddleware, PrayerLikeController.status);
+router.get(
+  "/like/status",
+  authMiddleware,
+  PrayerLikeController.status
+);
 
 // Get total prayer count (PUBLIC)
-router.get("/like/count/:prayerId", PrayerLikeController.count);
-
-/* =====================================
-      ADMIN ACTIONS (Approve / Answered)
-===================================== */
-router.put(
-  "/admin/:id/approve",
-  authMiddleware,
-  adminOnly,
-  PrayerController.approve
-);
-
-router.put(
-  "/admin/:id/answered",
-  authMiddleware,
-  adminOnly,
-  PrayerController.markAnswered
+router.get(
+  "/like/count/:prayerId",
+  PrayerLikeController.count
 );
 
 /* =====================================
-      ADMIN DELETE PRAYER (Optional)
+      ADMIN: DELETE ONLY
 ===================================== */
+// DELETE /api/prayer/admin/:id
 router.delete(
   "/admin/:id",
   authMiddleware,
   adminOnly,
-  PrayerController.delete // ⚠ You must implement delete() in the controller
+  PrayerController.delete
 );
 
 export default router;
