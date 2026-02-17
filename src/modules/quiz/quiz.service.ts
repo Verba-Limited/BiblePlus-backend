@@ -232,13 +232,14 @@ if (!xpRecord) {
     }
 
     return {
-      score,
-      correct,
-      total,
-      earnedXp,
-      totalXp: xpRecord.totalXp,
-      userLevel: xpRecord.level,
-      unlockedNextLevel: score >= 70
-    };
+  score,
+  correct,
+  total,
+  earnedXp,
+  totalXp: xpRecord.totalXp,
+  weeklyXp: xpRecord.weeklyXp,
+  userLevel: xpRecord.level,
+  unlockedNextLevel: score >= 70
+};
   }
 };
