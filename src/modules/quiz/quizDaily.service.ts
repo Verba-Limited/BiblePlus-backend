@@ -67,12 +67,12 @@ Return ONLY strict JSON array.
 };
 
 export const QuizDailyService = {
-  async getToday() {
-    const today = todayKey();
+ async getToday() {
+  const today = todayKey();
 
-    const existing = await QuizDaily.findOne({ date: today }).lean();
-    if (existing) return existing;
+  let daily = await QuizDaily.findOne({ date: today }).lean();
 
+  if (!daily) {
     const questions = await generateDailyQuizFromAI();
 
     const created = await QuizDaily.create({
@@ -81,8 +81,22 @@ export const QuizDailyService = {
       locked: true
     });
 
-    return created.toObject();
-  },
+    daily = created.toObject();
+  }
+
+  return {
+    date: daily.date,
+    total: daily.questions.length,
+    timer: 30,
+    questions: daily.questions.map((q: any, index: number) => ({
+      id: index + 1,
+      question: q.question,
+      options: q.options,
+      reference: q.reference
+      // DO NOT send correctAnswer here
+    }))
+  };
+},
 
   async history(limit = 30) {
     return QuizDaily.find()
