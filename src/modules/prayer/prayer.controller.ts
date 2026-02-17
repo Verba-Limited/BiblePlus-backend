@@ -26,6 +26,7 @@ export const PrayerController = {
         message: "Prayer submitted",
         data
       });
+
     } catch (err) {
       next(err);
     }
@@ -41,11 +42,14 @@ export const PrayerController = {
 
       const data = await PrayerService.getPublic(
         page,
-        limit,
-        req.userId
+        limit
       );
 
-      res.json({ success: true, data });
+      res.json({
+        success: true,
+        data
+      });
+
     } catch (err) {
       next(err);
     }
@@ -64,7 +68,11 @@ export const PrayerController = {
         req.userId
       );
 
-      res.json({ success: true, data });
+      res.json({
+        success: true,
+        data
+      });
+
     } catch (err) {
       next(err);
     }
@@ -84,6 +92,7 @@ export const PrayerController = {
         message: "Prayer deleted",
         data
       });
+
     } catch (err) {
       next(err);
     }
