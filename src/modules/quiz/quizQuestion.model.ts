@@ -1,66 +1,54 @@
+// src/modules/quiz/quizQuestion.model.ts
+
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IQuizQuestion extends Document {
   question: string;
   options: string[];
-  correctAnswer: number;
-  mode: "normal" | "puzzle" | "daily";
-  level?: number;
-  image?: string;
+  correctAnswer: string;
+  level: number;
+  difficulty: "easy" | "medium" | "hard" | "expert";
+  source: "admin" | "ai";
   active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const quizQuestionSchema = new Schema<IQuizQuestion>(
   {
-    question: {
-      type: String,
-      required: true,
-      trim: true
-    },
+    question: { type: String, required: true },
 
     options: {
       type: [String],
       required: true,
       validate: {
-        validator: (v: string[]) => v.length >= 2,
-        message: "At least 2 options are required"
+        validator: (arr: string[]) => arr.length === 4,
+        message: "Must have exactly 4 options"
       }
     },
 
-    correctAnswer: {
-      type: Number,
+    correctAnswer: { type: String, required: true },
+
+    level: { type: Number, required: true, index: true },
+
+    difficulty: {
+      type: String,
+      enum: ["easy", "medium", "hard", "expert"],
       required: true
     },
 
-    mode: {
+    source: {
       type: String,
-      enum: ["normal", "puzzle", "daily"],
-      required: true
+      enum: ["admin", "ai"],
+      default: "admin"
     },
 
-    level: {
-      type: Number,
-      min: 1,
-      max: 10,
-      required: function () {
-       
-        const doc = this as IQuizQuestion;
-        return doc.mode !== "daily";
-      }
-    },
-
-    image: {
-      type: String,
-      default: null
-    },
-
-    active: {
-      type: Boolean,
-      default: true
-    }
+    active: { type: Boolean, default: true }
   },
   { timestamps: true }
 );
+
+quizQuestionSchema.index({ level: 1, active: 1 });
 
 export const QuizQuestion = mongoose.model<IQuizQuestion>(
   "QuizQuestion",
