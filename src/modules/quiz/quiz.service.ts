@@ -5,22 +5,37 @@ import AppError from "../../core/AppError";
 import { QuizQuestion } from "./quizQuestion.model";
 import { QuizAttempt } from "./quizAttempt.model";
 import { QuizProgress } from "./quizProgress.model";
+import { UserXp } from "../xp/userXp.model";
+import mongoose from "mongoose";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
+/* =====================================================
+   DIFFICULTY + XP MULTIPLIER
+===================================================== */
 const difficultyByLevel = (level: number) => {
-  if (level <= 3) return "easy";
-  if (level <= 6) return "medium";
-  if (level <= 9) return "hard";
-  return "expert";
+  if (level <= 3) return { difficulty: "easy", multiplier: 10 };
+  if (level <= 6) return { difficulty: "medium", multiplier: 15 };
+  if (level <= 9) return { difficulty: "hard", multiplier: 25 };
+  return { difficulty: "expert", multiplier: 40 };
 };
 
+/* =====================================================
+   LEVEL CALCULATION FROM XP
+===================================================== */
+const calculateLevelFromXp = (xp: number) => {
+  return Math.floor(xp / 500) + 1;
+};
+
+/* =====================================================
+   GENERATE AI QUESTIONS
+===================================================== */
 const generateQuestionsFromAI = async (level: number) => {
   if (!OPENAI_API_KEY) {
     throw new AppError("OpenAI API missing", 500);
   }
 
-  const difficulty = difficultyByLevel(level);
+  const { difficulty } = difficultyByLevel(level);
 
   const prompt = `
 Generate 10 Bible quiz questions.
@@ -30,7 +45,7 @@ Each question must include:
 - question
 - options (4)
 - correctAnswer
-Return ONLY JSON array.
+Return ONLY valid JSON array.
 `;
 
   const res = await axios.post(
@@ -51,10 +66,22 @@ Return ONLY JSON array.
   );
 
   const raw = res.data.choices[0].message.content;
-  return JSON.parse(raw);
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new AppError("AI returned invalid JSON", 500);
+  }
 };
 
+/* =====================================================
+   QUIZ SERVICE
+===================================================== */
 export const QuizService = {
+
+  /* =====================================================
+     PLAY QUIZ
+  ===================================================== */
   async play(userId: string, level: number) {
     const progress =
       (await QuizProgress.findOne({ userId })) ||
@@ -67,21 +94,31 @@ export const QuizService = {
     let questions = await QuizQuestion.find({
       level,
       active: true
-    }).limit(10);
+    }).limit(10)
+      .lean();
 
     if (questions.length < 10) {
       const aiQuestions = await generateQuestionsFromAI(level);
 
       const created = await QuizQuestion.insertMany(
-        aiQuestions.map((q: any) => ({
-          ...q,
-          level,
-          difficulty: difficultyByLevel(level),
-          source: "ai"
-        }))
-      );
+  aiQuestions.map((q: any) => ({
+    ...q,
+    level,
+    difficulty: difficultyByLevel(level).difficulty,
+    source: "ai",
+    active: true
+  }))
+);
 
-      questions = created;
+// 🔁 fetch again clean + lean
+questions = await QuizQuestion.find({
+  level,
+  active: true
+})
+  .limit(10)
+  .lean();
+
+      
     }
 
     return questions.map(q => ({
@@ -91,7 +128,15 @@ export const QuizService = {
     }));
   },
 
+  /* =====================================================
+     SUBMIT QUIZ (WITH XP SYSTEM)
+  ===================================================== */
   async submit(userId: string, level: number, answers: any[]) {
+
+    if (!answers?.length) {
+      throw new AppError("Answers required", 400);
+    }
+
     const questions = await QuizQuestion.find({
       _id: { $in: answers.map(a => a.questionId) }
     });
@@ -116,6 +161,31 @@ export const QuizService = {
       total
     });
 
+    /* ===============================
+       XP CALCULATION
+    =============================== */
+    const { multiplier } = difficultyByLevel(level);
+    const earnedXp = correct * multiplier;
+
+    let xpRecord = await UserXp.findOne({
+      user: new mongoose.Types.ObjectId(userId)
+    });
+
+    if (!xpRecord) {
+      xpRecord = await UserXp.create({
+        user: userId,
+        totalXp: earnedXp,
+        level: calculateLevelFromXp(earnedXp)
+      });
+    } else {
+      xpRecord.totalXp += earnedXp;
+      xpRecord.level = calculateLevelFromXp(xpRecord.totalXp);
+      await xpRecord.save();
+    }
+
+    /* ===============================
+       UNLOCK NEXT LEVEL
+    =============================== */
     if (score >= 70) {
       await QuizProgress.findOneAndUpdate(
         { userId },
@@ -123,6 +193,14 @@ export const QuizService = {
       );
     }
 
-    return { score, correct, total };
+    return {
+      score,
+      correct,
+      total,
+      earnedXp,
+      totalXp: xpRecord.totalXp,
+      userLevel: xpRecord.level,
+      unlockedNextLevel: score >= 70
+    };
   }
 };
