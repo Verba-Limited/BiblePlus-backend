@@ -1,295 +1,128 @@
+// src/modules/quiz/quiz.service.ts
+
+import axios from "axios";
 import AppError from "../../core/AppError";
 import { QuizQuestion } from "./quizQuestion.model";
 import { QuizAttempt } from "./quizAttempt.model";
-import { QuizDaily } from "./quizDaily.model";
-import { QuizDailyAttempt } from "./quizDailyAttempt";
-import { QuizLevelService } from "./quizLevel.service";
-import { QuizLeaderboardService } from "./quizLeaderboard.service";
+import { QuizProgress } from "./quizProgress.model";
 
-type QuizMode = "normal" | "puzzle";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-const getDayKey = (date = new Date()) =>
-  date.toISOString().split("T")[0];
+const difficultyByLevel = (level: number) => {
+  if (level <= 3) return "easy";
+  if (level <= 6) return "medium";
+  if (level <= 9) return "hard";
+  return "expert";
+};
+
+const generateQuestionsFromAI = async (level: number) => {
+  if (!OPENAI_API_KEY) {
+    throw new AppError("OpenAI API missing", 500);
+  }
+
+  const difficulty = difficultyByLevel(level);
+
+  const prompt = `
+Generate 10 Bible quiz questions.
+Difficulty: ${difficulty}.
+Level: ${level}.
+Each question must include:
+- question
+- options (4)
+- correctAnswer
+Return ONLY JSON array.
+`;
+
+  const res = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You generate Bible quizzes." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.7
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`
+      }
+    }
+  );
+
+  const raw = res.data.choices[0].message.content;
+  return JSON.parse(raw);
+};
 
 export const QuizService = {
-  /* =======================================================
-     PLAY NORMAL / PUZZLE QUIZ
-  ======================================================= */
-  async play(mode: QuizMode, level: number) {
-    if (!mode || level < 1 || level > 10) {
-      throw new AppError("Invalid quiz mode or level", 400);
+  async play(userId: string, level: number) {
+    const progress =
+      (await QuizProgress.findOne({ userId })) ||
+      (await QuizProgress.create({ userId }));
+
+    if (level > progress.highestLevel) {
+      throw new AppError("Level locked", 403);
     }
 
-    const questions = await QuizQuestion.find({
-      mode,
+    let questions = await QuizQuestion.find({
       level,
       active: true
     }).limit(10);
 
-    if (!questions.length) {
-      throw new AppError("No questions available", 404);
+    if (questions.length < 10) {
+      const aiQuestions = await generateQuestionsFromAI(level);
+
+      const created = await QuizQuestion.insertMany(
+        aiQuestions.map((q: any) => ({
+          ...q,
+          level,
+          difficulty: difficultyByLevel(level),
+          source: "ai"
+        }))
+      );
+
+      questions = created;
     }
 
-    return {
-      mode,
-      level,
-      timer: 30,
-      total: questions.length,
-      questions: questions.map(q => ({
-        _id: q._id,
-        question: q.question,
-        options: q.options,
-        image: q.image ?? null,
-
-        // ⚠️ TEMP — REMOVE IN PROD
-        correctAnswer: q.correctAnswer
-      }))
-    };
+    return questions.map(q => ({
+      _id: q._id,
+      question: q.question,
+      options: q.options
+    }));
   },
 
-  /* =======================================================
-     SUBMIT NORMAL / PUZZLE QUIZ
-  ======================================================= */
-  async submit(
-    userId: string,
-    payload: { mode: QuizMode; level: number; answers: any[] }
-  ) {
-    const { mode, level, answers } = payload;
-
-    if (!answers?.length) {
-      throw new AppError("Answers required", 400);
-    }
-
+  async submit(userId: string, level: number, answers: any[]) {
     const questions = await QuizQuestion.find({
       _id: { $in: answers.map(a => a.questionId) }
     });
 
     let correct = 0;
-    for (const a of answers) {
-      const q = questions.find(q => q._id.toString() === a.questionId);
-      if (q && q.correctAnswer === a.answer) correct++;
+
+    for (const ans of answers) {
+      const q = questions.find(
+        q => q._id.toString() === ans.questionId
+      );
+      if (q && q.correctAnswer === ans.answer) correct++;
     }
 
-    const total = answers.length;
+    const total = questions.length;
     const score = Math.round((correct / total) * 100);
 
     await QuizAttempt.create({
       userId,
-      mode,
       level,
       score,
       correct,
       total
     });
 
-    // 🔥 NORMAL & PUZZLE LEADERBOARD
-    await QuizLeaderboardService.updateFromQuizAttempt({
-      userId,
-      score,
-      correct
-    });
-
-    const xpEarned = correct * 10;
-    const levelProgress = await QuizLevelService.addXp(
-      userId,
-      xpEarned
-    );
-
-    return {
-      score,
-      correct,
-      total,
-      xpEarned,
-      levelProgress
-    };
-  },
-
-  /* =======================================================
-     ENSURE DAILY QUIZ EXISTS (AUTO CREATE)
-  ======================================================= */
-  async ensureDailyQuiz(date: string) {
-    let daily = await QuizDaily.findOne({ date });
-
-    if (!daily) {
-      const questions = await QuizQuestion.aggregate([
-        { $match: { mode: "daily", active: true } },
-        { $sample: { size: 5 } }
-      ]);
-
-      if (!questions.length) {
-        throw new AppError("No daily quiz questions available", 404);
-      }
-
-      daily = await QuizDaily.create({
-        date,
-        questions: questions.map(q => q._id)
-      });
+    if (score >= 70) {
+      await QuizProgress.findOneAndUpdate(
+        { userId },
+        { $max: { highestLevel: level + 1 } }
+      );
     }
 
-    return daily;
-  },
-
-  /* =======================================================
-     GET TODAY'S DAILY QUIZ
-  ======================================================= */
-  async dailyToday(userId: string) {
-    const today = getDayKey();
-
-    const alreadyPlayed = await QuizDailyAttempt.findOne({
-      userId,
-      date: today
-    });
-
-    if (alreadyPlayed) {
-      throw new AppError("Daily quiz already completed", 400);
-    }
-
-    const daily = await this.ensureDailyQuiz(today);
-
-    const questions = await QuizQuestion.find({
-      _id: { $in: daily.questions },
-      active: true
-    });
-
-    return {
-      date: today,
-      timer: 30,
-      total: questions.length,
-      questions: questions.map(q => ({
-        _id: q._id,
-        question: q.question,
-        options: q.options,
-        image: q.image ?? null,
-
-        // ⚠️ TEMP — REMOVE IN PROD
-        correctAnswer: q.correctAnswer
-      }))
-    };
-  },
-
-  /* =======================================================
-     GET DAILY QUIZ BY DATE (REAL DATA ONLY)
-  ======================================================= */
-  async dailyByDate(date: string, userId?: string) {
-    if (!date) {
-      throw new AppError("Date is required (YYYY-MM-DD)", 400);
-    }
-
-    const daily = await QuizDaily.findOne({ date });
-    if (!daily) {
-      throw new AppError("No daily quiz for this date", 404);
-    }
-
-    if (userId) {
-      const alreadyPlayed = await QuizDailyAttempt.findOne({
-        userId,
-        date
-      });
-
-      if (alreadyPlayed) {
-        throw new AppError("Daily quiz already completed", 400);
-      }
-    }
-
-    const questions = await QuizQuestion.find({
-      _id: { $in: daily.questions },
-      active: true
-    });
-
-    return {
-      date,
-      timer: 30,
-      total: questions.length,
-      questions: questions.map(q => ({
-        _id: q._id,
-        question: q.question,
-        options: q.options,
-        image: q.image ?? null,
-
-        // ⚠️ TEMP — REMOVE IN PROD
-        correctAnswer: q.correctAnswer
-      }))
-    };
-  },
-
-  /* =======================================================
-     LIST AVAILABLE DAILY QUIZ DATES
-     GET /api/quiz/daily/dates
-  ======================================================= */
-  async dailyDates() {
-    const rows = await QuizDaily.find()
-      .sort({ date: -1 })
-      .select("date questions")
-      .lean();
-
-    return rows.map(d => ({
-      date: d.date,
-      total: d.questions.length
-    }));
-  },
-
-  /* =======================================================
-     SUBMIT DAILY QUIZ
-  ======================================================= */
-  async submitDaily(params: { userId: string; answers: any[] }) {
-    const { userId, answers } = params;
-    const today = getDayKey();
-
-    if (!answers?.length) {
-      throw new AppError("Answers required", 400);
-    }
-
-    const daily = await QuizDaily.findOne({ date: today });
-    if (!daily) {
-      throw new AppError("No daily quiz today", 404);
-    }
-
-    const existing = await QuizDailyAttempt.findOne({ userId, date: today });
-    if (existing) {
-      throw new AppError("Daily quiz already submitted", 400);
-    }
-
-    const questions = await QuizQuestion.find({
-      _id: { $in: daily.questions }
-    });
-
-    let correct = 0;
-    for (const a of answers) {
-      const q = questions.find(q => q._id.toString() === a.questionId);
-      if (q && q.correctAnswer === a.answer) correct++;
-    }
-
-    const total = questions.length;
-    const score = Math.round((correct / total) * 100);
-
-    await QuizDailyAttempt.create({
-      userId,
-      date: today,
-      answers: {
-        score,
-      }
-    });
-
-    // 🔥 DAILY LEADERBOARD
-    await QuizLeaderboardService.updateFromDailyQuiz({
-      userId,
-      score,
-      correct
-    });
-
-    const xpEarned = correct * 15;
-    const levelProgress = await QuizLevelService.addXp(
-      userId,
-      xpEarned
-    );
-
-    return {
-      date: today,
-      score,
-      correct,
-      total,
-      xpEarned,
-      levelProgress
-    };
+    return { score, correct, total };
   }
 };
