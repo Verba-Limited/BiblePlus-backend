@@ -17,9 +17,9 @@ export const QuizLeaderboardService = {
       })
       .limit(limit)
       .populate("userId", "username avatar")
-      .lean();
+      .lean<any>();
 
-    return users.map((u, index) => ({
+    return users.map((u: any, index: number) => ({
       rank: index + 1,
       userId: u.userId?._id,
       username: u.userId?.username,
