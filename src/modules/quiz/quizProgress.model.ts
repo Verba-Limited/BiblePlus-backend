@@ -1,19 +1,24 @@
+// src/modules/quiz/quizProgress.model.ts
+
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IQuizProgress extends Document {
-  userId: string;
-  level: number;
-  xp: number;
+  userId: mongoose.Types.ObjectId;
+  highestLevel: number;
 }
 
-const quizProgressSchema = new Schema<IQuizProgress>(
-  {
-    userId: { type: String, required: true, unique: true },
-    level: { type: Number, default: 1 },
-    xp: { type: Number, default: 0 }
+const quizProgressSchema = new Schema<IQuizProgress>({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    unique: true
   },
-  { timestamps: true }
-);
+  highestLevel: {
+    type: Number,
+    default: 1
+  }
+});
 
 export const QuizProgress = mongoose.model<IQuizProgress>(
   "QuizProgress",
