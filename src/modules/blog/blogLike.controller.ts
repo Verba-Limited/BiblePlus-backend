@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { BlogLikeService } from "./blogLike.service";
+import { AuthRequest } from "../../types/auth.types";
 
 export const BlogLikeController = {
   // -----------------------------------------------------
   // USER: LIKE BLOG
   // -----------------------------------------------------
-  like: async (req: Request, res: Response, next: NextFunction) => {
+  like: async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
       const userId = req.userId;
@@ -22,7 +23,7 @@ export const BlogLikeController = {
   // -----------------------------------------------------
   // USER: UNLIKE BLOG
   // -----------------------------------------------------
-  unlike: async (req: Request, res: Response, next: NextFunction) => {
+  unlike: async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
       const userId = req.userId;
@@ -39,7 +40,7 @@ export const BlogLikeController = {
   // -----------------------------------------------------
   // USER: CHECK LIKE STATUS
   // -----------------------------------------------------
-  status: async (req: Request, res: Response, next: NextFunction) => {
+  status: async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
       const userId = req.userId;

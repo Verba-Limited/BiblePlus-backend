@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { PrayerLikeService } from "./prayerLike.service";
+import { AuthRequest } from "../../types/auth.types";
 
 export const PrayerLikeController = {
   pray: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
-      const userId = req.userId;
+      const userId = (req as any).userId;
       const { prayerId } = req.body;
 
       const data = await PrayerLikeService.pray(userId, prayerId);
@@ -18,7 +19,7 @@ export const PrayerLikeController = {
   unpray: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
-      const userId = req.userId;
+      const userId = (req as any).userId;
       const { prayerId } = req.body;
 
       const data = await PrayerLikeService.unpray(userId, prayerId);
@@ -31,7 +32,7 @@ export const PrayerLikeController = {
   status: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // @ts-ignore
-      const userId = req.userId;
+      const userId = (req as any).userId;
       const prayerId = req.query.prayerId as string;
 
       const prayed = await PrayerLikeService.userPrayed(userId, prayerId);
