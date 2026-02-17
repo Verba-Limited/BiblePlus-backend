@@ -164,24 +164,62 @@ questions = await QuizQuestion.find({
     /* ===============================
        XP CALCULATION
     =============================== */
-    const { multiplier } = difficultyByLevel(level);
-    const earnedXp = correct * multiplier;
+    /* ===============================
+   XP CALCULATION (GLOBAL + WEEKLY)
+================================= */
 
-    let xpRecord = await UserXp.findOne({
-      user: new mongoose.Types.ObjectId(userId)
-    });
+const { multiplier } = difficultyByLevel(level);
+const earnedXp = correct * multiplier;
 
-    if (!xpRecord) {
-      xpRecord = await UserXp.create({
-        user: userId,
-        totalXp: earnedXp,
-        level: calculateLevelFromXp(earnedXp)
-      });
-    } else {
-      xpRecord.totalXp += earnedXp;
-      xpRecord.level = calculateLevelFromXp(xpRecord.totalXp);
-      await xpRecord.save();
-    }
+// Get current week start (Monday 00:00)
+const now = new Date();
+const startOfWeek = new Date(now);
+startOfWeek.setDate(now.getDate() - now.getDay());
+startOfWeek.setHours(0, 0, 0, 0);
+
+let xpRecord = await UserXp.findOne({
+  user: new mongoose.Types.ObjectId(userId)
+});
+
+if (!xpRecord) {
+  xpRecord = await UserXp.create({
+    user: userId,
+    totalXp: earnedXp,
+    weeklyXp: earnedXp,
+    weeklyCorrect: correct,
+    weeklyAttempts: 1,
+    lastWeeklyReset: startOfWeek,
+    level: calculateLevelFromXp(earnedXp)
+  });
+} else {
+
+  /* ===============================
+     WEEKLY RESET CHECK
+  =============================== */
+
+  if (
+    !xpRecord.lastWeeklyReset ||
+    xpRecord.lastWeeklyReset < startOfWeek
+  ) {
+    // Reset weekly stats
+    xpRecord.weeklyXp = 0;
+    xpRecord.weeklyCorrect = 0;
+    xpRecord.weeklyAttempts = 0;
+    xpRecord.lastWeeklyReset = startOfWeek;
+  }
+
+  // GLOBAL
+  xpRecord.totalXp += earnedXp;
+
+  // WEEKLY
+  xpRecord.weeklyXp += earnedXp;
+  xpRecord.weeklyCorrect += correct;
+  xpRecord.weeklyAttempts += 1;
+
+  xpRecord.level = calculateLevelFromXp(xpRecord.totalXp);
+
+  await xpRecord.save();
+}
 
     /* ===============================
        UNLOCK NEXT LEVEL
