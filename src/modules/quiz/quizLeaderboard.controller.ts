@@ -1,68 +1,48 @@
+// src/modules/quiz/quizLeaderboard.controller.ts
+
 import { Request, Response, NextFunction } from "express";
 import { QuizLeaderboardService } from "./quizLeaderboard.service";
-import {
-  getToday,
-  getWeekKey,
-  getMonthKey
-} from "./quizLeaderboard.utils";
+import AppError from "../../core/AppError";
 
 export const QuizLeaderboardController = {
+
+  /* ============================================
+     GET GLOBAL LEADERBOARD
+     GET /api/quiz/leaderboard
+  ============================================ */
   global: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const limit = Number(req.query.limit) || 20;
+      const limit = Number(req.query.limit) || 50;
 
-      const data = await QuizLeaderboardService.getTop({
-        type: "global",
-        limit
+      const data = await QuizLeaderboardService.getGlobal(limit);
+
+      res.json({
+        success: true,
+        data
       });
 
-      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }
   },
 
-  daily: async (req: Request, res: Response, next: NextFunction) => {
+  /* ============================================
+     GET CURRENT USER RANK
+     GET /api/quiz/leaderboard/me
+  ============================================ */
+  me: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const limit = Number(req.query.limit) || 20;
-      const date =
-        typeof req.query.date === "string"
-          ? req.query.date
-          : getToday();
+      if (!req.userId) {
+        throw new AppError("Authentication required", 401);
+      }
 
-      const data = await QuizLeaderboardService.getTop({
-        type: "daily",
-        date,
-        limit
+      const data = await QuizLeaderboardService.getUserRank(req.userId);
+
+      res.json({
+        success: true,
+        data
       });
 
-      res.json({ success: true, data });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  weekly: async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await QuizLeaderboardService.getTop({
-        type: "weekly",
-        week: getWeekKey()
-      });
-
-      res.json({ success: true, data });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  monthly: async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await QuizLeaderboardService.getTop({
-        type: "monthly",
-        month: getMonthKey()
-      });
-
-      res.json({ success: true, data });
     } catch (err) {
       next(err);
     }
