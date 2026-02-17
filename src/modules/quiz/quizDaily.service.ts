@@ -1,98 +1,93 @@
+import axios from "axios";
 import AppError from "../../core/AppError";
-import { QuizQuestion } from "./quizQuestion.model";
 import { QuizDaily } from "./quizDaily.model";
 
-const DAILY_QUESTION_COUNT = 5;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-const dayKey = (d = new Date()) =>
-  d.toISOString().split("T")[0];
+const todayKey = () =>
+  new Date().toISOString().split("T")[0];
 
-const yesterdayKey = () => {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return dayKey(d);
+interface AIGeneratedQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  reference: string;
+}
+
+const generateDailyQuizFromAI = async (): Promise<AIGeneratedQuestion[]> => {
+  if (!OPENAI_API_KEY) {
+    throw new AppError("OpenAI API key missing", 500);
+  }
+
+  const prompt = `
+Generate 5 Bible quiz questions.
+Difficulty: Medium.
+Each question must include:
+- question
+- 4 options
+- correctAnswer (must match one option exactly)
+- reference (Book Chapter:Verse)
+
+Return ONLY strict JSON array.
+`;
+
+  const response = await axios.post(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a Bible quiz generator." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.7
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  const raw = response.data.choices[0].message.content;
+
+  let parsed: AIGeneratedQuestion[];
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new AppError("Invalid AI response format", 500);
+  }
+
+  if (!Array.isArray(parsed) || parsed.length !== 5) {
+    throw new AppError("AI returned invalid number of questions", 500);
+  }
+
+  return parsed;
 };
 
 export const QuizDailyService = {
-  /* =====================================================
-     GET DAILY QUIZ BY DATE
-     (today / yesterday / any past day)
-  ===================================================== */
-  async getByDate(
-    date: string,
-    options?: {
-      revealAnswers?: boolean;
-      isAdmin?: boolean;
-    }
-  ) {
-    let daily = await QuizDaily.findOne({ date }).populate({
-      path: "questions",
-      match: { active: true },
-      select: "question options image correctAnswer"
+  async getToday() {
+    const today = todayKey();
+
+    const existing = await QuizDaily.findOne({ date: today }).lean();
+    if (existing) return existing;
+
+    const questions = await generateDailyQuizFromAI();
+
+    const created = await QuizDaily.create({
+      date: today,
+      questions,
+      locked: true
     });
 
-    // Create ONLY today's quiz if missing
-    if (!daily) {
-      if (date !== dayKey()) {
-        throw new AppError("Daily quiz not found for this date", 404);
-      }
-
-      const questions = await QuizQuestion.aggregate([
-        { $match: { mode: "daily", active: true } },
-        { $sample: { size: DAILY_QUESTION_COUNT } }
-      ]);
-
-      if (!questions.length) {
-        throw new AppError("No daily quiz questions available", 404);
-      }
-
-      daily = await QuizDaily.create({
-        date,
-        questions: questions.map(q => q._id)
-      });
-
-      daily = await daily.populate({
-        path: "questions",
-        select: "question options image correctAnswer"
-      });
-    }
-
-    const canReveal =
-      options?.revealAnswers === true &&
-      options?.isAdmin === true;
-
-    return {
-      date,
-      timer: 30,
-      total: daily.questions.length,
-      questions: daily.questions.map((q: any) => ({
-        _id: q._id,
-        question: q.question,
-        options: q.options,
-        image: q.image ?? null,
-
-        ...(canReveal && {
-        
-          correctAnswer: q.correctAnswer + 1
-        })
-      }))
-    };
+    return created.toObject();
   },
 
-  /* =====================================================
-     SHORTCUT HELPERS
-  ===================================================== */
-  today: async (opts?: { revealAnswers?: boolean; isAdmin?: boolean }) =>
-    QuizDailyService.getByDate(dayKey(), opts),
-
-  yesterday: async (opts?: { revealAnswers?: boolean; isAdmin?: boolean }) =>
-    QuizDailyService.getByDate(yesterdayKey(), opts),
-
-  history: async (limit = 30) => {
+  async history(limit = 30) {
     return QuizDaily.find()
       .sort({ date: -1 })
       .limit(limit)
-      .select("date")
       .lean();
   }
 };
