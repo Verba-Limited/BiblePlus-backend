@@ -111,7 +111,7 @@ async play(userId: string, level: number) {
 
     // 🔥 2. Fallback to manual/admin questions
     questions = await QuizQuestion.find({
-      level,
+      level: level,
       source: "admin",
       active: true
     })
