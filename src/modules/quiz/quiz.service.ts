@@ -129,7 +129,8 @@ async play(userId: string, level: number) {
   return questions.map((q: any) => ({
     _id: q._id,
     question: q.question,
-    options: q.options
+    options: q.options,
+    correctAnswer: q.correctAnswer
   }));
 },
 
