@@ -115,8 +115,9 @@ async play(userId: string, level: number) {
       source: "admin",
       active: true
     })
+      .limit(10)
+      .lean();
     console.log("Requested level:", level);
-    questions = await questions.limit(10).lean();
 
     if (!questions.length) {
       throw new AppError(
