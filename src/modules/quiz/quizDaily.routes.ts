@@ -1,21 +1,34 @@
 import { Router } from "express";
-import { QuizDailyController } from "./quizDaily.controller";
 import authMiddleware from "../../middleware/auth.middleware";
+import { adminOnly } from "../../middleware/admin.middleware";
+import { QuizDailyController } from "./quizDaily.controller";
 
 const router = Router();
 
-/*
-|--------------------------------------------------------------------------
-| DAILY QUIZ ROUTES
-|--------------------------------------------------------------------------
-| Base: /api/quiz/daily
-|--------------------------------------------------------------------------
-*/
+/* ============================================
+   PUBLIC: GET TODAY QUIZ
+============================================ */
+router.get(
+  "/today",
+  QuizDailyController.getToday
+);
 
-// GET today's AI-generated quiz
-router.get("/today", authMiddleware, QuizDailyController.today);
+/* ============================================
+   ADMIN: CREATE DAILY QUIZ
+============================================ */
+router.post(
+  "/admin/create",
+  authMiddleware,
+  adminOnly,
+  QuizDailyController.adminCreate
+);
 
-// GET history
-router.get("/history", authMiddleware, QuizDailyController.history);
+/* ============================================
+   HISTORY
+============================================ */
+router.get(
+  "/history",
+  QuizDailyController.history
+);
 
 export default router;
