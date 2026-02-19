@@ -46,7 +46,7 @@ import verseRoutes from "./modules/verse/verse.routes";
 ===================== */
 import { BibleLoader } from "./modules/bible/bible.loader";
 import { QuizLoader } from "./modules/quiz/quiz.loader";
-
+import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
 dotenv.config();
 
 const app = express();
@@ -114,6 +114,7 @@ app.use("/api/chatbot", chatbotRoutes);
 BibleLoader.load();
 QuizLoader.load();
 
+startDailyQuizCleanup();
 /* =====================
    HEALTH
 ===================== */

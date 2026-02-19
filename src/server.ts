@@ -10,6 +10,7 @@ import { EventReminderService } from "./modules/events/eventReminder.service";
 import { AdminService } from "./modules/admin/admin.service";
 import { VerseFinder } from "./modules/chatbot/helpers/verseFinder";
 import { startVerseScheduler } from "./modules/verse/verse.schedular";
+import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
 
 
 
@@ -77,6 +78,8 @@ mongoose
 
     // 🟢 2. Create default admin IF missing
     await AdminService.createDefaultAdmin();
+
+    startDailyQuizCleanup();
 
     // -----------------------------------------
     // START SERVER
