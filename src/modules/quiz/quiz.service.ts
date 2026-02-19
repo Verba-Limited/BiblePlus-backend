@@ -131,7 +131,7 @@ async play(userId: string, level: number) {
     question: q.question,
     options: q.options
   }));
-}
+},
 
   /* =====================================================
      SUBMIT QUIZ (WITH XP SYSTEM)
