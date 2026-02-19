@@ -1,5 +1,3 @@
-// src/modules/quiz/quizQuestion.model.ts
-
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IQuizQuestion extends Document {
@@ -17,7 +15,6 @@ export interface IQuizQuestion extends Document {
 const quizQuestionSchema = new Schema<IQuizQuestion>(
   {
     question: { type: String, required: true },
-
     options: {
       type: [String],
       required: true,
@@ -26,29 +23,25 @@ const quizQuestionSchema = new Schema<IQuizQuestion>(
         message: "Must have exactly 4 options"
       }
     },
-
     correctAnswer: { type: String, required: true },
-
     level: { type: Number, required: true, index: true },
-
     difficulty: {
       type: String,
       enum: ["easy", "medium", "hard", "expert"],
       required: true
     },
-
     source: {
       type: String,
       enum: ["admin", "ai"],
       default: "admin"
     },
-
-    active: { type: Boolean, default: true }
+    active: {
+      type: Boolean,
+      default: true
+    }
   },
   { timestamps: true }
 );
-
-quizQuestionSchema.index({ level: 1, active: 1 });
 
 export const QuizQuestion = mongoose.model<IQuizQuestion>(
   "QuizQuestion",

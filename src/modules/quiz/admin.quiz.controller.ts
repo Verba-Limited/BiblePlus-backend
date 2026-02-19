@@ -1,6 +1,6 @@
 // src/modules/quiz/admin.quiz.controller.ts
 import { Request, Response, NextFunction } from "express";
-import { AdminQuizService } from "./admin.quiz.service";
+import { AdminQuizService } from "./quizAdmin.service";
 
 export const AdminQuizController = {
   /* =====================================================
