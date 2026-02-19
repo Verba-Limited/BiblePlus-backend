@@ -17,7 +17,6 @@ import bibleRoutes from "./modules/bible/bible.routes";
 import highlightRoutes from "./modules/bible/highlight.routes";
 
 import quizRoutes from "./modules/quiz/quiz.routes";
-import adminQuizRoutes from "./modules/quiz/admin.quiz.routes";
 import quizDailyRoutes from "./modules/quiz/quizDaily.routes";
 import quizLeaderboardRoutes from "./modules/quiz/quizLeaderboard.routes";
 import bookRoutes from "./modules/books/book.routes";
@@ -79,7 +78,6 @@ app.use("/api/highlights", highlightRoutes);
 
 /* ===== QUIZ ===== */
 app.use("/api/quiz", quizRoutes);               
-app.use("/api/admin/quiz", adminQuizRoutes);
 app.use("/api/quiz/daily", quizDailyRoutes);
 app.use("/api/quiz/leaderboard", quizLeaderboardRoutes);
 
