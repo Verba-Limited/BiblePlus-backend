@@ -79,54 +79,59 @@ Return ONLY valid JSON array.
 ===================================================== */
 export const QuizService = {
 
-  /* =====================================================
-     PLAY QUIZ
-  ===================================================== */
-  async play(userId: string, level: number) {
-    const progress =
-      (await QuizProgress.findOne({ userId })) ||
-      (await QuizProgress.create({ userId }));
 
-    if (level > progress.highestLevel) {
-      throw new AppError("Level locked", 403);
-    }
+async play(userId: string, level: number) {
+  const progress =
+    (await QuizProgress.findOne({ userId })) ||
+    (await QuizProgress.create({ userId }));
 
-    let questions = await QuizQuestion.find({
+  if (level > progress.highestLevel) {
+    throw new AppError("Level locked", 403);
+  }
+
+  let questions = [];
+
+  // 🔥 1. Try OpenAI FIRST
+  try {
+    const aiQuestions = await generateQuestionsFromAI(level);
+
+    const created = await QuizQuestion.insertMany(
+      aiQuestions.map((q: any) => ({
+        ...q,
+        level,
+        difficulty: difficultyByLevel(level).difficulty,
+        source: "ai",
+        active: true
+      }))
+    );
+
+    questions = created;
+  } catch (err) {
+    console.log("AI failed, using manual questions");
+
+    // 🔥 2. Fallback to manual/admin questions
+    questions = await QuizQuestion.find({
       level,
+      source: "admin",
       active: true
-    }).limit(10)
+    })
+      .limit(10)
       .lean();
 
-    if (questions.length < 10) {
-      const aiQuestions = await generateQuestionsFromAI(level);
-
-      const created = await QuizQuestion.insertMany(
-  aiQuestions.map((q: any) => ({
-    ...q,
-    level,
-    difficulty: difficultyByLevel(level).difficulty,
-    source: "ai",
-    active: true
-  }))
-);
-
-// 🔁 fetch again clean + lean
-questions = await QuizQuestion.find({
-  level,
-  active: true
-})
-  .limit(10)
-  .lean();
-
-      
+    if (!questions.length) {
+      throw new AppError(
+        "No questions available for this level",
+        500
+      );
     }
+  }
 
-    return questions.map(q => ({
-      _id: q._id,
-      question: q.question,
-      options: q.options
-    }));
-  },
+  return questions.map((q: any) => ({
+    _id: q._id,
+    question: q.question,
+    options: q.options
+  }));
+}
 
   /* =====================================================
      SUBMIT QUIZ (WITH XP SYSTEM)
