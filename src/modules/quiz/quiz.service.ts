@@ -244,7 +244,8 @@ if (!xpRecord) {
   totalXp: xpRecord.totalXp,
   weeklyXp: xpRecord.weeklyXp,
   userLevel: xpRecord.level,
-  unlockedNextLevel: score >= 70
+  unlockedNextLevel: score >= 70,
+  correctAnswers: questions.map(q => q.correctAnswer)
 };
   }
 };
