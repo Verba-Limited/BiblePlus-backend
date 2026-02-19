@@ -10,13 +10,13 @@ const router = Router();
 
 // Global leaderboard
 router.get(
-  "/leaderboard/global",
+  "/global",
   QuizLeaderboardController.getGlobal
 );
 
 // Weekly leaderboard
 router.get(
-  "/leaderboard/weekly",
+  "/weekly",
   QuizLeaderboardController.getWeekly
 );
 
@@ -26,14 +26,14 @@ router.get(
 
 // My global rank
 router.get(
-  "/leaderboard/global/me",
+  "/global/me",
   authMiddleware,
   QuizLeaderboardController.getMyGlobalRank
 );
 
 // My weekly rank
 router.get(
-  "/leaderboard/weekly/me",
+  "/weekly/me",
   authMiddleware,
   QuizLeaderboardController.getMyWeeklyRank
 );
