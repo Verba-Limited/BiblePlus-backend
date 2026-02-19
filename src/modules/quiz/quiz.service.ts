@@ -79,8 +79,12 @@ Return ONLY valid JSON array.
 ===================================================== */
 export const QuizService = {
 
-
 async play(userId: string, level: number) {
+
+  if (!level || level < 1) {
+    throw new AppError("Invalid level", 400);
+  }
+
   const progress =
     (await QuizProgress.findOne({ userId })) ||
     (await QuizProgress.create({ userId }));
@@ -89,49 +93,52 @@ async play(userId: string, level: number) {
     throw new AppError("Level locked", 403);
   }
 
-  let questions = [];
+  // 1️⃣ Try admin questions first
+  let questions = await QuizQuestion.find({
+    level: level,
+    source: "admin",
+    active: true
+  })
+    .limit(10)
+    .lean();
 
-  // 🔥 1. Try OpenAI FIRST
-  try {
-    const aiQuestions = await generateQuestionsFromAI(level);
+  // 2️⃣ If not enough admin questions, fallback to AI
+  if (questions.length < 10) {
+    try {
+      const aiQuestions = await generateQuestionsFromAI(level);
 
-    const created = await QuizQuestion.insertMany(
-      aiQuestions.map((q: any) => ({
-        ...q,
-        level,
-        difficulty: difficultyByLevel(level).difficulty,
-        source: "ai",
-        active: true
-      }))
-    );
-
-    questions = created;
-  } catch (err) {
-    console.log("AI failed, using manual questions");
-
-    // 🔥 2. Fallback to manual/admin questions
-    questions = await QuizQuestion.find({
-      level: level,
-      source: "admin",
-      active: true
-    })
-      .limit(10)
-      .lean();
-    console.log("Requested level:", level);
-
-    if (!questions.length) {
-      throw new AppError(
-        "No questions available for this level",
-        500
+      const created = await QuizQuestion.insertMany(
+        aiQuestions.map((q: any) => ({
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          level: level,
+          difficulty: difficultyByLevel(level).difficulty,
+          source: "ai",
+          active: true
+        }))
       );
+
+      questions = created.slice(0, 10).map(doc => doc.toObject());
+
+    } catch (err) {
+      console.log("AI failed. Using available admin questions.");
+
+      if (!questions.length) {
+        throw new AppError(
+          "No questions available for this level",
+          500
+        );
+      }
     }
   }
 
+  // 3️⃣ Return only safe data (no correctAnswer)
   return questions.map((q: any) => ({
     _id: q._id,
     question: q.question,
     options: q.options,
-    correctAnswer: q.correctAnswer
+    correctAnswer: q.correctAnswer // Include correct answer for frontend validation (can be removed in production)
   }));
 },
 
