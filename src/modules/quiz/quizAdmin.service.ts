@@ -19,6 +19,31 @@ export const QuizAdminService = {
     });
   },
 
+  async addBulk(questions: any[]) {
+
+  if (!Array.isArray(questions)) {
+    throw new AppError("Must send array of questions", 400);
+  }
+
+  for (const q of questions) {
+    if (!q.options || q.options.length !== 4) {
+      throw new AppError("Each question must have 4 options", 400);
+    }
+
+    if (!q.options.includes(q.correctAnswer)) {
+      throw new AppError("Correct answer must match one option", 400);
+    }
+  }
+
+  return QuizQuestion.insertMany(
+    questions.map(q => ({
+      ...q,
+      source: "admin",
+      active: true
+    }))
+  );
+},
+
   async deactivateQuestion(id: string) {
     const updated = await QuizQuestion.findByIdAndUpdate(
       id,

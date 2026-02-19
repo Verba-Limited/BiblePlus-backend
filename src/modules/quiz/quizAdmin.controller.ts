@@ -18,6 +18,20 @@ export const QuizAdminController = {
     }
   },
 
+  bulkAdd: async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = await QuizAdminService.addBulk(req.body);
+
+    res.status(201).json({
+      success: true,
+      message: "Questions added successfully",
+      data
+    });
+  } catch (err) {
+    next(err);
+  }
+},
+
   deactivate: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await QuizAdminService.deactivateQuestion(req.params.id);

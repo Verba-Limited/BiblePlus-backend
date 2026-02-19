@@ -16,6 +16,13 @@ router.post(
   QuizAdminController.add
 );
 
+router.post(
+  "/admin/bulk",
+  authMiddleware,
+  adminOnly,
+  QuizAdminController.bulkAdd
+);
+
 router.put(
   "/admin/deactivate/:id",
   authMiddleware,
