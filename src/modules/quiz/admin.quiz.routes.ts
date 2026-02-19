@@ -2,7 +2,7 @@
 import { Router } from "express";
 import authMiddleware from "../../middleware/auth.middleware";
 import { adminOnly } from "../../middleware/admin.middleware";
-import { AdminQuizController } from "./admin.quiz.controller";
+import { AdminQuizController } from "./quizAdmin.controller";
 
 const router = Router();
 
