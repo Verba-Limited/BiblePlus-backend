@@ -26,7 +26,8 @@ export const QuizDailyService = {
         id: index + 1,
         question: q.question,
         options: q.options,
-        reference: q.reference
+        reference: q.reference,
+        correctAnswer: q.correctAnswer 
       }))
     };
   },
