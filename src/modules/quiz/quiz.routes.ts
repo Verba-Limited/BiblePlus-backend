@@ -30,4 +30,10 @@ router.put(
   QuizAdminController.deactivate
 )
 
+router.post(
+  "/complete",
+  authMiddleware,
+  QuizController.complete
+);
+
 export default router;
