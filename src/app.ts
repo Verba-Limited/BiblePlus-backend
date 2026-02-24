@@ -4,6 +4,8 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import path from "path";
+import http from "http";
+import { initSocket } from "./socket/socket";
 import { errorHandler } from "./middleware/error.middleware";
 
 /* =====================
@@ -40,16 +42,22 @@ import AdminRoutes from "./modules/admin/admin.routes";
 import chatbotRoutes from "./modules/chatbot/chatbot.routes";
 import verseRoutes from "./modules/verse/verse.routes";
 
-
 /* =====================
    LOADERS
 ===================== */
 import { BibleLoader } from "./modules/bible/bible.loader";
 import { QuizLoader } from "./modules/quiz/quiz.loader";
 import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
+
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+
+/* =====================
+   SOCKET INIT
+===================== */
+initSocket(server);
 
 /* =====================
    GLOBAL MIDDLEWARES
@@ -77,7 +85,7 @@ app.use("/api/bible", bibleRoutes);
 app.use("/api/highlights", highlightRoutes);
 
 /* ===== QUIZ ===== */
-app.use("/api/quiz", quizRoutes);               
+app.use("/api/quiz", quizRoutes);
 app.use("/api/quiz/daily", quizDailyRoutes);
 app.use("/api/quiz/leaderboard", quizLeaderboardRoutes);
 
@@ -113,8 +121,8 @@ app.use("/api/chatbot", chatbotRoutes);
 ===================== */
 BibleLoader.load();
 QuizLoader.load();
-
 startDailyQuizCleanup();
+
 /* =====================
    HEALTH
 ===================== */
@@ -131,4 +139,13 @@ app.get("/health", (_req, res) => {
 ===================== */
 app.use(errorHandler);
 
-export default app;
+/* =====================
+   START SERVER
+===================== */
+const PORT = process.env.PORT || 5000;
+
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
+export { app, server };
