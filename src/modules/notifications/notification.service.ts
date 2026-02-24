@@ -1,6 +1,8 @@
 import { Notification } from "./notification.model";
 import { sendPushToUser, sendPushToAll } from "../../utils/push";
+import { getIO } from "../../socket/socket";
 import mongoose from "mongoose";
+import AppError from "../../core/AppError";
 
 export const NotificationService = {
 
@@ -15,10 +17,18 @@ export const NotificationService = {
     options?: { userId?: string }
   ) {
 
-    // USER-SPECIFIC
-    if (target === "USER" && options?.userId) {
+    const io = getIO();
 
-      await Notification.create({
+    // ===============================
+    // USER-SPECIFIC
+    // ===============================
+    if (target === "USER") {
+
+      if (!options?.userId) {
+        throw new AppError("userId required for USER notification", 400);
+      }
+
+      const notification = await Notification.create({
         user: new mongoose.Types.ObjectId(options.userId),
         target,
         title,
@@ -26,22 +36,42 @@ export const NotificationService = {
         type
       });
 
-      await sendPushToUser(options.userId, title, message);
+      // 🔴 REAL-TIME EMIT
+      io.to(options.userId).emit("notification", notification);
 
-      return;
+      // 🔔 PUSH
+      try {
+        await sendPushToUser(options.userId, title, message);
+      } catch (err) {
+        console.log("Push failed:", err);
+      }
+
+      return notification;
     }
 
-    // BROADCAST
+    // ===============================
+    // BROADCAST TO ALL
+    // ===============================
     if (target === "ALL") {
 
-      await Notification.create({
+      const notification = await Notification.create({
         target,
         title,
         message,
         type
       });
 
-      await sendPushToAll(title, message);
+      // 🔴 REAL-TIME BROADCAST
+      io.emit("notification", notification);
+
+      // 🔔 PUSH BROADCAST
+      try {
+        await sendPushToAll(title, message);
+      } catch (err) {
+        console.log("Broadcast push failed:", err);
+      }
+
+      return notification;
     }
   },
 
@@ -49,6 +79,7 @@ export const NotificationService = {
      GET USER NOTIFICATIONS
   ============================================ */
   async getUserNotifications(userId: string) {
+
     return Notification.find({
       $or: [
         { user: userId },
@@ -60,10 +91,24 @@ export const NotificationService = {
   },
 
   /* ============================================
+     UNREAD COUNT
+  ============================================ */
+  async getUnreadCount(userId: string) {
+
+    const count = await Notification.countDocuments({
+      user: userId,
+      read: false
+    });
+
+    return { unread: count };
+  },
+
+  /* ============================================
      MARK AS READ
   ============================================ */
   async markAsRead(notificationId: string, userId: string) {
-    return Notification.findOneAndUpdate(
+
+    const updated = await Notification.findOneAndUpdate(
       {
         _id: notificationId,
         user: userId
@@ -71,5 +116,24 @@ export const NotificationService = {
       { read: true },
       { new: true }
     );
+
+    if (!updated) {
+      throw new AppError("Notification not found", 404);
+    }
+
+    return updated;
+  },
+
+  /* ============================================
+     MARK ALL AS READ
+  ============================================ */
+  async markAllAsRead(userId: string) {
+
+    await Notification.updateMany(
+      { user: userId, read: false },
+      { read: true }
+    );
+
+    return { message: "All notifications marked as read" };
   }
 };
