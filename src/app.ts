@@ -142,7 +142,7 @@ app.use(errorHandler);
 /* =====================
    START SERVER
 ===================== */
-const port = process.env.PORT || 5000;   // ← fallback only for local dev
+const port = process.env.PORT || 6000;   // ← fallback only for local dev
 
 server.listen(Number(port), "0.0.0.0", () => {
   console.log(`Server running on port ${port}`);
