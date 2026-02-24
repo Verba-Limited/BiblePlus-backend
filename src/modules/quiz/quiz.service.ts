@@ -256,5 +256,59 @@ if (!xpRecord) {
   unlockedNextLevel: score >= 70,
   correctAnswers: questions.map(q => q.correctAnswer)
 };
+  },
+
+/* =====================================================
+   COMPLETE LEVEL
+===================================================== */
+async completeLevel(
+  userId: string,
+  level: number,
+  mode: string,
+  score: number
+) {
+
+  if (!level || !score) {
+    throw new AppError("Level and score are required", 400);
   }
+
+  if (score < 70) {
+    return {
+      userId,
+      level,
+      mode,
+      score,
+      completed: false,
+      nextLevelUnlocked: null
+    };
+  }
+
+  // Ensure progress record exists
+  let progress = await QuizProgress.findOne({ userId });
+
+  if (!progress) {
+    progress = await QuizProgress.create({
+      userId,
+      highestLevel: 1
+    });
+  }
+
+  // Unlock next level safely
+  const nextLevel = level + 1;
+
+  if (nextLevel > progress.highestLevel) {
+    progress.highestLevel = nextLevel;
+    await progress.save();
+  }
+
+  return {
+    userId,
+    level,
+    mode,
+    score,
+    completed: true,
+    nextLevelUnlocked: nextLevel
+  };
+}
+
 };
