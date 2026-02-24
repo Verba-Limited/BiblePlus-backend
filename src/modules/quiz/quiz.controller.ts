@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { QuizService } from "./quiz.service";
+import AppError from "../../core/AppError";
 
 export const QuizController = {
   play: async (req: Request, res: Response, next: NextFunction) => {
@@ -27,5 +28,39 @@ export const QuizController = {
     } catch (err) {
       next(err);
     }
+  },
+
+/* =====================================================
+   COMPLETE LEVEL
+   POST /api/quiz/complete
+===================================================== */
+complete: async (req: Request, res: Response, next: NextFunction) => {
+  try {
+
+    if (!req.userId) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const { level, mode, score } = req.body;
+
+    const data = await QuizService.completeLevel(
+      req.userId,
+      Number(level),
+      mode,
+      Number(score)
+    );
+
+    res.json({
+      success: true,
+      message: data.completed
+        ? "Level completed successfully"
+        : "Score below required threshold",
+      data
+    });
+
+  } catch (err) {
+    next(err);
   }
+}
+
 };
