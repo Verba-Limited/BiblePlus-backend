@@ -1,22 +1,25 @@
-import { Response, NextFunction } from "express";
-import { AuthRequest } from "../../types/auth.types";
+import { Request, Response, NextFunction } from "express";
 import { ProfileService } from "./profile.service";
 import AppError from "../../core/AppError";
 
 export const ProfileController = {
 
   /* ================= GET PROFILE ================= */
-  getProfile: async (req: AuthRequest, res: Response, next: NextFunction) => {
+  getProfile: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const profile = await ProfileService.getProfile(req.userId);
-      res.json({ success: true, data: profile });
+
+      res.json({
+        success: true,
+        data: profile
+      });
     } catch (err) {
       next(err);
     }
   },
 
   /* ================= UPDATE PROFILE ================= */
-  updateProfile: async (req: AuthRequest, res: Response, next: NextFunction) => {
+  updateProfile: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const updated = await ProfileService.updateProfile(
         req.userId,
@@ -34,7 +37,7 @@ export const ProfileController = {
   },
 
   /* ================= CHANGE PASSWORD ================= */
-  changePassword: async (req: AuthRequest, res: Response, next: NextFunction) => {
+  changePassword: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { currentPassword, newPassword } = req.body;
 
@@ -60,7 +63,7 @@ export const ProfileController = {
 
   /* ================= UPDATE NOTIFICATION SETTINGS ================= */
   updateNotificationSettings: async (
-    req: AuthRequest,
+    req: Request,
     res: Response,
     next: NextFunction
   ) => {
@@ -81,7 +84,7 @@ export const ProfileController = {
   },
 
   /* ================= UPDATE AVATAR ================= */
-  updateAvatar: async (req: AuthRequest, res: Response, next: NextFunction) => {
+  updateAvatar: async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.file) {
         throw new AppError("No avatar uploaded", 400);
@@ -105,7 +108,7 @@ export const ProfileController = {
   },
 
   /* ================= DELETE ACCOUNT ================= */
-  deleteAccount: async (req: AuthRequest, res: Response, next: NextFunction) => {
+  deleteAccount: async (req: Request, res: Response, next: NextFunction) => {
     try {
       await ProfileService.deleteAccount(req.userId);
 
