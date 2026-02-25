@@ -106,5 +106,17 @@ export const ProfileService = {
     await User.findByIdAndDelete(userId);
 
     return { message: "Account deleted successfully" };
-  }
+  },
+
+async updateAvatar(userId: string, avatarPath: string) {
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { avatar: avatarPath },
+    { new: true }
+  ).select("-password");
+
+  return user;
+}
+
 };
