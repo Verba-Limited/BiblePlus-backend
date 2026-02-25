@@ -1,90 +1,82 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
+import { AuthRequest } from "../../types/auth.types";
 import { ProfileService } from "./profile.service";
 import AppError from "../../core/AppError";
 
 export const ProfileController = {
-  getProfile: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // @ts-ignore
-      const userId = req.userId;
-      const profile = await ProfileService.getProfile(userId);
-      res.json({ success: true, data: profile });
-    } catch (err) {
-      next(err);
-    }
-  },
 
-  updateProfile: async (req: Request, res: Response, next: NextFunction) => {
+  /* =========================
+     GET PROFILE
+  ========================= */
+  getProfile: async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      // @ts-ignore
-      const userId = req.userId;
-      const updated = await ProfileService.updateProfile(userId, req.body);
+      const profile = await ProfileService.getProfile(req.userId);
+
       res.json({
         success: true,
-        message: "Profile updated",
-        data: updated,
+        data: profile
       });
     } catch (err) {
       next(err);
     }
   },
 
-  uploadAvatar: async (req: Request, res: Response, next: NextFunction) => {
+  /* =========================
+     UPDATE PROFILE
+  ========================= */
+  updateProfile: async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      // @ts-ignore
-      const userId = req.userId;
+      const updated = await ProfileService.updateProfile(
+        req.userId,
+        req.body
+      );
 
+      res.json({
+        success: true,
+        message: "Profile updated successfully",
+        data: updated
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /* =========================
+     UPLOAD / UPDATE AVATAR
+  ========================= */
+  updateAvatar: async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
       if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: "No avatar uploaded",
-        });
+        throw new AppError("No avatar uploaded", 400);
       }
 
       const avatarPath = `/uploads/avatars/${req.file.filename}`;
-      const user = await ProfileService.updateAvatar(userId, avatarPath);
+
+      const user = await ProfileService.updateAvatar(
+        req.userId,
+        avatarPath
+      );
 
       res.json({
         success: true,
-        message: "Avatar updated",
-        data: user,
+        message: "Avatar updated successfully",
+        data: user
       });
     } catch (err) {
       next(err);
-    },
-
-updateAvatar: async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-
-    if (!req.userId) {
-      throw new AppError("Unauthorized", 401);
     }
-
-    if (!req.file) {
-      throw new AppError("No image uploaded", 400);
-    }
-
-    const avatarPath = `/uploads/avatars/${req.file.filename}`;
-
-    const data = await ProfileService.updateAvatar(
-      req.userId,
-      avatarPath
-    );
-
-    res.json({
-      success: true,
-      message: "Avatar updated successfully",
-      data
-    });
-
-  } catch (err) {
-    next(err);
   }
-}
 
-  },
 };
