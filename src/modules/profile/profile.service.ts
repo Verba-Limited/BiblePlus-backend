@@ -1,6 +1,6 @@
 import { User } from "../auth/auth.model";
 import AppError from "../../core/AppError";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export const ProfileService = {
 
