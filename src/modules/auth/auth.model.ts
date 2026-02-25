@@ -159,12 +159,11 @@ userSchema.methods.comparePassword = async function (
 function excludeDeleted(this: any, next: any) {
   this.where({ isDeleted: false });
   next();
-});
+}
 
-userSchema.pre("findOneAndUpdate", function (next) {
-  this.where({ isDeleted: false });
-  next();
-});
+userSchema.pre("find", excludeDeleted);
+userSchema.pre("findOne", excludeDeleted);
+userSchema.pre("findOneAndUpdate", excludeDeleted);
 
 /* =====================================================
    MODEL EXPORT
