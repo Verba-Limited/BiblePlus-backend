@@ -98,6 +98,7 @@ app.use("/api/event-categories", eventCategoryRoutes);
 app.use("/api/events/attendance", eventAttendanceRoutes);
 app.use("/api/events/comments", eventCommentRoutes);
 app.use("/api/events/gallery", eventGalleryRoutes);
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 /* ===== BLOG ===== */
 app.use("/api/blog", blogRoutes);
