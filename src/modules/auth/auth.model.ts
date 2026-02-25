@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import bcrypt from "bcrypt";
 
 export interface IUser extends Document {
   email: string;
@@ -9,8 +10,19 @@ export interface IUser extends Document {
   username: string;
   avatar?: string;
 
+  location?: string;
+  bio?: string;
+
+  notificationSettings: {
+    push: boolean;
+    email: boolean;
+  };
+
   role: "user" | "admin";
   verified: boolean;
+  isDeleted: boolean;
+
+  comparePassword(candidate: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>(
@@ -26,7 +38,8 @@ const userSchema = new Schema<IUser>(
 
     password: {
       type: String,
-      required: true
+      required: true,
+      minlength: 6
     },
 
     firstName: {
@@ -52,6 +65,22 @@ const userSchema = new Schema<IUser>(
       type: String
     },
 
+    location: {
+      type: String,
+      trim: true
+    },
+
+    bio: {
+      type: String,
+      maxlength: 160,
+      trim: true
+    },
+
+    notificationSettings: {
+      push: { type: Boolean, default: true },
+      email: { type: Boolean, default: true }
+    },
+
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -61,22 +90,14 @@ const userSchema = new Schema<IUser>(
     verified: {
       type: Boolean,
       default: false
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false
     }
   },
   {
     timestamps: true
   }
 );
-
-/* =====================================================
-   HOOKS
-===================================================== */
-
-// Always normalize username
-userSchema.pre("save", function (next) {
-  if (this.username) {
-    this.username = this.username.toLowerCase();
-  }
-});
-
-export const User = mongoose.model<IUser>("User", userSchema);
