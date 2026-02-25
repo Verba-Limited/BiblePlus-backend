@@ -109,9 +109,8 @@ const userSchema = new Schema<IUser>(
     timestamps: true,
     toJSON: {
       transform: (_doc, ret) => {
-        delete ret.password;   // Never expose password
-        delete ret.__v;
-        return ret;
+        const { password, __v, ...rest } = ret;
+        return rest;
       }
     }
   }
@@ -160,11 +159,12 @@ userSchema.methods.comparePassword = async function (
 function excludeDeleted(this: any, next: any) {
   this.where({ isDeleted: false });
   next();
-}
+});
 
-userSchema.pre("find", excludeDeleted);
-userSchema.pre("findOne", excludeDeleted);
-userSchema.pre("findOneAndUpdate", excludeDeleted);
+userSchema.pre("findOneAndUpdate", function (next) {
+  this.where({ isDeleted: false });
+  next();
+});
 
 /* =====================================================
    MODEL EXPORT
