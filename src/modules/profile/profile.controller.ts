@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ProfileService } from "./profile.service";
+import AppError from "../../core/AppError";
 
 export const ProfileController = {
   getProfile: async (req: Request, res: Response, next: NextFunction) => {
@@ -50,6 +51,40 @@ export const ProfileController = {
       });
     } catch (err) {
       next(err);
+    },
+
+updateAvatar: async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+
+    if (!req.userId) {
+      throw new AppError("Unauthorized", 401);
     }
+
+    if (!req.file) {
+      throw new AppError("No image uploaded", 400);
+    }
+
+    const avatarPath = `/uploads/avatars/${req.file.filename}`;
+
+    const data = await ProfileService.updateAvatar(
+      req.userId,
+      avatarPath
+    );
+
+    res.json({
+      success: true,
+      message: "Avatar updated successfully",
+      data
+    });
+
+  } catch (err) {
+    next(err);
+  }
+}
+
   },
 };

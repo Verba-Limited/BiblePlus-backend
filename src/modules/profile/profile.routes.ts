@@ -1,6 +1,7 @@
 import { Router } from "express";
 import authMiddleware from "../../middleware/auth.middleware";
 import { ProfileController } from "./profile.controller";
+import { uploadAvatar } from "../../middleware/upload.middleware";
 
 const router = Router();
 
@@ -17,5 +18,14 @@ router.put(
 );
 
 router.delete("/", authMiddleware, ProfileController.deleteAccount);
+
+
+
+router.put(
+  "/avatar",
+  authMiddleware,
+  uploadAvatar.single("avatar"),
+  ProfileController.updateAvatar
+);
 
 export default router;
