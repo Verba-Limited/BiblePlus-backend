@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcrypt";
+import { CallbackWithoutResultAndOptionalError } from "mongoose";
 
 /* =====================================================
    INTERFACE
@@ -121,24 +122,20 @@ const userSchema = new Schema<IUser>(
 ===================================================== */
 
 // Normalize username + email
-userSchema.pre("save", function (next) {
+userSchema.pre("save", function (next: CallbackWithoutResultAndOptionalError) {
   if (this.username) {
     this.username = this.username.toLowerCase();
   }
-
   if (this.email) {
     this.email = this.email.toLowerCase();
   }
-
   next();
 });
 
 // Hash password before save
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-
+userSchema.pre("save", async function (this: IUser) {
+  if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
 
 /* =====================================================
