@@ -1,5 +1,9 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcrypt";
+
+/* =====================================================
+   INTERFACE
+===================================================== */
 
 export interface IUser extends Document {
   email: string;
@@ -24,6 +28,10 @@ export interface IUser extends Document {
 
   comparePassword(candidate: string): Promise<boolean>;
 }
+
+/* =====================================================
+   SCHEMA
+===================================================== */
 
 const userSchema = new Schema<IUser>(
   {
@@ -98,6 +106,69 @@ const userSchema = new Schema<IUser>(
     }
   },
   {
-    timestamps: true
+    timestamps: true,
+    toJSON: {
+      transform: (_doc, ret) => {
+        delete ret.password;   // Never expose password
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
+
+/* =====================================================
+   HOOKS
+===================================================== */
+
+// Normalize username + email
+userSchema.pre("save", function (next) {
+  if (this.username) {
+    this.username = this.username.toLowerCase();
+  }
+
+  if (this.email) {
+    this.email = this.email.toLowerCase();
+  }
+
+  next();
+});
+
+// Hash password before save
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+/* =====================================================
+   METHODS
+===================================================== */
+
+userSchema.methods.comparePassword = async function (
+  candidate: string
+): Promise<boolean> {
+  return bcrypt.compare(candidate, this.password);
+};
+
+/* =====================================================
+   GLOBAL QUERY FILTER (Soft Delete Protection)
+===================================================== */
+
+// Automatically exclude deleted users
+function excludeDeleted(this: any, next: any) {
+  this.where({ isDeleted: false });
+  next();
+}
+
+userSchema.pre("find", excludeDeleted);
+userSchema.pre("findOne", excludeDeleted);
+userSchema.pre("findOneAndUpdate", excludeDeleted);
+
+/* =====================================================
+   MODEL EXPORT
+===================================================== */
+
+export const User: Model<IUser> =
+  mongoose.model<IUser>("User", userSchema);
