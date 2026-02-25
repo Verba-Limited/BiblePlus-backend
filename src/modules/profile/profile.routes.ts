@@ -1,31 +1,69 @@
 import { Router } from "express";
 import authMiddleware from "../../middleware/auth.middleware";
-import { ProfileController } from "./profile.controller";
 import { uploadAvatar } from "../../middleware/upload.middleware";
+import { ProfileController } from "./profile.controller";
 
 const router = Router();
 
-router.get("/me", authMiddleware, ProfileController.getProfile);
+/* =========================
+   GET MY PROFILE
+   GET /api/profile/me
+========================= */
+router.get(
+  "/me",
+  authMiddleware,
+  ProfileController.getProfile
+);
 
-router.put("/", authMiddleware, ProfileController.updateProfile);
+/* =========================
+   UPDATE PROFILE
+   PUT /api/profile
+========================= */
+router.put(
+  "/",
+  authMiddleware,
+  ProfileController.updateProfile
+);
 
-router.put("/change-password", authMiddleware, ProfileController.changePassword);
+/* =========================
+   CHANGE PASSWORD
+   PUT /api/profile/change-password
+========================= */
+router.put(
+  "/change-password",
+  authMiddleware,
+  ProfileController.changePassword
+);
 
+/* =========================
+   UPDATE NOTIFICATION SETTINGS
+   PUT /api/profile/notification-settings
+========================= */
 router.put(
   "/notification-settings",
   authMiddleware,
   ProfileController.updateNotificationSettings
 );
 
-router.delete("/", authMiddleware, ProfileController.deleteAccount);
-
-
-
+/* =========================
+   UPDATE AVATAR
+   PUT /api/profile/avatar
+========================= */
 router.put(
   "/avatar",
   authMiddleware,
   uploadAvatar.single("avatar"),
   ProfileController.updateAvatar
+);
+
+/* =========================
+   DELETE ACCOUNT
+   DELETE /api/profile
+========================= */
+router.delete(
+  "/",
+  authMiddleware,
+  ProfileController.deleteAccount
 );
 
 export default router;
