@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcrypt";
 import { CallbackWithoutResultAndOptionalError } from "mongoose";
+import { HydratedDocument } from "mongoose"
 
 /* =====================================================
    INTERFACE
@@ -122,13 +123,12 @@ const userSchema = new Schema<IUser>(
 ===================================================== */
 
 // Normalize username + email
-userSchema.pre("save", async function (this: IUser, next: CallbackWithoutResultAndOptionalError) {
-  if (this.username) {
-    this.username = this.username.toLowerCase();
+userSchema.pre("save", async function (this: HydratedDocument<IUser>, next) {
+  if (!this.isModified("password")) {
+    return next();
   }
-  if (this.email) {
-    this.email = this.email.toLowerCase();
-  }
+
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
