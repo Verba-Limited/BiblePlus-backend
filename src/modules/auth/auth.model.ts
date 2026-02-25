@@ -122,7 +122,7 @@ const userSchema = new Schema<IUser>(
 ===================================================== */
 
 // Normalize username + email
-userSchema.pre("save", function (this: IUser, next: CallbackWithoutResultAndOptionalError) {
+userSchema.pre("save", function (next) {
   if (this.username) {
     this.username = this.username.toLowerCase();
   }
