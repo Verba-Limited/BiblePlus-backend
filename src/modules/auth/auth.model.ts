@@ -148,7 +148,7 @@ userSchema.methods.comparePassword = async function (
 
 // Automatically exclude deleted users
 function excludeDeleted(this: any) {
-  this.where({ isDeleted: false });
+  this.where({ isDeleted: { $ne: true } });
 }
 
 userSchema.pre("find", excludeDeleted);
