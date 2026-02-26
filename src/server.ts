@@ -1,6 +1,9 @@
+import dotenv from "dotenv";
+dotenv.config(); 
+
 import { app } from "./app";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
+
 import cron from "node-cron";
 import { Server } from "socket.io";
 import http from "http";
@@ -14,7 +17,7 @@ import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
 
 
 
-dotenv.config();
+
 
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI as string;
