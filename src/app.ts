@@ -13,7 +13,7 @@ import { errorHandler } from "./middleware/error.middleware";
 ===================== */
 import authRoutes from "./modules/auth/auth.routes";
 import profileRoutes from "./modules/profile/profile.routes";
-import profileStatsRoutes from "./modules/profile/profile.stats.routes";
+
 
 import bibleRoutes from "./modules/bible/bible.routes";
 import highlightRoutes from "./modules/bible/highlight.routes";
@@ -79,7 +79,6 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/auth", authRoutes);
 
 app.use("/api/profile", profileRoutes);
-app.use("/api/profile/stats", profileStatsRoutes);
 
 app.use("/api/bible", bibleRoutes);
 app.use("/api/highlights", highlightRoutes);
