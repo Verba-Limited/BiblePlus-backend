@@ -139,13 +139,8 @@ app.get("/health", (_req, res) => {
 ===================== */
 app.use(errorHandler);
 
-/* =====================
-   START SERVER
-===================== */
-const port = process.env.PORT || 5001;   // ← fallback only for local dev
+   // ← fallback only for local dev
 
-server.listen(Number(port), "0.0.0.0", () => {
-  console.log(`Server running on port ${port}`);
-});
+
 
 export { app, server };
