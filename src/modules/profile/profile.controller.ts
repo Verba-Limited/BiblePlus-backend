@@ -89,7 +89,7 @@ export const ProfileController = {
       if (!req.file) {
         throw new AppError("No avatar uploaded", 400);
       }
-
+      console.log("Uploaded file:", req.file);
       const avatarPath = `/uploads/avatars/${req.file.filename}`;
 
       const user = await ProfileService.updateAvatar(
