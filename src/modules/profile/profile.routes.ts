@@ -52,7 +52,7 @@ router.put(
 router.put(
   "/avatar",
   authMiddleware,
-  uploadAvatar.single("avatar"),
+  uploadAvatar,
   ProfileController.updateAvatar
 );
 
