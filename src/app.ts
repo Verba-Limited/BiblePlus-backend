@@ -48,6 +48,7 @@ import verseRoutes from "./modules/verse/verse.routes";
 import { BibleLoader } from "./modules/bible/bible.loader";
 import { QuizLoader } from "./modules/quiz/quiz.loader";
 import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
+import { startEventReminderCron } from "./jobs/eventReminder.job";
 
 dotenv.config();
 
@@ -122,6 +123,7 @@ app.use("/api/chatbot", chatbotRoutes);
 BibleLoader.load();
 QuizLoader.load();
 startDailyQuizCleanup();
+startEventReminderCron();
 
 /* =====================
    HEALTH
