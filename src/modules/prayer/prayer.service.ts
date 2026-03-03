@@ -44,6 +44,23 @@ export const PrayerService = {
     return { prayers, total };
   },
 
+  deletePrayer: async (prayerId: string, userId: string) => {
+  const prayer = await Prayer.findById(prayerId);
+
+  if (!prayer) {
+    throw new AppError("Prayer not found", 404);
+  }
+
+  // 🔒 SECURITY CHECK
+  if (prayer.user.toString() !== userId) {
+    throw new AppError("You cannot delete this prayer", 403);
+  }
+
+  await prayer.deleteOne();
+
+  return prayer;
+},
+
   /* ============================================
      USER'S OWN PRAYERS
   ============================================ */
