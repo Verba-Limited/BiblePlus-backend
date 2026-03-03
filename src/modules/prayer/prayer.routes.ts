@@ -31,6 +31,12 @@ router.post(
   PrayerController.create
 );
 
+router.delete(
+  "/:id",
+  authMiddleware,
+  PrayerController.delete
+)
+
 /* =====================================
       PRAYER LIKE SYSTEM
 ===================================== */

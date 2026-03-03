@@ -55,6 +55,27 @@ export const PrayerController = {
     }
   },
 
+  deletePrayer: async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.userId) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const deleted = await PrayerService.deletePrayer(
+      req.params.id,
+      req.userId
+    );
+
+    res.json({
+      success: true,
+      message: "Prayer deleted successfully",
+      data: deleted
+    });
+  } catch (err) {
+    next(err);
+  }
+},
+
   /* ============================================
      USER PRAYERS
   ============================================ */
