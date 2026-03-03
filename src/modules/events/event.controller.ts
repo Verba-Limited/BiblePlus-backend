@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { EventService } from "./event.service";
 import AppError from "../../core/AppError";
+import { AuthRequest } from "../../types/auth.types";
+import { EventReminder } from "./eventReminder.model";
+import { NotificationService } from "../notifications/notification.service";
 
 export const EventController = {
   /* -----------------------------------------------------
@@ -69,6 +72,34 @@ export const EventController = {
       next(err);
     }
   },
+
+  async remindMe(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const eventId = req.params.id;
+
+    await EventReminder.create({
+      user: req.userId,
+      event: eventId
+    });
+
+    // Immediate notification
+    await NotificationService.create(
+      "USER",
+      "Reminder Set",
+      "You will be reminded about this event.",
+      "event",
+      { userId: req.userId }
+    );
+
+    res.json({
+      success: true,
+      message: "Reminder set successfully"
+    });
+
+  } catch (err) {
+    next(err);
+  }
+},
 
   /* -----------------------------------------------------
       ADMIN: CREATE EVENT
