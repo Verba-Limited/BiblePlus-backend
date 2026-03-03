@@ -68,8 +68,7 @@ export const EventService = {
       "ALL",
       "New Event Posted",
       `A new event "${populated?.title}" has been created.`,
-      "event-create",
-      { eventId: populated?._id }
+      "event-create"
     ).catch(() => {});
 
     return populated;
@@ -91,8 +90,7 @@ export const EventService = {
       "ALL",
       "Event Updated",
       `The event "${updated.title}" has been updated.`,
-      "event-update",
-      { eventId: updated._id }
+      "event-update"
     ).catch(() => {});
 
     return updated;
@@ -116,8 +114,7 @@ export const EventService = {
       "ALL",
       "Livestream Available",
       `Livestream updated for "${populated?.title}".`,
-      "event-livestream",
-      { eventId: populated?._id, liveStream: populated?.liveStream }
+      "event-livestream"
     ).catch(() => {});
 
     return populated;
@@ -134,8 +131,7 @@ export const EventService = {
       "ALL",
       "Event Cancelled",
       `The event "${removed.title}" has been cancelled.`,
-      "event-delete",
-      { eventId: removed._id }
+      "event-delete"
     ).catch(() => {});
 
     return removed;

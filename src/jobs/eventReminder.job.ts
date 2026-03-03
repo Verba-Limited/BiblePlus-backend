@@ -14,48 +14,47 @@ export const startEventReminderCron = () => {
       .populate("event")
       .populate("user");
 
-    for (const reminder of reminders) {
+   for (const reminder of reminders) {
 
-      const eventDate = new Date(reminder.event.date);
+  const event = reminder.event as any;
+  const user = reminder.user as any;
 
-      const oneDayBefore = new Date(eventDate);
-      oneDayBefore.setDate(eventDate.getDate() - 1);
+  const eventDate = new Date(event.date);
 
-      // 🔔 DAY BEFORE REMINDER
-      if (
-        now.toDateString() === oneDayBefore.toDateString() &&
-        !reminder.remindedDayBefore
-      ) {
+  const oneDayBefore = new Date(eventDate);
+  oneDayBefore.setDate(eventDate.getDate() - 1);
 
-        await NotificationService.create(
-          "USER",
-          "Event Tomorrow",
-          `${reminder.event.title} is happening tomorrow.`,
-          "event",
-          { userId: reminder.user._id.toString() }
-        );
+  if (
+    now.toDateString() === oneDayBefore.toDateString() &&
+    !reminder.remindedDayBefore
+  ) {
+    await NotificationService.create(
+      "USER",
+      "Event Tomorrow",
+      `${event.title} is happening tomorrow.`,
+      "event",
+      { userId: user._id.toString() }
+    );
 
-        reminder.remindedDayBefore = true;
-        await reminder.save();
-      }
+    reminder.remindedDayBefore = true;
+    await reminder.save();
+  }
 
-      // 🔔 DAY OF REMINDER
-      if (
-        now.toDateString() === eventDate.toDateString() &&
-        !reminder.remindedDayOf
-      ) {
+  if (
+    now.toDateString() === eventDate.toDateString() &&
+    !reminder.remindedDayOf
+  ) {
+    await NotificationService.create(
+      "USER",
+      "Event Today",
+      `${event.title} is happening today.`,
+      "event",
+      { userId: user._id.toString() }
+    );
 
-        await NotificationService.create(
-          "USER",
-          "Event Today",
-          `${reminder.event.title} is happening today.`,
-          "event",
-          { userId: reminder.user._id.toString() }
-        );
-
-        reminder.remindedDayOf = true;
-        await reminder.save();
-      }
-    }
+    reminder.remindedDayOf = true;
+    await reminder.save();
+  }
+}
   });
 };
