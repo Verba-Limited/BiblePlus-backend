@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { EventService } from "./event.service";
 import AppError from "../../core/AppError";
-import { AuthRequest } from "../../types/auth.types";
 import { EventReminder } from "./eventReminder.model";
 import { NotificationService } from "../notifications/notification.service";
 
@@ -73,7 +72,7 @@ export const EventController = {
     }
   },
 
-  async remindMe(req: AuthRequest, res: Response, next: NextFunction) {
+  async remindMe(req: Request, res: Response, next: NextFunction) {
   try {
     const eventId = req.params.id;
 
