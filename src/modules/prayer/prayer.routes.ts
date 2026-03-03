@@ -34,7 +34,7 @@ router.post(
 router.delete(
   "/:id",
   authMiddleware,
-  PrayerController.delete
+  PrayerController.deletePrayer
 )
 
 /* =====================================
