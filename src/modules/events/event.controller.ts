@@ -91,6 +91,9 @@ export const EventController = {
       { userId: req.userId }
     );
 
+    if (!req.userId) {
+      throw new AppError("Unauthorized", 401);
+    }
     res.json({
       success: true,
       message: "Reminder set successfully"

@@ -33,7 +33,7 @@ router.get("/:id", EventController.getEvent);
 router.post("/reminders/add", authMiddleware, EventReminderController.add);
 router.post("/reminders/remove", authMiddleware, EventReminderController.remove);
 router.get("/reminders/all", authMiddleware, EventReminderController.all);
-router.get("/:id/remind",   authMiddleware, EventReminderController.remindMe);
+router.post("/:id/remind",   authMiddleware, EventController.remindMe);
 
 /* ======================================================
     📌 SPEAKER MANAGEMENT (ADMIN ONLY)
