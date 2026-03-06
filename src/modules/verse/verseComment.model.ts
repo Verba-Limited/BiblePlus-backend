@@ -1,10 +1,10 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IVerseComment extends Document {
-  user: mongoose.Types.ObjectId;
-  verse: mongoose.Types.ObjectId;
+  user: Types.ObjectId;
+  verse: Types.ObjectId;
   comment: string;
-  parentComment?: mongoose.Types.ObjectId;
+  parentComment?: Types.ObjectId;
 }
 
 const verseCommentSchema = new Schema<IVerseComment>(
@@ -14,21 +14,25 @@ const verseCommentSchema = new Schema<IVerseComment>(
       ref: "User",
       required: true
     },
+
     verse: {
       type: Schema.Types.ObjectId,
       ref: "VerseOfDay",
       required: true
     },
+
     comment: {
       type: String,
       required: true,
       trim: true
     },
+
     parentComment: {
-        type: Schema.Types.ObjectId,
-        ref: "VerseComment",
-        default: null
+      type: Schema.Types.ObjectId,
+      ref: "VerseComment",
+      required: false
     }
+
   },
   { timestamps: true }
 );
