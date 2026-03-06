@@ -73,6 +73,24 @@ async comment(
   io.to(`verse-${verseId}`).emit("newVerseComment", populated);
   io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
 
+  if (parentComment) {
+
+      const parent = await VerseComment.findById(parentComment);
+
+      if (parent && parent.user.toString() !== userId) {
+
+        await NotificationService.create(
+          "USER",
+          "New Reply",
+          "Someone replied to your verse comment.",
+          "verse-reply",
+          { userId: parent.user.toString() }
+        );
+
+      }
+
+    }
+
   return populated;
 },
 
