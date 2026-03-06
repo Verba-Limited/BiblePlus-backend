@@ -2,7 +2,6 @@ import AppError from "../../core/AppError";
 import { VerseLike } from "./verseLike.model";
 import { VerseComment } from "./verseComment.model";
 import { VerseShare } from "./verseShare.model";
-import { VerseOfDay } from "./verseOFDay.model";
 import { getIO } from "../../socket/socket";
 
 export const VerseEngagementService = {
@@ -31,7 +30,6 @@ export const VerseEngagementService = {
 
     const stats = await this.stats(verseId);
 
-    // 🔥 Real-time update
     const io = getIO();
     io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
 
@@ -43,9 +41,14 @@ export const VerseEngagementService = {
 
 
   /* ============================================
-     COMMENT ON VERSE (REALTIME)
+     COMMENT / REPLY (REALTIME)
   ============================================ */
-  async comment(userId: string, verseId: string, text: string) {
+  async comment(
+    userId: string,
+    verseId: string,
+    text: string,
+    parentComment?: string
+  ) {
 
     if (!text || text.trim().length === 0) {
       throw new AppError("Comment cannot be empty", 400);
@@ -54,7 +57,8 @@ export const VerseEngagementService = {
     const comment = await VerseComment.create({
       user: userId,
       verse: verseId,
-      comment: text
+      comment: text,
+      parentComment: parentComment || null
     });
 
     const populated = await comment.populate("user", "username avatar");
@@ -63,10 +67,10 @@ export const VerseEngagementService = {
 
     const io = getIO();
 
-    // 🔥 Send comment live
+    // 🔥 Real-time comment
     io.to(`verse-${verseId}`).emit("newVerseComment", populated);
 
-    // 🔥 Update stats live
+    // 🔥 Real-time stats update
     io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
 
     return populated;
@@ -74,13 +78,39 @@ export const VerseEngagementService = {
 
 
   /* ============================================
-     GET VERSE COMMENTS
+     GET THREADED COMMENTS
   ============================================ */
   async getComments(verseId: string) {
 
-    return VerseComment.find({ verse: verseId })
+    const comments = await VerseComment.find({
+      verse: verseId
+    })
       .populate("user", "username avatar")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: 1 });
+
+    const commentMap: any = {};
+    const roots: any[] = [];
+
+    comments.forEach(c => {
+      commentMap[c._id.toString()] = {
+        ...c.toObject(),
+        replies: []
+      };
+    });
+
+    comments.forEach(c => {
+
+      if (c.parentComment) {
+        commentMap[c.parentComment.toString()]?.replies.push(
+          commentMap[c._id.toString()]
+        );
+      } else {
+        roots.push(commentMap[c._id.toString()]);
+      }
+
+    });
+
+    return roots;
   },
 
 
@@ -96,7 +126,6 @@ export const VerseEngagementService = {
 
     const stats = await this.stats(verseId);
 
-    // 🔥 realtime stats
     const io = getIO();
     io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
 
@@ -153,4 +182,5 @@ export const VerseEngagementService = {
       shared
     };
   }
+
 };
