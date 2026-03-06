@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 let io: Server;
 
 export const initSocket = (server: any) => {
+
   io = new Server(server, {
     cors: {
       origin: "*"
@@ -13,18 +14,15 @@ export const initSocket = (server: any) => {
 
     console.log("User connected:", socket.id);
 
-    // User joins their personal room
-    socket.on("join", (userId: string) => {
-      socket.join(userId);
-      console.log(`User ${userId} joined room`);
+    socket.on("joinVerse", (verseId: string) => {
+      socket.join(`verse-${verseId}`);
     });
 
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
     });
-  });
 
-  return io;
+  });
 };
 
 export const getIO = () => {
