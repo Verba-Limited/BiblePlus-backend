@@ -4,6 +4,7 @@ export interface IVerseComment extends Document {
   user: mongoose.Types.ObjectId;
   verse: mongoose.Types.ObjectId;
   comment: string;
+  parentComment?: mongoose.Types.ObjectId;
 }
 
 const verseCommentSchema = new Schema<IVerseComment>(
@@ -22,6 +23,11 @@ const verseCommentSchema = new Schema<IVerseComment>(
       type: String,
       required: true,
       trim: true
+    },
+    parentComment: {
+        type: Schema.Types.ObjectId,
+        ref: "VerseComment",
+        default: null
     }
   },
   { timestamps: true }
