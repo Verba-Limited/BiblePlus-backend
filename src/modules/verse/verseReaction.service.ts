@@ -1,51 +1,60 @@
-import mongoose, { Schema, Document } from "mongoose";
+import { VerseReaction } from "./verseReaction.model";
+import { getIO } from "../../socket/socket";
 
-export type VerseReactionType =
-  | "like"
-  | "love"
-  | "amen"
-  | "powerful"
-  | "sad";
+export const VerseReactionService = {
 
-export interface IVerseReaction extends Document {
-  user: mongoose.Types.ObjectId;
-  verse: mongoose.Types.ObjectId;
-  reaction: VerseReactionType;
-  createdAt: Date;
-  updatedAt: Date;
-}
+  async react(userId: string, verseId: string, reaction: string) {
 
-const verseReactionSchema = new Schema<IVerseReaction>(
-  {
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      index: true
-    },
+    const existing = await VerseReaction.findOne({
+      user: userId,
+      verse: verseId
+    });
 
-    verse: {
-      type: Schema.Types.ObjectId,
-      ref: "VerseOfDay",
-      required: true,
-      index: true
-    },
-
-    reaction: {
-      type: String,
-      enum: ["like", "love", "amen", "powerful", "sad"],
-      required: true
+    if (existing) {
+      existing.reaction = reaction;
+      await existing.save();
+    } else {
+      await VerseReaction.create({
+        user: userId,
+        verse: verseId,
+        reaction
+      });
     }
+
+    const stats = await this.stats(verseId);
+
+    const io = getIO();
+
+    io.to(`verse-${verseId}`).emit("verseReactionsUpdated", stats);
+
+    return stats;
   },
-  {
-    timestamps: true
+
+  async stats(verseId: string) {
+
+    const reactions = await VerseReaction.aggregate([
+      { $match: { verse: new (require("mongoose")).Types.ObjectId(verseId) } },
+      {
+        $group: {
+          _id: "$reaction",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const result: any = {
+      like: 0,
+      love: 0,
+      amen: 0,
+      powerful: 0,
+      sad: 0
+    };
+
+    reactions.forEach((r: any) => {
+      result[r._id] = r.count;
+    });
+
+    return result;
   }
-);
 
-// one reaction per user per verse
-verseReactionSchema.index({ user: 1, verse: 1 }, { unique: true });
-
-export const VerseReaction = mongoose.model<IVerseReaction>(
-  "VerseReaction",
-  verseReactionSchema
-);
+};
