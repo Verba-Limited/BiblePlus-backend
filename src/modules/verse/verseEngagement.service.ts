@@ -7,6 +7,9 @@ import { getIO } from "../../socket/socket";
 
 export const VerseEngagementService = {
 
+  /* ============================================
+     LIKE / UNLIKE VERSE
+  ============================================ */
   async like(userId: string, verseId: string) {
 
     const existing = await VerseLike.findOne({
@@ -14,37 +17,65 @@ export const VerseEngagementService = {
       verse: verseId
     });
 
+    let liked = true;
+
     if (existing) {
       await existing.deleteOne();
-      return { liked: false };
+      liked = false;
+    } else {
+      await VerseLike.create({
+        user: userId,
+        verse: verseId
+      });
     }
 
-    await VerseLike.create({
-      user: userId,
-      verse: verseId
-    });
+    const stats = await this.stats(verseId);
 
-    return { liked: true };
+    // 🔥 Real-time update
+    const io = getIO();
+    io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
+
+    return {
+      liked,
+      stats
+    };
   },
 
 
-async comment(userId: string, verseId: string, text: string) {
+  /* ============================================
+     COMMENT ON VERSE (REALTIME)
+  ============================================ */
+  async comment(userId: string, verseId: string, text: string) {
 
-  const comment = await VerseComment.create({
-    user: userId,
-    verse: verseId,
-    comment: text
-  });
+    if (!text || text.trim().length === 0) {
+      throw new AppError("Comment cannot be empty", 400);
+    }
 
-  const populated = await comment.populate("user", "username avatar");
+    const comment = await VerseComment.create({
+      user: userId,
+      verse: verseId,
+      comment: text
+    });
 
-  const io = getIO();
+    const populated = await comment.populate("user", "username avatar");
 
-  io.to(`verse-${verseId}`).emit("newVerseComment", populated);
+    const stats = await this.stats(verseId);
 
-  return populated;
-},
+    const io = getIO();
 
+    // 🔥 Send comment live
+    io.to(`verse-${verseId}`).emit("newVerseComment", populated);
+
+    // 🔥 Update stats live
+    io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
+
+    return populated;
+  },
+
+
+  /* ============================================
+     GET VERSE COMMENTS
+  ============================================ */
   async getComments(verseId: string) {
 
     return VerseComment.find({ verse: verseId })
@@ -52,6 +83,10 @@ async comment(userId: string, verseId: string, text: string) {
       .sort({ createdAt: -1 });
   },
 
+
+  /* ============================================
+     SHARE VERSE
+  ============================================ */
   async share(userId: string, verseId: string) {
 
     await VerseShare.create({
@@ -59,30 +94,63 @@ async comment(userId: string, verseId: string, text: string) {
       verse: verseId
     });
 
-    return { shared: true };
+    const stats = await this.stats(verseId);
+
+    // 🔥 realtime stats
+    const io = getIO();
+    io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
+
+    return {
+      shared: true,
+      stats
+    };
   },
 
+
+  /* ============================================
+     VERSE STATS
+  ============================================ */
   async stats(verseId: string) {
 
-    const likes = await VerseLike.countDocuments({ verse: verseId });
-    const comments = await VerseComment.countDocuments({ verse: verseId });
-    const shares = await VerseShare.countDocuments({ verse: verseId });
+    const [likes, comments, shares] = await Promise.all([
+      VerseLike.countDocuments({ verse: verseId }),
+      VerseComment.countDocuments({ verse: verseId }),
+      VerseShare.countDocuments({ verse: verseId })
+    ]);
 
-    return { likes, comments, shares };
+    return {
+      likes,
+      comments,
+      shares
+    };
   },
 
+
+  /* ============================================
+     USER VERSE HISTORY
+  ============================================ */
   async userHistory(userId: string) {
 
-    const liked = await VerseLike.find({ user: userId }).populate("verse");
+    const liked = await VerseLike.find({
+      user: userId
+    }).populate("verse");
 
     const commented = await VerseComment.find({
       user: userId
-    }).populate("verse");
+    })
+      .populate("verse")
+      .sort({ createdAt: -1 });
 
     const shared = await VerseShare.find({
       user: userId
-    }).populate("verse");
+    })
+      .populate("verse")
+      .sort({ createdAt: -1 });
 
-    return { liked, commented, shared };
+    return {
+      liked,
+      commented,
+      shared
+    };
   }
 };
