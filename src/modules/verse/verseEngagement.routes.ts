@@ -4,16 +4,44 @@ import { VerseEngagementController } from "./verseEngagement.controller";
 
 const router = Router();
 
-router.post("/:id/like", authMiddleware, VerseEngagementController.like);
+/* USER HISTORY */
+router.get(
+  "/history/me",
+  authMiddleware,
+  VerseEngagementController.history
+);
 
-router.post("/:id/comment", authMiddleware, VerseEngagementController.comment);
+/* LIKE */
+router.post(
+  "/:id/like",
+  authMiddleware,
+  VerseEngagementController.like
+);
 
-router.get("/:id/comments", VerseEngagementController.comments);
+/* COMMENT */
+router.post(
+  "/:id/comment",
+  authMiddleware,
+  VerseEngagementController.comment
+);
 
-router.post("/:id/share", authMiddleware, VerseEngagementController.share);
+/* GET COMMENTS */
+router.get(
+  "/:id/comments",
+  VerseEngagementController.comments
+);
 
-router.get("/:id/stats", VerseEngagementController.stats);
+/* SHARE */
+router.post(
+  "/:id/share",
+  authMiddleware,
+  VerseEngagementController.share
+);
 
-router.get("/history/me", authMiddleware, VerseEngagementController.history);
+/* STATS */
+router.get(
+  "/:id/stats",
+  VerseEngagementController.stats
+);
 
 export default router;
