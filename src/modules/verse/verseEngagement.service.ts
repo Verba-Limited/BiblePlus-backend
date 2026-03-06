@@ -3,6 +3,7 @@ import { VerseLike } from "./verseLike.model";
 import { VerseComment } from "./verseComment.model";
 import { VerseShare } from "./verseShare.model";
 import { VerseOfDay } from "./verseOFDay.model";
+import { getIO } from "../../socket/socket";
 
 export const VerseEngagementService = {
 
@@ -26,18 +27,23 @@ export const VerseEngagementService = {
     return { liked: true };
   },
 
-  async comment(userId: string, verseId: string, text: string) {
 
-    if (!text) {
-      throw new AppError("Comment cannot be empty", 400);
-    }
+async comment(userId: string, verseId: string, text: string) {
 
-    return VerseComment.create({
-      user: userId,
-      verse: verseId,
-      comment: text
-    });
-  },
+  const comment = await VerseComment.create({
+    user: userId,
+    verse: verseId,
+    comment: text
+  });
+
+  const populated = await comment.populate("user", "username avatar");
+
+  const io = getIO();
+
+  io.to(`verse-${verseId}`).emit("newVerseComment", populated);
+
+  return populated;
+},
 
   async getComments(verseId: string) {
 
