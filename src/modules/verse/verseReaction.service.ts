@@ -1,9 +1,13 @@
-import { VerseReaction } from "./verseReaction.model";
+import { VerseReaction, VerseReactionType } from "./verseReaction.model";
 import { getIO } from "../../socket/socket";
 
 export const VerseReactionService = {
 
-  async react(userId: string, verseId: string, reaction: string) {
+  async react(
+    userId: string,
+    verseId: string,
+    reaction: VerseReactionType
+  ) {
 
     const existing = await VerseReaction.findOne({
       user: userId,
@@ -33,7 +37,11 @@ export const VerseReactionService = {
   async stats(verseId: string) {
 
     const reactions = await VerseReaction.aggregate([
-      { $match: { verse: new (require("mongoose")).Types.ObjectId(verseId) } },
+      {
+        $match: {
+          verse: new (require("mongoose")).Types.ObjectId(verseId)
+        }
+      },
       {
         $group: {
           _id: "$reaction",

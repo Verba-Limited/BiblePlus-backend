@@ -43,6 +43,7 @@ import chatbotRoutes from "./modules/chatbot/chatbot.routes";
 import verseRoutes from "./modules/verse/verse.routes";
 import verseEngagementRoutes from "./modules/verse/verseEngagement.routes"
 import verseTrendingRoutes from "./modules/verse/verseTrending.routes"
+import verseReactionRoutes from "./modules/verse/verseReaction.routes"
 
 /* =====================
    LOADERS
@@ -115,6 +116,7 @@ app.use("/api/prayer", prayerRoutes);
 /* ===== VERSE ENGAGEMENT ===== */
 app.use("/api/verse", verseEngagementRoutes);
 app.use("/api/verse", verseTrendingRoutes);
+app.use("/api/verse", verseReactionRoutes);
 
 /* ===== ADMIN CORE ===== */
 app.use("/api/admin", AdminRoutes);
