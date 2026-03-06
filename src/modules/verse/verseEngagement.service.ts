@@ -3,7 +3,8 @@ import { VerseLike } from "./verseLike.model";
 import { VerseComment } from "./verseComment.model";
 import { VerseShare } from "./verseShare.model";
 import { getIO } from "../../socket/socket";
-  import mongoose from "mongoose";
+import mongoose from "mongoose";
+import { NotificationService } from "../notifications/notification.service";
 
 export const VerseEngagementService = {
 
