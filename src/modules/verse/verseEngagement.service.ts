@@ -3,6 +3,7 @@ import { VerseLike } from "./verseLike.model";
 import { VerseComment } from "./verseComment.model";
 import { VerseShare } from "./verseShare.model";
 import { getIO } from "../../socket/socket";
+  import mongoose from "mongoose";
 
 export const VerseEngagementService = {
 
@@ -43,38 +44,37 @@ export const VerseEngagementService = {
   /* ============================================
      COMMENT / REPLY (REALTIME)
   ============================================ */
-  async comment(
-    userId: string,
-    verseId: string,
-    text: string,
-    parentComment?: string
-  ) {
+async comment(
+  userId: string,
+  verseId: string,
+  text: string,
+  parentComment?: string
+) {
 
-    if (!text || text.trim().length === 0) {
-      throw new AppError("Comment cannot be empty", 400);
-    }
+  if (!text || text.trim().length === 0) {
+    throw new AppError("Comment cannot be empty", 400);
+  }
 
-    const comment = await VerseComment.create({
-      user: userId,
-      verse: verseId,
-      comment: text,
-      parentComment: parentComment || null
-    });
+  const comment = await VerseComment.create({
+    user: new mongoose.Types.ObjectId(userId),
+    verse: new mongoose.Types.ObjectId(verseId),
+    comment: text,
+    ...(parentComment && {
+      parentComment: new mongoose.Types.ObjectId(parentComment)
+    })
+  });
 
-    const populated = await comment.populate("user", "username avatar");
+  const populated = await comment.populate("user", "username avatar");
 
-    const stats = await this.stats(verseId);
+  const stats = await this.stats(verseId);
 
-    const io = getIO();
+  const io = getIO();
 
-    // 🔥 Real-time comment
-    io.to(`verse-${verseId}`).emit("newVerseComment", populated);
+  io.to(`verse-${verseId}`).emit("newVerseComment", populated);
+  io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
 
-    // 🔥 Real-time stats update
-    io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
-
-    return populated;
-  },
+  return populated;
+},
 
 
   /* ============================================
