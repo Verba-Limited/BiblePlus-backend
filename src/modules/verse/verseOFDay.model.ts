@@ -1,4 +1,5 @@
 // src/modules/verse/verseOfDay.model.ts
+
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IVerseOfDay extends Document {
@@ -11,6 +12,9 @@ export interface IVerseOfDay extends Document {
   translation: string;
   source: "admin" | "auto";
   locked: boolean;
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const verseOfDaySchema = new Schema<IVerseOfDay>(
@@ -66,7 +70,9 @@ const verseOfDaySchema = new Schema<IVerseOfDay>(
       default: true
     }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
 export const VerseOfDay = mongoose.model<IVerseOfDay>(
