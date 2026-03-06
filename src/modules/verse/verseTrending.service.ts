@@ -7,9 +7,14 @@ export const VerseTrendingService = {
 
   async getTrending(limit = 10) {
 
-    const verses = await VerseOfDay.find().sort({ date: -1 }).limit(50).lean();
+    const verses = await VerseOfDay.find()
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
 
-    const scored = [];
+    const scored: any[] = [];
+
+    const now = Date.now();
 
     for (const verse of verses) {
 
@@ -19,17 +24,24 @@ export const VerseTrendingService = {
         VerseShare.countDocuments({ verse: verse._id })
       ]);
 
-      const score =
+      const engagementScore =
         (likes * 3) +
         (comments * 5) +
         (shares * 4);
+
+      const hoursSincePosted =
+        (now - new Date(verse.createdAt).getTime()) /
+        (1000 * 60 * 60);
+
+      const trendingScore =
+        engagementScore / Math.max(hoursSincePosted, 1);
 
       scored.push({
         verse,
         likes,
         comments,
         shares,
-        score
+        score: trendingScore
       });
 
     }
