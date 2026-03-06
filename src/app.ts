@@ -41,6 +41,7 @@ import notificationRoutes from "./modules/notifications/notification.routes";
 import AdminRoutes from "./modules/admin/admin.routes";
 import chatbotRoutes from "./modules/chatbot/chatbot.routes";
 import verseRoutes from "./modules/verse/verse.routes";
+import verseEngagementRoutes from "./modules/verse/verseEngagement.routes"
 
 /* =====================
    LOADERS
@@ -109,6 +110,9 @@ app.use("/api/blog/trending", blogTrendingRoutes);
 /* ===== PRAYERS ===== */
 app.use("/api/prayer/likes", prayerLikeRoutes);
 app.use("/api/prayer", prayerRoutes);
+
+/* ===== VERSE ENGAGEMENT ===== */
+app.use("/api/verse", verseEngagementRoutes);
 
 /* ===== ADMIN CORE ===== */
 app.use("/api/admin", AdminRoutes);
