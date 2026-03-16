@@ -27,13 +27,7 @@ router.get("/speakers/:id", SpeakerController.getOne);
 /* This MUST stay last among public routes */
 router.get("/:id", EventController.getEvent);
 
-/* ======================================================
-    📌 USER REMINDERS (USER AUTH)
-====================================================== */
-router.post("/reminders/add", authMiddleware, EventReminderController.add);
-router.post("/reminders/remove", authMiddleware, EventReminderController.remove);
-router.get("/reminders/all", authMiddleware, EventReminderController.all);
-router.post("/:id/remind",   authMiddleware, EventController.remindMe);
+
 
 /* ======================================================
     📌 SPEAKER MANAGEMENT (ADMIN ONLY)
