@@ -44,6 +44,7 @@ import verseRoutes from "./modules/verse/verse.routes";
 import verseEngagementRoutes from "./modules/verse/verseEngagement.routes"
 import verseTrendingRoutes from "./modules/verse/verseTrending.routes"
 import verseReactionRoutes from "./modules/verse/verseReaction.routes"
+import eventReminderRoutes from "./modules/events/eventReminder.routes";
 
 /* =====================
    LOADERS
@@ -96,6 +97,7 @@ app.use("/api/books", bookRoutes);
 
 /* ===== EVENTS ===== */
 app.use("/api/events", eventRoutes);
+app.use("/api/events/:eventId", eventReminderRoutes);
 app.use("/api/speakers", speakerRoutes);
 app.use("/api/event-categories", eventCategoryRoutes);
 app.use("/api/events/attendance", eventAttendanceRoutes);

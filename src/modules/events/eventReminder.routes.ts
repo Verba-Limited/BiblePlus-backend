@@ -2,10 +2,10 @@ import { Router } from "express";
 import authMiddleware from "../../middleware/auth.middleware";
 import { EventReminderController } from "./eventReminder.controller";
 
-const router = Router();
+const router = Router({ mergeParams: true }); // ✅ needed to access :eventId from parent
 
-router.post("/add", authMiddleware, EventReminderController.add);
-router.post("/remove", authMiddleware, EventReminderController.remove);
-router.get("/", authMiddleware, EventReminderController.all);
+router.post("/remind", authMiddleware, EventReminderController.add);
+router.delete("/remind", authMiddleware, EventReminderController.remove);
+router.get("/mine", authMiddleware, EventReminderController.all);
 
 export default router;
