@@ -84,33 +84,33 @@ export const ProfileController = {
   },
 
   /* ================= UPDATE AVATAR ================= */
-updateAvatar: async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    // 1. Check if the file was intercepted by Multer
-    if (!req.file) {
-      throw new AppError("No avatar uploaded", 400);
+  updateAvatar: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.file) {
+        throw new AppError("No avatar uploaded", 400);
+      }
+
+      // ✅ Prefer secure_url from Cloudinary, fall back to path
+      const avatarUrl = (req.file as any).secure_url ?? req.file.path;
+
+      if (!avatarUrl || !avatarUrl.startsWith("https://res.cloudinary.com")) {
+        // This means Cloudinary upload failed silently — file went to local disk
+        throw new AppError("Avatar upload to Cloudinary failed", 500);
+      }
+
+      console.log("Cloudinary Upload Success:", avatarUrl);
+
+      const user = await ProfileService.updateAvatar(req.userId, avatarUrl);
+
+      res.json({
+        success: true,
+        message: "Avatar updated successfully",
+        data: user
+      });
+    } catch (err) {
+      next(err);
     }
-    const avatarUrl = req.file.path; 
-
-    console.log("Cloudinary Upload Success:", avatarUrl);
-
-    // 2. Pass the full URL to your Service to save in the DB
-    const user = await ProfileService.updateAvatar(
-      req.userId,
-      avatarUrl
-    );
-
-    // 3. Return the updated user (which now has the Cloudinary URL)
-    res.json({
-      success: true,
-      message: "Avatar updated successfully",
-      data: user
-    });
-  } catch (err) {
-    // If Cloudinary upload fails, Multer will throw an error caught here
-    next(err);
-  }
-},
+  },
 
   /* ================= DELETE ACCOUNT ================= */
   deleteAccount: async (req: Request, res: Response, next: NextFunction) => {
