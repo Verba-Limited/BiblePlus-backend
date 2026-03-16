@@ -84,28 +84,33 @@ export const ProfileController = {
   },
 
   /* ================= UPDATE AVATAR ================= */
-  updateAvatar: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (!req.file) {
-        throw new AppError("No avatar uploaded", 400);
-      }
-      console.log("Uploaded file:", req.file);
-      const avatarPath = `/uploads/avatars/${req.file.filename}`;
-
-      const user = await ProfileService.updateAvatar(
-        req.userId,
-        avatarPath
-      );
-
-      res.json({
-        success: true,
-        message: "Avatar updated successfully",
-        data: user
-      });
-    } catch (err) {
-      next(err);
+updateAvatar: async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // 1. Check if the file was intercepted by Multer
+    if (!req.file) {
+      throw new AppError("No avatar uploaded", 400);
     }
-  },
+    const avatarUrl = req.file.path; 
+
+    console.log("Cloudinary Upload Success:", avatarUrl);
+
+    // 2. Pass the full URL to your Service to save in the DB
+    const user = await ProfileService.updateAvatar(
+      req.userId,
+      avatarUrl
+    );
+
+    // 3. Return the updated user (which now has the Cloudinary URL)
+    res.json({
+      success: true,
+      message: "Avatar updated successfully",
+      data: user
+    });
+  } catch (err) {
+    // If Cloudinary upload fails, Multer will throw an error caught here
+    next(err);
+  }
+},
 
   /* ================= DELETE ACCOUNT ================= */
   deleteAccount: async (req: Request, res: Response, next: NextFunction) => {

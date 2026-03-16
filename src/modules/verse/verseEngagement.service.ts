@@ -46,6 +46,7 @@ export const VerseEngagementService = {
      COMMENT / REPLY (REALTIME)
   ============================================ */
 async comment(
+  user: string,
   userId: string,
   verseId: string,
   text: string,

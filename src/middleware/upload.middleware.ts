@@ -1,63 +1,39 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import AppError from "../core/AppError";
 
-/* ======================================================
-   ENSURE UPLOAD DIRECTORY EXISTS (RENDER SAFE)
-====================================================== */
+// 1. Configure Cloudinary (Keep these in your .env file!)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const avatarDir = path.join(process.cwd(), "uploads", "avatars");
-
-// Create directory if it doesn't exist
-if (!fs.existsSync(avatarDir)) {
-  fs.mkdirSync(avatarDir, { recursive: true });
-}
-
-/* ======================================================
-   STORAGE CONFIG
-====================================================== */
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, avatarDir); // Use absolute path
-  },
-
-  filename: (_req, file, cb) => {
-    const uniqueName =
-      Date.now() +
-      "-" +
-      Math.round(Math.random() * 1e9) +
-      path.extname(file.originalname);
-
-    cb(null, uniqueName);
-  }
+// 2. Setup Cloudinary Storage Engine
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "avatars", // Folder name in Cloudinary
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    transformation: [{ width: 500, height: 500, crop: "limit" }], // Optional: resize on upload
+  } as any,
 });
 
 /* ======================================================
-   FILE FILTER (IMAGES ONLY)
+   FILE FILTER (STILL GOOD TO HAVE)
 ====================================================== */
-
-const fileFilter: multer.Options["fileFilter"] = (
-  _req,
-  file,
-  cb
-) => {
+const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   if (!file.mimetype.startsWith("image/")) {
     return cb(new AppError("Only image files allowed", 400));
   }
-
   cb(null, true);
 };
-
-/* ======================================================
-   EXPORT MIDDLEWARE
-====================================================== */
 
 export const uploadAvatar = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024 // 2MB
-  }
+    fileSize: 2 * 1024 * 1024, // 2MB limit
+  },
 }).single("avatar");
