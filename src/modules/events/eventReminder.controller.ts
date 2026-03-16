@@ -1,13 +1,17 @@
 import { Request, Response, NextFunction } from "express";
 import { EventReminderService } from "./eventReminder.service";
+import AppError from "../../core/AppError";
 
 export const EventReminderController = {
 
   add: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
       const userId = req.userId;
-      const { eventId } = req.body;
+      // ✅ eventId comes from the URL param, not the body
+      const eventId = req.params.eventId ?? req.body.eventId;
+
+      if (!userId) throw new AppError("Unauthorized", 401);
+      if (!eventId) throw new AppError("Missing event ID", 400);
 
       const data = await EventReminderService.add(userId, eventId);
 
@@ -19,9 +23,12 @@ export const EventReminderController = {
 
   remove: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
       const userId = req.userId;
-      const { eventId } = req.body;
+      // ✅ same fix — check params first, fall back to body
+      const eventId = req.params.eventId ?? req.body.eventId;
+
+      if (!userId) throw new AppError("Unauthorized", 401);
+      if (!eventId) throw new AppError("Missing event ID", 400);
 
       await EventReminderService.remove(userId, eventId);
 
@@ -33,8 +40,9 @@ export const EventReminderController = {
 
   all: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
       const userId = req.userId;
+
+      if (!userId) throw new AppError("Unauthorized", 401);
 
       const data = await EventReminderService.listForUser(userId);
 

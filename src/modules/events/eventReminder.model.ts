@@ -1,29 +1,34 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IEventReminder extends Document {
-  user: mongoose.Types.ObjectId;
-  event: mongoose.Types.ObjectId;
-  remindedDayBefore: boolean;
-  remindedDayOf: boolean;
+  userId: mongoose.Types.ObjectId;
+  eventId: mongoose.Types.ObjectId;
+  sent24h: boolean;
+  sent1h: boolean;
+  sentStart: boolean;
 }
 
 const eventReminderSchema = new Schema<IEventReminder>(
   {
-    user: {
+    userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true
     },
-    event: {
+    eventId: {
       type: Schema.Types.ObjectId,
       ref: "Event",
       required: true
     },
-    remindedDayBefore: {
+    sent24h: {
       type: Boolean,
       default: false
     },
-    remindedDayOf: {
+    sent1h: {
+      type: Boolean,
+      default: false
+    },
+    sentStart: {
       type: Boolean,
       default: false
     }
@@ -31,7 +36,7 @@ const eventReminderSchema = new Schema<IEventReminder>(
   { timestamps: true }
 );
 
-eventReminderSchema.index({ user: 1, event: 1 }, { unique: true });
+eventReminderSchema.index({ userId: 1, eventId: 1 }, { unique: true });
 
 export const EventReminder = mongoose.model<IEventReminder>(
   "EventReminder",
