@@ -1,11 +1,8 @@
-// src/modules/quiz/quiz.service.ts
-
 import axios from "axios";
 import AppError from "../../core/AppError";
 import { QuizQuestion } from "./quizQuestion.model";
 import { QuizAttempt } from "./quizAttempt.model";
 import { QuizProgress } from "./quizProgress.model";
-import { UserXp } from "../xp/userXp.model";
 import mongoose from "mongoose";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -25,6 +22,19 @@ const difficultyByLevel = (level: number) => {
 ===================================================== */
 const calculateLevelFromXp = (xp: number) => {
   return Math.floor(xp / 500) + 1;
+};
+
+/* =====================================================
+   WEEK KEY HELPER
+===================================================== */
+const getCurrentWeekKey = () => {
+  const now = new Date();
+  const firstJan = new Date(now.getFullYear(), 0, 1);
+  const days = Math.floor(
+    (now.getTime() - firstJan.getTime()) / (24 * 60 * 60 * 1000)
+  );
+  const week = Math.ceil((days + firstJan.getDay() + 1) / 7);
+  return `${now.getFullYear()}-W${week}`;
 };
 
 /* =====================================================
@@ -79,74 +89,67 @@ Return ONLY valid JSON array.
 ===================================================== */
 export const QuizService = {
 
-async play(userId: string, level: number) {
+  /* =====================================================
+     PLAY
+  ===================================================== */
+  async play(userId: string, level: number) {
+    if (!level || level < 1) {
+      throw new AppError("Invalid level", 400);
+    }
 
-  if (!level || level < 1) {
-    throw new AppError("Invalid level", 400);
-  }
+    const progress =
+      (await QuizProgress.findOne({ userId })) ||
+      (await QuizProgress.create({ userId }));
 
-  const progress =
-    (await QuizProgress.findOne({ userId })) ||
-    (await QuizProgress.create({ userId }));
+    if (level > progress.highestLevel) {
+      throw new AppError("Level locked", 403);
+    }
 
-  if (level > progress.highestLevel) {
-    throw new AppError("Level locked", 403);
-  }
+    let questions = await QuizQuestion.find({
+      level,
+      source: "admin",
+      active: true
+    })
+      .limit(10)
+      .lean();
 
-  // 1️⃣ Try admin questions first
-  let questions = await QuizQuestion.find({
-    level: level,
-    source: "admin",
-    active: true
-  })
-    .limit(10)
-    .lean();
+    if (questions.length < 10) {
+      try {
+        const aiQuestions = await generateQuestionsFromAI(level);
 
-  // 2️⃣ If not enough admin questions, fallback to AI
-  if (questions.length < 10) {
-    try {
-      const aiQuestions = await generateQuestionsFromAI(level);
-
-      const created = await QuizQuestion.insertMany(
-        aiQuestions.map((q: any) => ({
-          question: q.question,
-          options: q.options,
-          correctAnswer: q.correctAnswer,
-          level: level,
-          difficulty: difficultyByLevel(level).difficulty,
-          source: "ai",
-          active: true
-        }))
-      );
-
-      questions = created.slice(0, 10).map(doc => doc.toObject());
-
-    } catch (err) {
-      console.log("AI failed. Using available admin questions.");
-
-      if (!questions.length) {
-        throw new AppError(
-          "No questions available for this level",
-          500
+        const created = await QuizQuestion.insertMany(
+          aiQuestions.map((q: any) => ({
+            question: q.question,
+            options: q.options,
+            correctAnswer: q.correctAnswer,
+            level,
+            difficulty: difficultyByLevel(level).difficulty,
+            source: "ai",
+            active: true
+          }))
         );
+
+        questions = created.slice(0, 10).map(doc => doc.toObject());
+      } catch (err) {
+        console.log("AI failed. Using available admin questions.");
+        if (!questions.length) {
+          throw new AppError("No questions available for this level", 500);
+        }
       }
     }
-  }
 
-  // 3️⃣ Return only safe data (no correctAnswer)
-  return questions.map((q: any) => ({
-    _id: q._id,
-    question: q.question,
-    options: q.options,
-    correctAnswer: q.correctAnswer // Include correct answer for frontend validation (can be removed in production)
-  }));
-},
+    return questions.map((q: any) => ({
+      _id: q._id,
+      question: q.question,
+      options: q.options,
+      correctAnswer: q.correctAnswer
+    }));
+  },
 
   /* =====================================================
-     SUBMIT QUIZ (WITH XP SYSTEM)
+     SUBMIT QUIZ
   ===================================================== */
   async submit(userId: string, level: number, answers: any[]) {
-
     if (!answers?.length) {
       throw new AppError("Answers required", 400);
     }
@@ -156,84 +159,65 @@ async play(userId: string, level: number) {
     });
 
     let correct = 0;
-
     for (const ans of answers) {
-      const q = questions.find(
-        q => q._id.toString() === ans.questionId
-      );
+      const q = questions.find(q => q._id.toString() === ans.questionId);
       if (q && q.correctAnswer === ans.answer) correct++;
     }
 
     const total = questions.length;
     const score = Math.round((correct / total) * 100);
 
-    await QuizAttempt.create({
-      userId,
-      level,
-      score,
-      correct,
-      total
-    });
+    await QuizAttempt.create({ userId, level, score, correct, total });
 
     /* ===============================
        XP CALCULATION
     =============================== */
-    /* ===============================
-   XP CALCULATION (GLOBAL + WEEKLY)
-================================= */
+    const { multiplier } = difficultyByLevel(level);
+    const earnedXp = correct * multiplier;
+    const currentWeek = getCurrentWeekKey();
 
-const { multiplier } = difficultyByLevel(level);
-const earnedXp = correct * multiplier;
+    // ✅ Get or create QuizProgress — single source of truth
+    let progress = await QuizProgress.findOne({ userId });
 
-// Get current week start (Monday 00:00)
-const now = new Date();
-const startOfWeek = new Date(now);
-startOfWeek.setDate(now.getDate() - now.getDay());
-startOfWeek.setHours(0, 0, 0, 0);
+    if (!progress) {
+      progress = await QuizProgress.create({
+        userId,
+        highestLevel: 1,
+        totalXp: earnedXp,
+        totalCorrect: correct,
+        totalAttempts: 1,
+        weeklyXp: earnedXp,
+        weeklyCorrect: correct,
+        weeklyAttempts: 1,
+        lastWeeklyReset: currentWeek
+      });
+    } else {
+      // ✅ Weekly reset check
+      if (progress.lastWeeklyReset !== currentWeek) {
+        progress.weeklyXp = 0;
+        progress.weeklyCorrect = 0;
+        progress.weeklyAttempts = 0;
+        progress.lastWeeklyReset = currentWeek;
+      }
 
-let xpRecord = await UserXp.findOne({
-  user: new mongoose.Types.ObjectId(userId)
-});
+      // ✅ Global stats
+      progress.totalXp += earnedXp;
+      progress.totalCorrect += correct;
+      progress.totalAttempts += 1;
 
-if (!xpRecord) {
-  xpRecord = await UserXp.create({
-    user: userId,
-    totalXp: earnedXp,
-    weeklyXp: earnedXp,
-    weeklyCorrect: correct,
-    weeklyAttempts: 1,
-    lastWeeklyReset: startOfWeek,
-    level: calculateLevelFromXp(earnedXp)
-  });
-} else {
+      // ✅ Weekly stats
+      progress.weeklyXp += earnedXp;
+      progress.weeklyCorrect += correct;
+      progress.weeklyAttempts += 1;
 
-  /* ===============================
-     WEEKLY RESET CHECK
-  =============================== */
+      // ✅ Update highest level from XP
+      progress.highestLevel = Math.max(
+        progress.highestLevel,
+        calculateLevelFromXp(progress.totalXp)
+      );
 
-  if (
-    !xpRecord.lastWeeklyReset ||
-    xpRecord.lastWeeklyReset < startOfWeek
-  ) {
-    // Reset weekly stats
-    xpRecord.weeklyXp = 0;
-    xpRecord.weeklyCorrect = 0;
-    xpRecord.weeklyAttempts = 0;
-    xpRecord.lastWeeklyReset = startOfWeek;
-  }
-
-  // GLOBAL
-  xpRecord.totalXp += earnedXp;
-
-  // WEEKLY
-  xpRecord.weeklyXp += earnedXp;
-  xpRecord.weeklyCorrect += correct;
-  xpRecord.weeklyAttempts += 1;
-
-  xpRecord.level = calculateLevelFromXp(xpRecord.totalXp);
-
-  await xpRecord.save();
-}
+      await progress.save();
+    }
 
     /* ===============================
        UNLOCK NEXT LEVEL
@@ -246,69 +230,48 @@ if (!xpRecord) {
     }
 
     return {
-  score,
-  correct,
-  total,
-  earnedXp,
-  totalXp: xpRecord.totalXp,
-  weeklyXp: xpRecord.weeklyXp,
-  userLevel: xpRecord.level,
-  unlockedNextLevel: score >= 70,
-  correctAnswers: questions.map(q => q.correctAnswer)
-};
+      score,
+      correct,
+      total,
+      earnedXp,
+      totalXp: progress.totalXp,
+      weeklyXp: progress.weeklyXp,
+      userLevel: calculateLevelFromXp(progress.totalXp),
+      unlockedNextLevel: score >= 70,
+      correctAnswers: questions.map(q => q.correctAnswer)
+    };
   },
 
-/* =====================================================
-   COMPLETE LEVEL
-===================================================== */
-async completeLevel(
-  userId: string,
-  level: number,
-  mode: string,
-  score: number
-) {
+  /* =====================================================
+     COMPLETE LEVEL
+  ===================================================== */
+  async completeLevel(
+    userId: string,
+    level: number,
+    mode: string,
+    score: number
+  ) {
+    if (!level || !score) {
+      throw new AppError("Level and score are required", 400);
+    }
 
-  if (!level || !score) {
-    throw new AppError("Level and score are required", 400);
+    if (score < 70) {
+      return { userId, level, mode, score, completed: false, nextLevelUnlocked: null };
+    }
+
+    let progress = await QuizProgress.findOne({ userId });
+
+    if (!progress) {
+      progress = await QuizProgress.create({ userId, highestLevel: 1 });
+    }
+
+    const nextLevel = level + 1;
+
+    if (nextLevel > progress.highestLevel) {
+      progress.highestLevel = nextLevel;
+      await progress.save();
+    }
+
+    return { userId, level, mode, score, completed: true, nextLevelUnlocked: nextLevel };
   }
-
-  if (score < 70) {
-    return {
-      userId,
-      level,
-      mode,
-      score,
-      completed: false,
-      nextLevelUnlocked: null
-    };
-  }
-
-  // Ensure progress record exists
-  let progress = await QuizProgress.findOne({ userId });
-
-  if (!progress) {
-    progress = await QuizProgress.create({
-      userId,
-      highestLevel: 1
-    });
-  }
-
-  // Unlock next level safely
-  const nextLevel = level + 1;
-
-  if (nextLevel > progress.highestLevel) {
-    progress.highestLevel = nextLevel;
-    await progress.save();
-  }
-
-  return {
-    userId,
-    level,
-    mode,
-    score,
-    completed: true,
-    nextLevelUnlocked: nextLevel
-  };
-}
-
 };
