@@ -10,12 +10,36 @@ export const EventReminderService = {
     const exists = await EventReminder.findOne({ userId, eventId });
     if (exists) return exists;
 
-    return await EventReminder.create({ userId, eventId });
+    const reminder = await EventReminder.create({ userId, eventId });
+
+    // ✅ Notify user that reminder was set
+    await NotificationService.create(
+      "USER",
+      "Reminder Set",
+      `You will be reminded about this event 24 hours, 1 hour, and at the start time.`,
+      "event-reminder",
+      { userId }
+    );
+
+    return reminder;
   },
 
   /* ================= REMOVE REMINDER ================= */
   remove: async (userId: string, eventId: string) => {
-    return await EventReminder.findOneAndDelete({ userId, eventId });
+    const deleted = await EventReminder.findOneAndDelete({ userId, eventId });
+
+    if (!deleted) return null;
+
+    // ✅ Notify user that reminder was removed
+    await NotificationService.create(
+      "USER",
+      "Reminder Removed",
+      `Your reminder for this event has been cancelled.`,
+      "event-reminder",
+      { userId }
+    );
+
+    return deleted;
   },
 
   /* ================= LIST FOR USER ================= */
@@ -46,7 +70,7 @@ export const EventReminderService = {
           "Event Reminder",
           `Your event "${event.title}" starts in 24 hours.`,
           "event-reminder",
-          { userId }  // ✅ userId in options
+          { userId }
         );
         reminder.sent24h = true;
         await reminder.save();
@@ -59,7 +83,7 @@ export const EventReminderService = {
           "Event Coming Soon",
           `"${event.title}" starts in 1 hour.`,
           "event-reminder",
-          { userId }  // ✅ userId in options
+          { userId }
         );
         reminder.sent1h = true;
         await reminder.save();
@@ -72,10 +96,13 @@ export const EventReminderService = {
           "Event Started",
           `"${event.title}" is starting now.`,
           "event-reminder",
-          { userId }  // ✅ userId in options
+          { userId }
         );
         reminder.sentStart = true;
         await reminder.save();
+
+        // ✅ Auto-delete reminder after event has started
+        await EventReminder.findByIdAndDelete(reminder._id);
       }
     }
   }

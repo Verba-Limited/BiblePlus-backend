@@ -7,7 +7,6 @@ export const EventReminderController = {
   add: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = req.userId;
-      // ✅ eventId comes from the URL param, not the body
       const eventId = req.params.eventId ?? req.body.eventId;
 
       if (!userId) throw new AppError("Unauthorized", 401);
@@ -15,22 +14,26 @@ export const EventReminderController = {
 
       const data = await EventReminderService.add(userId, eventId);
 
-      res.json({ success: true, message: "Reminder added", data });
+      res.json({ success: true, message: "Reminder set", data });
     } catch (err) {
       next(err);
     }
   },
 
+  /* ================= REMOVE REMINDER ================= */
   remove: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = req.userId;
-      // ✅ same fix — check params first, fall back to body
       const eventId = req.params.eventId ?? req.body.eventId;
 
       if (!userId) throw new AppError("Unauthorized", 401);
       if (!eventId) throw new AppError("Missing event ID", 400);
 
-      await EventReminderService.remove(userId, eventId);
+      const deleted = await EventReminderService.remove(userId, eventId);
+
+      if (!deleted) {
+        throw new AppError("Reminder not found", 404);
+      }
 
       res.json({ success: true, message: "Reminder removed" });
     } catch (err) {

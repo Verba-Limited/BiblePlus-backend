@@ -149,98 +149,98 @@ export const QuizService = {
   /* =====================================================
      SUBMIT QUIZ
   ===================================================== */
-  async submit(userId: string, level: number, answers: any[]) {
-    if (!answers?.length) {
-      throw new AppError("Answers required", 400);
-    }
+ async submit(userId: string, level: number, answers: any[]) {
+  if (!answers?.length) {
+    throw new AppError("Answers required", 400);
+  }
 
-    const questions = await QuizQuestion.find({
-      _id: { $in: answers.map(a => a.questionId) }
+  const questions = await QuizQuestion.find({
+    _id: { $in: answers.map(a => a.questionId) }
+  });
+
+  let correct = 0;
+  for (const ans of answers) {
+    const q = questions.find(q => q._id.toString() === ans.questionId);
+    if (q && q.correctAnswer === ans.answer) correct++;
+  }
+
+  const total = questions.length;
+  const score = Math.round((correct / total) * 100);
+
+  await QuizAttempt.create({ userId, level, score, correct, total });
+
+  const { multiplier } = difficultyByLevel(level);
+  const earnedXp = correct * multiplier;
+  const currentWeek = getCurrentWeekKey();
+
+  let progress = await QuizProgress.findOne({ userId });
+
+  if (!progress) {
+    progress = await QuizProgress.create({
+      userId,
+      highestLevel: score >= 70 ? level + 1 : 1, // ✅ unlock immediately on create
+      totalXp: earnedXp,
+      totalCorrect: correct,
+      totalAttempts: 1,
+      weeklyXp: earnedXp,
+      weeklyCorrect: correct,
+      weeklyAttempts: 1,
+      lastWeeklyReset: currentWeek
     });
-
-    let correct = 0;
-    for (const ans of answers) {
-      const q = questions.find(q => q._id.toString() === ans.questionId);
-      if (q && q.correctAnswer === ans.answer) correct++;
+  } else {
+    // ✅ Weekly reset check
+    if (progress.lastWeeklyReset !== currentWeek) {
+      progress.weeklyXp = 0;
+      progress.weeklyCorrect = 0;
+      progress.weeklyAttempts = 0;
+      progress.lastWeeklyReset = currentWeek;
     }
 
-    const total = questions.length;
-    const score = Math.round((correct / total) * 100);
+    // ✅ Global stats
+    progress.totalXp += earnedXp;
+    progress.totalCorrect += correct;
+    progress.totalAttempts += 1;
 
-    await QuizAttempt.create({ userId, level, score, correct, total });
+    // ✅ Weekly stats
+    progress.weeklyXp += earnedXp;
+    progress.weeklyCorrect += correct;
+    progress.weeklyAttempts += 1;
 
-    /* ===============================
-       XP CALCULATION
-    =============================== */
-    const { multiplier } = difficultyByLevel(level);
-    const earnedXp = correct * multiplier;
-    const currentWeek = getCurrentWeekKey();
-
-    // ✅ Get or create QuizProgress — single source of truth
-    let progress = await QuizProgress.findOne({ userId });
-
-    if (!progress) {
-      progress = await QuizProgress.create({
-        userId,
-        highestLevel: 1,
-        totalXp: earnedXp,
-        totalCorrect: correct,
-        totalAttempts: 1,
-        weeklyXp: earnedXp,
-        weeklyCorrect: correct,
-        weeklyAttempts: 1,
-        lastWeeklyReset: currentWeek
-      });
-    } else {
-      // ✅ Weekly reset check
-      if (progress.lastWeeklyReset !== currentWeek) {
-        progress.weeklyXp = 0;
-        progress.weeklyCorrect = 0;
-        progress.weeklyAttempts = 0;
-        progress.lastWeeklyReset = currentWeek;
-      }
-
-      // ✅ Global stats
-      progress.totalXp += earnedXp;
-      progress.totalCorrect += correct;
-      progress.totalAttempts += 1;
-
-      // ✅ Weekly stats
-      progress.weeklyXp += earnedXp;
-      progress.weeklyCorrect += correct;
-      progress.weeklyAttempts += 1;
-
-      // ✅ Update highest level from XP
-      progress.highestLevel = Math.max(
-        progress.highestLevel,
-        calculateLevelFromXp(progress.totalXp)
-      );
-
-      await progress.save();
-    }
-
-    /* ===============================
-       UNLOCK NEXT LEVEL
-    =============================== */
+    // ✅ Unlock next level in same save — no separate findOneAndUpdate needed
     if (score >= 70) {
-      await QuizProgress.findOneAndUpdate(
-        { userId },
-        { $max: { highestLevel: level + 1 } }
-      );
+      progress.highestLevel = Math.max(progress.highestLevel, level + 1);
     }
 
-    return {
-      score,
-      correct,
-      total,
-      earnedXp,
-      totalXp: progress.totalXp,
-      weeklyXp: progress.weeklyXp,
-      userLevel: calculateLevelFromXp(progress.totalXp),
-      unlockedNextLevel: score >= 70,
-      correctAnswers: questions.map(q => q.correctAnswer)
-    };
-  },
+    // ✅ Also bump level from XP
+    progress.highestLevel = Math.max(
+      progress.highestLevel,
+      calculateLevelFromXp(progress.totalXp)
+    );
+
+    await progress.save();
+  }
+
+  // ✅ Log BEFORE return so it actually runs
+  console.log("✅ Progress after submit:", {
+    userId,
+    totalXp: progress.totalXp,
+    weeklyXp: progress.weeklyXp,
+    totalCorrect: progress.totalCorrect,
+    highestLevel: progress.highestLevel
+  });
+
+  return {
+    score,
+    correct,
+    total,
+    earnedXp,
+    totalXp: progress.totalXp,
+    weeklyXp: progress.weeklyXp,
+    userLevel: calculateLevelFromXp(progress.totalXp),
+    unlockedNextLevel: score >= 70,
+    correctAnswers: questions.map(q => q.correctAnswer)
+  };
+},
 
   /* =====================================================
      COMPLETE LEVEL
