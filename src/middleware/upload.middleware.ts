@@ -27,8 +27,18 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   cb(null, true);
 };
 
-export const uploadAvatar = multer({
-  storage,
+// Add this to your existing upload.middleware.ts
+const bookCoverStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "book-covers",
+    format: async () => "webp",
+    transformation: [{ width: 400, height: 600, crop: "fill" }],
+  } as any,
+});
+
+export const uploadBookCover = multer({
+  storage: bookCoverStorage,
   fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 },
-}).single("avatar");
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+}).single("coverImage");
