@@ -1,6 +1,7 @@
 import AppError from "../../core/AppError";
 import { Book } from "./book.model";
 import { BookChapter } from "./bookChapter.model";
+import { fetchAndCacheChapters } from "./gutenberg.service";
 
 export const BookService = {
   /* =====================================================
