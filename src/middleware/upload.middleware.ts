@@ -55,3 +55,19 @@ export const uploadBookCover = multer({
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 }).single("coverImage");
+
+// Add this to upload.middleware.ts alongside uploadAvatar and uploadBookCover
+const blogCoverStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "blog-covers",
+    format: async () => "webp",
+    transformation: [{ width: 1200, height: 630, crop: "fill" }], // ✅ OG image size
+  } as any,
+});
+
+export const uploadBlogCover = multer({
+  storage: blogCoverStorage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+}).single("coverImage");
