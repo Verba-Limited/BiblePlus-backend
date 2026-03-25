@@ -2,9 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import { BookService } from "./book.service";
 
 export const BookController = {
+
   /* ======================================================
-      GET ALL BOOKS
-      /api/books?category=&audience=
+     GET ALL BOOKS
+     /api/books?category=&audience=
   ====================================================== */
   getBooks: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -17,6 +18,7 @@ export const BookController = {
 
       res.json({
         success: true,
+        count: books.length,
         data: books,
       });
     } catch (err) {
@@ -25,8 +27,8 @@ export const BookController = {
   },
 
   /* ======================================================
-      GET SINGLE BOOK
-      /api/books/:id
+     GET SINGLE BOOK
+     /api/books/:id
   ====================================================== */
   getBook: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -42,15 +44,23 @@ export const BookController = {
   },
 
   /* ======================================================
-      GET ALL CHAPTERS OF A BOOK
-      /api/books/:id/chapters
+     GET ALL CHAPTERS OF A BOOK
+     /api/books/:id/chapters
   ====================================================== */
   getChapters: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const chapters = await BookService.getChapters(req.params.id);
+      const { isFetching, chapters } = await BookService.getChapters(
+        req.params.id
+      );
 
       res.json({
         success: true,
+        // ✅ Tell frontend if this is a first-time fetch so it can show a loading state
+        isFetching,
+        message: isFetching
+          ? "Chapters are being prepared, please wait a moment..."
+          : "Chapters loaded",
+        count: chapters.length,
         data: chapters,
       });
     } catch (err) {
@@ -59,8 +69,8 @@ export const BookController = {
   },
 
   /* ======================================================
-      GET SINGLE CHAPTER
-      /api/books/:id/chapter/:chapter
+     GET SINGLE CHAPTER
+     /api/books/:id/chapter/:chapter
   ====================================================== */
   getChapter: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -81,8 +91,8 @@ export const BookController = {
   },
 
   /* ======================================================
-      SEARCH BOOKS
-      /api/books/search?q=&category=&audience=
+     SEARCH BOOKS
+     /api/books/search?q=&category=&audience=
   ====================================================== */
   search: async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -96,6 +106,7 @@ export const BookController = {
 
       res.json({
         success: true,
+        count: books.length,
         data: books,
       });
     } catch (err) {
@@ -104,12 +115,14 @@ export const BookController = {
   },
 
   /* ======================================================
-      CREATE BOOK (ADMIN ONLY)
-      POST /api/books/admin
+     CREATE BOOK (ADMIN ONLY)
+     POST /api/books/admin
   ====================================================== */
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const coverImage = req.file?.filename || "";
+      // ✅ Use Cloudinary URL if available, fallback to filename
+      const coverImage =
+        (req.file as any)?.secure_url ?? req.file?.path ?? req.file?.filename ?? "";
 
       const book = await BookService.createBook({
         ...req.body,
@@ -127,12 +140,14 @@ export const BookController = {
   },
 
   /* ======================================================
-      UPDATE BOOK (ADMIN ONLY)
-      PUT /api/books/admin/:id
+     UPDATE BOOK (ADMIN ONLY)
+     PUT /api/books/admin/:id
   ====================================================== */
   update: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const coverImage = req.file?.filename;
+      // ✅ Use Cloudinary URL if available
+      const coverImage =
+        (req.file as any)?.secure_url ?? req.file?.path ?? req.file?.filename;
 
       const updatedBook = await BookService.updateBook(req.params.id, {
         ...req.body,
@@ -150,8 +165,8 @@ export const BookController = {
   },
 
   /* ======================================================
-      DELETE BOOK (ADMIN ONLY)
-      DELETE /api/books/admin/:id
+     DELETE BOOK (ADMIN ONLY)
+     DELETE /api/books/admin/:id
   ====================================================== */
   delete: async (req: Request, res: Response, next: NextFunction) => {
     try {
