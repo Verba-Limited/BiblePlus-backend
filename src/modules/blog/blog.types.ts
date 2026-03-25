@@ -8,6 +8,8 @@ export interface IBlog {
   authorId?: string;
   status: "draft" | "published";
   views: number;
+  source?: "devto" | "admin";
+  isFetched?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

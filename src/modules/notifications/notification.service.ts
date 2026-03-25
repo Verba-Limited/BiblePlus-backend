@@ -14,7 +14,7 @@ export const NotificationService = {
     title: string,
     message: string,
     type = "general",
-    options?: { userId?: string }
+    options?: { userId?: string; blogId?: string }
   ) {
 
     const io = getIO();

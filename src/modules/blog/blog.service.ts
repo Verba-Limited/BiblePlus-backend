@@ -2,7 +2,7 @@ import { Blog } from "./blog.model";
 import AppError from "../../core/AppError";
 import { NotificationService } from "../notifications/notification.service";
 import { HydratedDocument } from "mongoose";
-import { IBlog } from "./blog.types";
+import { IBlog } from "./blog.model";
 import { fetchAndCacheBlogContent } from "./devto.service";
 
 export const BlogService = {
@@ -30,12 +30,11 @@ export const BlogService = {
 
     const skip = (Number(page) - 1) * Number(limit);
 
-    const blogs = await Blog.find(query)
+    const blogs = (await Blog.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit))
-      .select("-content") // ✅ don't send full content in list — fast
-      as unknown as HydratedDocument<IBlog>[];
+      .select("-content")) as unknown as HydratedDocument<IBlog>[];
 
     const total = await Blog.countDocuments(query);
 

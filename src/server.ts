@@ -15,6 +15,7 @@ import { VerseFinder } from "./modules/chatbot/helpers/verseFinder";
 import { startVerseScheduler } from "./modules/verse/verse.schedular";
 import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
 import { seedGutenbergBooks } from "./modules/books/gutenberg.service";
+import { seedDevtoBlogs, refreshDevtoBlogs } from "./modules/blog/devto.service";
 
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI as string;
@@ -32,14 +33,11 @@ export const io = new Server(server, {
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"]
   },
-  // ✅ Performance — use websocket first, fallback to polling
   transports: ["websocket", "polling"],
-  // ✅ Reduce ping overhead
   pingTimeout: 60000,
   pingInterval: 25000,
 });
 
-// Initialize notification system
 SocketNotify.init(io);
 
 // -------------------------------
@@ -73,16 +71,25 @@ cron.schedule("* * * * *", async () => {
   }
 });
 
+// ✅ Refresh Dev.to blogs every 24 hours at midnight
+cron.schedule("0 0 * * *", async () => {
+  try {
+    console.log("🔄 Daily blog refresh...");
+    await refreshDevtoBlogs();
+  } catch (err) {
+    console.error("❌ Blog refresh failed:", err);
+  }
+});
+
 // -------------------------------
 // DATABASE CONNECTION
 // -------------------------------
 async function startServer() {
   try {
-    // ✅ Mongoose performance settings
     mongoose.set("strictQuery", true);
 
     await mongoose.connect(MONGO_URI, {
-      maxPoolSize: 10,        // ✅ connection pool for concurrent requests
+      maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 10000,
@@ -90,14 +97,12 @@ async function startServer() {
 
     console.log("✅ MongoDB Connected");
 
-    // ✅ Start HTTP server immediately after DB connects
-    // so health checks pass right away
+    // ✅ Start server immediately so health checks pass
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
 
-    // ✅ Run all initializations AFTER server is listening
-    // so the server doesn't block on startup tasks
+    // ✅ Run inits after server is listening — non-blocking
     setImmediate(async () => {
       try {
         // Fast inits first
@@ -105,15 +110,23 @@ async function startServer() {
         startVerseScheduler();
         startDailyQuizCleanup();
 
-        // Admin check — needs DB
+        // Needs DB
         await AdminService.createDefaultAdmin();
 
-        // ✅ Gutenberg seed last — lowest priority, runs 5s after startup
+        console.log("✅ All systems initialized");
+
+        // ✅ Low priority seeds — run 5s after startup
+        // so they don't compete with real user requests
         setTimeout(() => {
           seedGutenbergBooks().catch(console.error);
         }, 5000);
 
-        console.log("✅ All systems initialized");
+        // ✅ Blog seed runs 10s after startup
+        // after Gutenberg to avoid overwhelming DB on cold start
+        setTimeout(() => {
+          seedDevtoBlogs().catch(console.error);
+        }, 10000);
+
       } catch (err) {
         console.error("❌ Initialization error:", err);
       }
