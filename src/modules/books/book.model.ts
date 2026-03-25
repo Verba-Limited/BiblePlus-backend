@@ -6,10 +6,12 @@ export interface IBook extends Document {
   description: string;
   coverImage: string;
   category: string;
-  audience: "kids" | "teens" | "adults";   // ⭐ NEW
+  audience: "kids" | "teens" | "adults";
+  gutenbergId?: number;        // ✅ Gutenberg book ID
+  source: "admin" | "gutenberg"; // ✅ track where it came from
+  totalChapters: number;
+  isFetched: boolean;          // ✅ have chapters been downloaded yet
   publishedAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const bookSchema = new Schema<IBook>(
@@ -19,17 +21,26 @@ const bookSchema = new Schema<IBook>(
     description: { type: String, default: "" },
     coverImage: { type: String, default: "" },
     category: { type: String, default: "general" },
-
-    // ⭐ NEW FIELD (Kids, Teens, Adults)
     audience: {
       type: String,
       enum: ["kids", "teens", "adults"],
       default: "adults"
     },
-
+    gutenbergId: { type: Number },
+    source: {
+      type: String,
+      enum: ["admin", "gutenberg"],
+      default: "admin"
+    },
+    totalChapters: { type: Number, default: 0 },
+    isFetched: { type: Boolean, default: false },
     publishedAt: { type: Date, default: new Date() }
   },
   { timestamps: true }
 );
+
+// ✅ Fast search
+bookSchema.index({ title: "text", author: "text" });
+bookSchema.index({ source: 1, isFetched: 1 });
 
 export const Book = mongoose.model<IBook>("Book", bookSchema);
