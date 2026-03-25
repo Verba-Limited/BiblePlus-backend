@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import path from "path";
 import http from "http";
+import compression from "compression";
 import { initSocket } from "./socket/socket";
 import { errorHandler } from "./middleware/error.middleware";
 
@@ -13,38 +14,31 @@ import { errorHandler } from "./middleware/error.middleware";
 ===================== */
 import authRoutes from "./modules/auth/auth.routes";
 import profileRoutes from "./modules/profile/profile.routes";
-
-
 import bibleRoutes from "./modules/bible/bible.routes";
 import highlightRoutes from "./modules/bible/highlight.routes";
-
 import quizRoutes from "./modules/quiz/quiz.routes";
 import quizDailyRoutes from "./modules/quiz/quizDaily.routes";
 import quizLeaderboardRoutes from "./modules/quiz/quizLeaderboard.routes";
 import bookRoutes from "./modules/books/book.routes";
-
 import eventRoutes from "./modules/events/events.routes";
+import eventReminderRoutes from "./modules/events/eventReminder.routes";
 import speakerRoutes from "./modules/events/speaker.routes";
 import eventCategoryRoutes from "./modules/events/categories/eventCategory.routes";
 import eventAttendanceRoutes from "./modules/events/attendance/eventAttendance.routes";
 import eventCommentRoutes from "./modules/events/comments/eventComment.routes";
 import eventGalleryRoutes from "./modules/events/gallery/eventGallery.routes";
-
 import blogRoutes from "./modules/blog/blog.routes";
 import blogBookmarkRoutes from "./modules/blog/blogBookmark.routes";
 import blogTrendingRoutes from "./modules/blog/blogTrending.routes";
-
 import prayerLikeRoutes from "./modules/prayer/prayerLike.routes";
 import prayerRoutes from "./modules/prayer/prayer.routes";
-
 import notificationRoutes from "./modules/notifications/notification.routes";
 import AdminRoutes from "./modules/admin/admin.routes";
 import chatbotRoutes from "./modules/chatbot/chatbot.routes";
 import verseRoutes from "./modules/verse/verse.routes";
-import verseEngagementRoutes from "./modules/verse/verseEngagement.routes"
-import verseTrendingRoutes from "./modules/verse/verseTrending.routes"
-import verseReactionRoutes from "./modules/verse/verseReaction.routes"
-import eventReminderRoutes from "./modules/events/eventReminder.routes";
+import verseEngagementRoutes from "./modules/verse/verseEngagement.routes";
+import verseTrendingRoutes from "./modules/verse/verseTrending.routes";
+import verseReactionRoutes from "./modules/verse/verseReaction.routes";
 
 /* =====================
    LOADERS
@@ -69,7 +63,16 @@ initSocket(server);
    GLOBAL MIDDLEWARES
 ===================== */
 app.use(cors());
-app.use(helmet());
+
+// ✅ Compress all responses — massive speed improvement
+app.use(compression());
+
+app.use(helmet({
+  // ✅ Allow Cloudinary images to load
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false,
+}));
+
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -77,55 +80,57 @@ app.use(express.urlencoded({ extended: true }));
 /* =====================
    STATIC FILES
 ===================== */
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads"), {
+  maxAge: "7d", // ✅ Cache static files for 7 days
+  etag: true,
+}));
 
 /* =====================
    API ROUTES
 ===================== */
 app.use("/api/auth", authRoutes);
-
 app.use("/api/profile", profileRoutes);
 
+/* ===== BIBLE ===== */
 app.use("/api/bible", bibleRoutes);
 app.use("/api/highlights", highlightRoutes);
 
 /* ===== QUIZ ===== */
-app.use("/api/quiz", quizRoutes);
+// ✅ specific routes before generic ones
 app.use("/api/quiz/daily", quizDailyRoutes);
 app.use("/api/quiz/leaderboard", quizLeaderboardRoutes);
+app.use("/api/quiz", quizRoutes);
 
+/* ===== BOOKS ===== */
 app.use("/api/books", bookRoutes);
 
-
 /* ===== EVENTS ===== */
-app.use("/api/events", eventRoutes);
-app.use("/api/events/:eventId", eventReminderRoutes);
-app.use("/api/speakers", speakerRoutes);
-app.use("/api/event-categories", eventCategoryRoutes);
+// ✅ specific routes BEFORE /:eventId — fixes attendance/comments/gallery being swallowed
 app.use("/api/events/attendance", eventAttendanceRoutes);
 app.use("/api/events/comments", eventCommentRoutes);
 app.use("/api/events/gallery", eventGalleryRoutes);
-app.use('/uploads', (req, res, next) => {
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
-}, express.static('uploads'));
+app.use("/api/events/:eventId", eventReminderRoutes); // ✅ remind routes
+app.use("/api/events", eventRoutes);
+app.use("/api/speakers", speakerRoutes);
+app.use("/api/event-categories", eventCategoryRoutes);
 
 /* ===== BLOG ===== */
-app.use("/api/blog", blogRoutes);
-app.use("/api/verse", verseRoutes);
+// ✅ specific before generic
 app.use("/api/blog/bookmark", blogBookmarkRoutes);
 app.use("/api/blog/trending", blogTrendingRoutes);
+app.use("/api/blog", blogRoutes);
 
-/* ===== PRAYERS ===== */
-app.use("/api/prayer/likes", prayerLikeRoutes);
-app.use("/api/prayer", prayerRoutes);
-
-/* ===== VERSE ENGAGEMENT ===== */
+/* ===== VERSE ===== */
+app.use("/api/verse", verseRoutes);
 app.use("/api/verse", verseEngagementRoutes);
 app.use("/api/verse", verseTrendingRoutes);
 app.use("/api/verse", verseReactionRoutes);
 
-/* ===== ADMIN CORE ===== */
+/* ===== PRAYERS ===== */
+app.use("/api/prayer/likes", prayerLikeRoutes); // ✅ specific before generic
+app.use("/api/prayer", prayerRoutes);
+
+/* ===== ADMIN ===== */
 app.use("/api/admin", AdminRoutes);
 
 /* ===== OTHER ===== */
@@ -134,13 +139,16 @@ app.use("/api/chatbot", chatbotRoutes);
 
 /* =====================
    LOAD DATA
+   ✅ Non-blocking — run in background after server starts
 ===================== */
-
-BibleLoader.load();
-QuizLoader.load();
-startDailyQuizCleanup();
-startEventReminderCron();
-seedGutenbergBooks();
+setImmediate(() => {
+  BibleLoader.load();
+  QuizLoader.load();
+  startDailyQuizCleanup();
+  startEventReminderCron();
+  // ✅ Seed books last — lowest priority
+  setTimeout(() => seedGutenbergBooks(), 5000);
+});
 
 /* =====================
    HEALTH
@@ -157,9 +165,5 @@ app.get("/health", (_req, res) => {
    ERROR HANDLER
 ===================== */
 app.use(errorHandler);
-
-   // ← fallback only for local dev
-
-
 
 export { app, server };
