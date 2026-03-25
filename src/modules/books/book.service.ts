@@ -46,19 +46,30 @@ export const BookService = {
   /* =====================================================
      GET SINGLE CHAPTER (full content)
   ===================================================== */
-  getChapter: async (bookId: string, chapterNumber: number) => {
-    const book = await Book.findById(bookId);
-    if (!book) throw new AppError("Book not found", 404);
+getChapters: async (bookId: string) => {
+  const book = await Book.findById(bookId);
+  if (!book) throw new AppError("Book not found", 404);
 
-    // ✅ Lazy fetch if needed
-    if (book.source === "gutenberg" && !book.isFetched) {
-      await fetchAndCacheChapters(book);
-    }
+  // ✅ If not yet fetched — fetch now and return isFetching flag
+  if (book.source === "gutenberg" && !book.isFetched) {
+    // Start fetch in background — don't await so response is immediate
+    fetchAndCacheChapters(book).catch(console.error);
 
-    const chapter = await BookChapter.findOne({ bookId, chapterNumber });
-    if (!chapter) throw new AppError("Chapter not found", 404);
-    return chapter;
-  },
+    return {
+      isFetching: true,
+      chapters: []
+    };
+  }
+
+  const chapters = await BookChapter.find({ bookId })
+    .select("-content")
+    .sort({ chapterNumber: 1 });
+
+  return {
+    isFetching: false,
+    chapters
+  };
+},
 
   /* =====================================================
      SEARCH BOOKS
