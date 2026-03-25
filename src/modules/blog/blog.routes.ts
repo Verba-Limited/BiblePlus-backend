@@ -1,56 +1,60 @@
 import { Router } from "express";
 import { BlogController } from "./blog.controller";
 import { adminOnly } from "../../middleware/admin.middleware";
-import multer from "multer";
-
-const upload = multer({ dest: "uploads/blog" });
+import { uploadBlogCover } from "../../middleware/upload.middleware";
 
 const router = Router();
 
-
-router.get("/:id", BlogController.getOneById); //
 /* ======================================================
-   📌 PUBLIC BLOG ROUTES
+   PUBLIC ROUTES
+   ✅ Specific routes BEFORE /:slug to avoid collisions
 ====================================================== */
-router.get("/", BlogController.getAll);         // List blogs
-router.get("/search", BlogController.search);   // Search blogs
-
-// MUST COME LAST among public routes to avoid collisions
-router.get("/:slug", BlogController.getOne);    // Get by slug
-
+router.get("/", BlogController.getAll);
+router.get("/search", BlogController.search);
 
 /* ======================================================
-   📌 ADMIN BLOG ROUTES
-   (NO authMiddleware — adminOnly is enough)
+   ADMIN ROUTES
+   ✅ Admin routes before /:slug too
 ====================================================== */
-
-// Create blog
 router.post(
   "/admin",
   adminOnly,
-  upload.single("coverImage"),
+  uploadBlogCover,
   BlogController.create
 );
 
-// Update blog
 router.put(
   "/admin/:id",
   adminOnly,
+  uploadBlogCover,
   BlogController.update
 );
 
-// Publish blog
 router.put(
   "/admin/:id/publish",
   adminOnly,
   BlogController.publish
 );
 
-// Delete blog
 router.delete(
   "/admin/:id",
   adminOnly,
   BlogController.delete
 );
+
+// ✅ Manual refresh endpoint for admin
+router.post(
+  "/admin/refresh",
+  adminOnly,
+  BlogController.refreshExternal
+);
+
+/* ======================================================
+   SLUG + ID ROUTES
+   ✅ Must come LAST — these catch-all /:param routes
+   will swallow /search, /admin etc if placed above
+====================================================== */
+router.get("/id/:id", BlogController.getOneById); // GET by ID
+router.get("/:slug", BlogController.getOne);      // GET by slug
 
 export default router;
