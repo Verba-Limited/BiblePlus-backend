@@ -53,6 +53,7 @@ import { BibleLoader } from "./modules/bible/bible.loader";
 import { QuizLoader } from "./modules/quiz/quiz.loader";
 import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
 import { startEventReminderCron } from "./jobs/eventReminder.job";
+import { seedGutenbergBooks } from "./modules/books/gutenberg.service";
 
 dotenv.config();
 
@@ -95,6 +96,7 @@ app.use("/api/quiz/leaderboard", quizLeaderboardRoutes);
 
 app.use("/api/books", bookRoutes);
 
+
 /* ===== EVENTS ===== */
 app.use("/api/events", eventRoutes);
 app.use("/api/events/:eventId", eventReminderRoutes);
@@ -133,10 +135,12 @@ app.use("/api/chatbot", chatbotRoutes);
 /* =====================
    LOAD DATA
 ===================== */
+
 BibleLoader.load();
 QuizLoader.load();
 startDailyQuizCleanup();
 startEventReminderCron();
+seedGutenbergBooks();
 
 /* =====================
    HEALTH
