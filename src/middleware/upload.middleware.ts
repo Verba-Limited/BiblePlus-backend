@@ -9,17 +9,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => ({
-    folder: "avatars",
-    // ✅ Use public_id so re-uploads REPLACE the old image, not create a new one
-    public_id: `avatar_${req.userId}`,
-    format: "webp", // ✅ correct key (not allowed_formats)
-    transformation: [{ width: 500, height: 500, crop: "fill", gravity: "face" }],
-  }),
-});
-
+/* ======================================================
+   FILE FILTER
+====================================================== */
 const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   if (!file.mimetype.startsWith("image/")) {
     return cb(new AppError("Only image files allowed", 400));
@@ -27,7 +19,28 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   cb(null, true);
 };
 
-// Add this to your existing upload.middleware.ts
+/* ======================================================
+   AVATAR STORAGE
+====================================================== */
+const avatarStorage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req: any, file) => ({
+    folder: "avatars",
+    public_id: `avatar_${req.userId}`,
+    format: "webp",
+    transformation: [{ width: 500, height: 500, crop: "fill", gravity: "face" }],
+  }),
+});
+
+export const uploadAvatar = multer({
+  storage: avatarStorage,
+  fileFilter,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+}).single("avatar");
+
+/* ======================================================
+   BOOK COVER STORAGE
+====================================================== */
 const bookCoverStorage = new CloudinaryStorage({
   cloudinary,
   params: {
