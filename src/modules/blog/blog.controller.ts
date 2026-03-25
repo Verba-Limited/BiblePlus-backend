@@ -1,14 +1,70 @@
 import { Request, Response, NextFunction } from "express";
 import { BlogService } from "./blog.service";
+import { refreshDevtoBlogs } from "./devto.service";
 
 export const BlogController = {
 
   // -----------------------------------------------------
-  // ADMIN: GET SINGLE BLOG BY ID
+  // GET ALL BLOGS (FILTER + PAGINATION)
+  // -----------------------------------------------------
+  getAll: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await BlogService.getBlogs(req.query);
+
+      res.json({
+        success: true,
+        data
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // -----------------------------------------------------
+  // GET SINGLE BLOG BY SLUG (USER)
+  // -----------------------------------------------------
+  getOne: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await BlogService.getBlogBySlug(req.params.slug);
+
+      res.json({
+        success: true,
+        data
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // -----------------------------------------------------
+  // GET SINGLE BLOG BY ID (ADMIN)
   // -----------------------------------------------------
   getOneById: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await BlogService.getBlogById(req.params.id);
+
+      res.json({
+        success: true,
+        data
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // -----------------------------------------------------
+  // SEARCH BLOGS
+  // -----------------------------------------------------
+  search: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = req.query.q as string;
+
+      if (!query) {
+        res.json({ success: true, data: [] });
+        return;
+      }
+
+      const data = await BlogService.searchBlogs(query);
 
       res.json({
         success: true,
@@ -27,12 +83,18 @@ export const BlogController = {
       // @ts-ignore
       const authorId = req.adminId;
 
+      // ✅ Use Cloudinary URL if file uploaded
+      const coverImage =
+        (req.file as any)?.secure_url ?? req.file?.path ?? req.file?.filename ?? "";
+
       const data = await BlogService.createBlog({
         ...req.body,
-        authorId
+        authorId,
+        coverImage,
+        source: "admin",
       });
 
-      res.json({
+      res.status(201).json({
         success: true,
         message: "Blog created successfully",
         data
@@ -47,7 +109,14 @@ export const BlogController = {
   // -----------------------------------------------------
   update: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await BlogService.updateBlog(req.params.id, req.body);
+      // ✅ Use Cloudinary URL if new image uploaded
+      const coverImage =
+        (req.file as any)?.secure_url ?? req.file?.path ?? req.file?.filename;
+
+      const data = await BlogService.updateBlog(req.params.id, {
+        ...req.body,
+        ...(coverImage && { coverImage })
+      });
 
       res.json({
         success: true,
@@ -77,66 +146,33 @@ export const BlogController = {
   },
 
   // -----------------------------------------------------
-  // USER: GET SINGLE BLOG BY SLUG
-  // -----------------------------------------------------
-  getOne: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await BlogService.getBlogBySlug(req.params.slug);
-
-      res.json({
-        success: true,
-        data
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  // -----------------------------------------------------
-  // GET ALL BLOGS (FILTER + PAGINATION)
-  // -----------------------------------------------------
-  getAll: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const data = await BlogService.getBlogs(req.query);
-
-      res.json({
-        success: true,
-        data
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  // -----------------------------------------------------
-  // SEARCH BLOGS
-  // -----------------------------------------------------
-  search: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const query = req.query.q as string;
-
-      const data = await BlogService.searchBlogs(query);
-
-      res.json({
-        success: true,
-        data
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  // -----------------------------------------------------
   // ADMIN: DELETE BLOG
   // -----------------------------------------------------
   delete: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await BlogService.deleteBlog(req.params.id);
+      await BlogService.deleteBlog(req.params.id);
 
       res.json({
         success: true,
-        message: "Blog deleted successfully",
-        data
+        message: "Blog deleted successfully"
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // -----------------------------------------------------
+  // ADMIN: MANUALLY REFRESH DEV.TO BLOGS
+  // POST /api/blog/admin/refresh
+  // -----------------------------------------------------
+  refreshExternal: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // ✅ Run in background — don't make admin wait
+      refreshDevtoBlogs().catch(console.error);
+
+      res.json({
+        success: true,
+        message: "Blog refresh started in background"
       });
     } catch (err) {
       next(err);
