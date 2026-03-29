@@ -138,21 +138,41 @@ async comment(
   ============================================ */
   async share(userId: string, verseId: string) {
 
-    await VerseShare.create({
-      user: userId,
-      verse: verseId
-    });
+  // ✅ Check if user already shared this verse today
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
 
-    const stats = await this.stats(verseId);
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
 
-    const io = getIO();
-    io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
+  const alreadyShared = await VerseShare.findOne({
+    user: userId,
+    verse: verseId,
+    createdAt: {
+      $gte: startOfDay,
+      $lte: endOfDay
+    }
+  });
 
-    return {
-      shared: true,
-      stats
-    };
-  },
+  if (alreadyShared) {
+    throw new AppError("You have already shared this verse today", 400);
+  }
+
+  await VerseShare.create({
+    user: userId,
+    verse: verseId
+  });
+
+  const stats = await this.stats(verseId);
+
+  const io = getIO();
+  io.to(`verse-${verseId}`).emit("verseStatsUpdated", stats);
+
+  return {
+    shared: true,
+    stats
+  };
+},
 
 
   /* ============================================
