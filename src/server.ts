@@ -15,7 +15,7 @@ import { VerseFinder } from "./modules/chatbot/helpers/verseFinder";
 import { startVerseScheduler } from "./modules/verse/verse.schedular";
 import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
 import { seedGutenbergBooks } from "./modules/books/gutenberg.service";
-import { seedDevtoBlogs, refreshDevtoBlogs } from "./modules/blog/christainBlog.service";
+import { seedChristianBlogs, refreshChristianBlogs } from "./modules/blog/christianBlog.service";
 
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI as string;
@@ -71,11 +71,11 @@ cron.schedule("* * * * *", async () => {
   }
 });
 
-// ✅ Refresh Dev.to blogs every 24 hours at midnight
+// ✅ Refresh Christian blogs every 24 hours at midnight
 cron.schedule("0 0 * * *", async () => {
   try {
-    console.log("🔄 Daily blog refresh...");
-    await refreshDevtoBlogs();
+    console.log("🔄 Daily Christian blog refresh...");
+    await refreshChristianBlogs();
   } catch (err) {
     console.error("❌ Blog refresh failed:", err);
   }
@@ -115,16 +115,15 @@ async function startServer() {
 
         console.log("✅ All systems initialized");
 
-        // ✅ Low priority seeds — run 5s after startup
-        // so they don't compete with real user requests
+        // ✅ Gutenberg books — 5s after startup
         setTimeout(() => {
           seedGutenbergBooks().catch(console.error);
         }, 5000);
 
-        // ✅ Blog seed runs 10s after startup
-        // after Gutenberg to avoid overwhelming DB on cold start
+        // ✅ Christian blogs — 10s after startup
+        // staggered so they don't hit DB at the same time
         setTimeout(() => {
-          seedDevtoBlogs().catch(console.error);
+          seedChristianBlogs().catch(console.error);
         }, 10000);
 
       } catch (err) {
