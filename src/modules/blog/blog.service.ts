@@ -3,7 +3,7 @@ import AppError from "../../core/AppError";
 import { NotificationService } from "../notifications/notification.service";
 import { HydratedDocument } from "mongoose";
 import { IBlog } from "./blog.model";
-import { fetchAndCacheBlogContent } from "./devto.service";
+import { fetchAndCacheBlogContent } from "./christainBlog.service";
 
 export const BlogService = {
 

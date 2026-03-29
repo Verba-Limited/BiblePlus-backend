@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { BlogService } from "./blog.service";
-import { refreshDevtoBlogs } from "./devto.service";
+import { refreshChristianBlogs } from "./christainBlog.service";
 
 export const BlogController = {
 
@@ -168,7 +168,7 @@ export const BlogController = {
   refreshExternal: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // ✅ Run in background — don't make admin wait
-      refreshDevtoBlogs().catch(console.error);
+    refreshChristianBlogs().catch(console.error);
 
       res.json({
         success: true,

@@ -15,7 +15,7 @@ import { VerseFinder } from "./modules/chatbot/helpers/verseFinder";
 import { startVerseScheduler } from "./modules/verse/verse.schedular";
 import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
 import { seedGutenbergBooks } from "./modules/books/gutenberg.service";
-import { seedDevtoBlogs, refreshDevtoBlogs } from "./modules/blog/devto.service";
+import { seedDevtoBlogs, refreshDevtoBlogs } from "./modules/blog/christainBlog.service";
 
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI as string;
