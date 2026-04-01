@@ -16,6 +16,8 @@ import { startVerseScheduler } from "./modules/verse/verse.schedular";
 import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
 import { seedGutenbergBooks } from "./modules/books/gutenberg.service";
 import { seedChristianBlogs, refreshChristianBlogs } from "./modules/blog/christainBlog.service";
+import { EmailService } from "./services/email.service";
+import { Verse } from "./modules/verse/verse.model";
 
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI as string;
@@ -78,6 +80,64 @@ cron.schedule("0 0 * * *", async () => {
     await refreshChristianBlogs();
   } catch (err) {
     console.error("❌ Blog refresh failed:", err);
+  }
+});
+
+// ✅ Verse of the day email — every day at 7am
+cron.schedule("0 7 * * *", async () => {
+  try {
+    console.log("📖 Sending verse of the day emails...");
+    const verse = await Verse.findOne({ isToday: true });
+    if (!verse) return;
+
+    await EmailService.sendToAllUsers(
+      "📖 Your Verse of the Day",
+      (firstName) => `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #6B4EFF; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white;">✨ Verse of the Day</h1>
+          </div>
+          <div style="padding: 30px; background: #f9f9f9;">
+            <h2>Good morning, ${firstName}! 🌅</h2>
+            <div style="background: white; border-left: 4px solid #6B4EFF; padding: 20px; border-radius: 5px;">
+              <p style="font-size: 18px; font-style: italic;">"${verse.text}"</p>
+              <p style="color: #6B4EFF; font-weight: bold;">— ${verse.reference}</p>
+            </div>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.APP_URL}" style="background: #6B4EFF; color: white; padding: 15px 30px; border-radius: 25px; text-decoration: none;">Open BiblePlus</a>
+            </div>
+          </div>
+        </div>
+      `
+    );
+  } catch (err) {
+    console.error("❌ Verse email cron failed:", err);
+  }
+});
+
+// ✅ Daily quiz reminder — every day at 9am
+cron.schedule("0 9 * * *", async () => {
+  try {
+    console.log("🎯 Sending quiz reminder emails...");
+    await EmailService.sendToAllUsers(
+      "🎯 Your Daily Bible Quiz is Ready!",
+      (firstName) => `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #6B4EFF; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white;">Daily Quiz Time! 🎯</h1>
+          </div>
+          <div style="padding: 30px; background: #f9f9f9;">
+            <h2>Hello ${firstName}!</h2>
+            <p>Your daily Bible quiz is ready. Test your knowledge and earn XP!</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.APP_URL}/quiz" style="background: #6B4EFF; color: white; padding: 15px 30px; border-radius: 25px; text-decoration: none;">Take Quiz Now</a>
+            </div>
+          </div>
+        </div>
+      `
+    );
+  } catch (err) {
+    console.error("❌ Quiz email cron failed:", err);
   }
 });
 
