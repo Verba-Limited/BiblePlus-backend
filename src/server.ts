@@ -17,7 +17,7 @@ import { startDailyQuizCleanup } from "./jobs/QuizCleanup";
 import { seedGutenbergBooks } from "./modules/books/gutenberg.service";
 import { seedChristianBlogs, refreshChristianBlogs } from "./modules/blog/christainBlog.service";
 import { EmailService } from "./services/email.service";
-import { Verse } from "./modules/verse/verse.model";
+import { VerseService } from "./modules/verse/verse.service";
 
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI as string;
@@ -87,7 +87,7 @@ cron.schedule("0 0 * * *", async () => {
 cron.schedule("0 7 * * *", async () => {
   try {
     console.log("📖 Sending verse of the day emails...");
-    const verse = await Verse.findOne({ isToday: true });
+    const verse = await VerseService.getToday();
     if (!verse) return;
 
     await EmailService.sendToAllUsers(
