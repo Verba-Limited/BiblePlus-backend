@@ -11,7 +11,13 @@ export const AdminService = {
     const exists = await Admin.findOne({ username: "bibleplus" });
     if (exists) return;
 
-    const hashedPassword = await hashPassword("adminbible12");
+    const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD;
+    if (!adminPassword) {
+      console.error("❌ DEFAULT_ADMIN_PASSWORD env var is not set — skipping default admin creation");
+      return;
+    }
+
+    const hashedPassword = await hashPassword(adminPassword);
 
     await Admin.create({
       username: "bibleplus",
@@ -19,7 +25,7 @@ export const AdminService = {
       role: "admin"
     });
 
-    console.log("✔ Default admin created: bibleplus / adminbible12");
+    console.log("✔ Default admin created: bibleplus");
   },
 
   /* =====================================================

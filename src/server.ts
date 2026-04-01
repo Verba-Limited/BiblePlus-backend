@@ -32,8 +32,11 @@ const server = http.createServer(app);
 // -------------------------------
 export const io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"]
+    origin: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(",")
+      : "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   },
   transports: ["websocket", "polling"],
   pingTimeout: 60000,

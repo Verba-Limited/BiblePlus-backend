@@ -73,35 +73,34 @@ export const EventController = {
   },
 
   async remindMe(req: Request, res: Response, next: NextFunction) {
-  try {
-    const eventId = req.params.id;
+    try {
+      if (!req.userId) {
+        throw new AppError("Unauthorized", 401);
+      }
 
-    await EventReminder.create({
-      user: req.userId,
-      event: eventId
-    });
+      const eventId = req.params.id;
 
-    // Immediate notification
-    await NotificationService.create(
-      "USER",
-      "Reminder Set",
-      "You will be reminded about this event.",
-      "event",
-      { userId: req.userId }
-    );
+      await EventReminder.create({
+        user: req.userId,
+        event: eventId
+      });
 
-    if (!req.userId) {
-      throw new AppError("Unauthorized", 401);
+      await NotificationService.create(
+        "USER",
+        "Reminder Set",
+        "You will be reminded about this event.",
+        "event",
+        { userId: req.userId }
+      );
+
+      res.json({
+        success: true,
+        message: "Reminder set successfully"
+      });
+    } catch (err) {
+      next(err);
     }
-    res.json({
-      success: true,
-      message: "Reminder set successfully"
-    });
-
-  } catch (err) {
-    next(err);
-  }
-},
+  },
 
   /* -----------------------------------------------------
       ADMIN: CREATE EVENT
