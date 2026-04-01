@@ -27,6 +27,7 @@ export interface IUser extends Document {
   role: "user" | "admin";
   verified: boolean;
   isDeleted: boolean;
+  fcmToken?: string;
 
   comparePassword(candidate: string): Promise<boolean>;
 }
@@ -105,7 +106,9 @@ const userSchema = new Schema<IUser>(
     isDeleted: {
       type: Boolean,
       default: false
-    }
+    },
+
+    fcmToken: { type: String, default: "" }
   },
   {
     timestamps: true,
