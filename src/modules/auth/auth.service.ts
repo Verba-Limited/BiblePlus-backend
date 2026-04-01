@@ -7,6 +7,7 @@ import {
   generateRefreshToken,
 } from "../../utils/jwt";
 import AppError from "../../core/AppError";
+import { EmailService } from "../../services/email.service";
 
 /* =====================================================
    DEV CONFIG
@@ -121,6 +122,8 @@ export const AuthService = {
   if (!user) throw new AppError("User not found", 404);
 
   await Otp.deleteMany({ email });
+
+  EmailService.sendWelcome(user.email, user.firstName ?? "Friend").catch(console.error);
 
   return {
     token: generateAccessToken({
