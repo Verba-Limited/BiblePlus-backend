@@ -6,7 +6,7 @@ import { QuizDailyController } from "./quizDaily.controller";
 const router = Router();
 
 /* ============================================
-   PUBLIC: GET TODAY QUIZ
+   PUBLIC: GET TODAY'S QUIZ
 ============================================ */
 router.get(
   "/today",
@@ -14,21 +14,49 @@ router.get(
 );
 
 /* ============================================
-   ADMIN: CREATE DAILY QUIZ
+   PUBLIC: GET QUIZ BY DATE
 ============================================ */
-router.post(
-  "/admin/create",
-  authMiddleware,
-  adminOnly,
-  QuizDailyController.adminCreate
+router.get(
+  "/date/:date",
+  QuizDailyController.getByDate
 );
 
 /* ============================================
-   HISTORY
+   PUBLIC: HISTORY
 ============================================ */
 router.get(
   "/history",
   QuizDailyController.history
+);
+
+/* ============================================
+   ADMIN: OVERRIDE QUIZ FOR A DATE
+============================================ */
+router.post(
+  "/admin/set",
+  authMiddleware,
+  adminOnly,
+  QuizDailyController.adminSetForDate
+);
+
+/* ============================================
+   ADMIN: ADD QUESTION TO POOL
+============================================ */
+router.post(
+  "/admin/pool/add",
+  authMiddleware,
+  adminOnly,
+  QuizDailyController.adminAddToPool
+);
+
+/* ============================================
+   ADMIN: GET POOL INFO
+============================================ */
+router.get(
+  "/admin/pool/info",
+  authMiddleware,
+  adminOnly,
+  QuizDailyController.getPoolInfo
 );
 
 export default router;
