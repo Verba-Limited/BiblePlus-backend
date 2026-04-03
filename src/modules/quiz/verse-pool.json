@@ -1,0 +1,1437 @@
+[
+  {
+    "id": 1,
+    "passage": "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
+    "options": ["John 3:16", "Romans 8:28", "Matthew 5:9"],
+    "correctAnswer": "John 3:16",
+    "hint": "The most quoted verse in the New Testament"
+  },
+  {
+    "id": 2,
+    "passage": "I can do all this through him who gives me strength.",
+    "options": ["Philippians 4:13", "Isaiah 40:31", "Psalm 23:1"],
+    "correctAnswer": "Philippians 4:13",
+    "hint": "Written by Paul from prison"
+  },
+  {
+    "id": 3,
+    "passage": "The Lord is my shepherd, I lack nothing.",
+    "options": ["Psalm 91:1", "Psalm 23:1", "Proverbs 3:5"],
+    "correctAnswer": "Psalm 23:1",
+    "hint": "A psalm of David"
+  },
+  {
+    "id": 4,
+    "passage": "Trust in the Lord with all your heart and lean not on your own understanding.",
+    "options": ["Jeremiah 29:11", "Proverbs 3:5", "Isaiah 26:3"],
+    "correctAnswer": "Proverbs 3:5",
+    "hint": "Found in the book of wisdom"
+  },
+  {
+    "id": 5,
+    "passage": "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.",
+    "options": ["Romans 8:28", "Jeremiah 29:11", "Psalm 46:10"],
+    "correctAnswer": "Jeremiah 29:11",
+    "hint": "Written to Israel during exile in Babylon"
+  },
+  {
+    "id": 6,
+    "passage": "Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.",
+    "options": ["Joshua 1:9", "Deuteronomy 31:6", "Psalm 27:1"],
+    "correctAnswer": "Joshua 1:9",
+    "hint": "God's command to a new leader of Israel"
+  },
+  {
+    "id": 7,
+    "passage": "And we know that in all things God works for the good of those who love him, who have been called according to his purpose.",
+    "options": ["Romans 8:28", "Ephesians 2:8", "James 1:2"],
+    "correctAnswer": "Romans 8:28",
+    "hint": "Paul's letter to the church in Rome"
+  },
+  {
+    "id": 8,
+    "passage": "But those who hope in the Lord will renew their strength. They will soar on wings like eagles.",
+    "options": ["Psalm 91:4", "Isaiah 40:31", "Habakkuk 3:19"],
+    "correctAnswer": "Isaiah 40:31",
+    "hint": "A prophecy of comfort to Israel"
+  },
+  {
+    "id": 9,
+    "passage": "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.",
+    "options": ["Philippians 4:6", "1 Peter 5:7", "Matthew 6:33"],
+    "correctAnswer": "Philippians 4:6",
+    "hint": "Paul's antidote to worry"
+  },
+  {
+    "id": 10,
+    "passage": "In the beginning God created the heavens and the earth.",
+    "options": ["John 1:1", "Genesis 1:1", "Isaiah 45:18"],
+    "correctAnswer": "Genesis 1:1",
+    "hint": "The very first verse of the Bible"
+  },
+  {
+    "id": 11,
+    "passage": "Jesus wept.",
+    "options": ["Luke 19:41", "John 11:35", "Mark 14:72"],
+    "correctAnswer": "John 11:35",
+    "hint": "The shortest verse in the Bible"
+  },
+  {
+    "id": 12,
+    "passage": "For it is by grace you have been saved, through faith — and this is not from yourselves, it is the gift of God.",
+    "options": ["Romans 3:23", "Ephesians 2:8", "Titus 3:5"],
+    "correctAnswer": "Ephesians 2:8",
+    "hint": "Paul's letter to the church in Ephesus"
+  },
+  {
+    "id": 13,
+    "passage": "Love is patient, love is kind. It does not envy, it does not boast, it is not proud.",
+    "options": ["1 Corinthians 13:4", "Romans 12:9", "Colossians 3:14"],
+    "correctAnswer": "1 Corinthians 13:4",
+    "hint": "The famous love chapter"
+  },
+  {
+    "id": 14,
+    "passage": "The wages of sin is death, but the gift of God is eternal life in Christ Jesus our Lord.",
+    "options": ["Romans 6:23", "James 1:15", "Galatians 6:8"],
+    "correctAnswer": "Romans 6:23",
+    "hint": "A contrast between sin's cost and God's gift"
+  },
+  {
+    "id": 15,
+    "passage": "Come to me, all you who are weary and burdened, and I will give you rest.",
+    "options": ["Psalm 55:22", "Matthew 11:28", "John 14:27"],
+    "correctAnswer": "Matthew 11:28",
+    "hint": "Jesus' personal invitation"
+  },
+  {
+    "id": 16,
+    "passage": "Your word is a lamp for my feet, a light on my path.",
+    "options": ["Proverbs 6:23", "Psalm 119:105", "Isaiah 8:20"],
+    "correctAnswer": "Psalm 119:105",
+    "hint": "From the longest chapter in the Bible"
+  },
+  {
+    "id": 17,
+    "passage": "Even though I walk through the darkest valley, I will fear no evil, for you are with me.",
+    "options": ["Psalm 23:4", "Isaiah 43:2", "Psalm 91:5"],
+    "correctAnswer": "Psalm 23:4",
+    "hint": "Part of the shepherd's psalm"
+  },
+  {
+    "id": 18,
+    "passage": "Ask and it will be given to you; seek and you will find; knock and the door will be opened to you.",
+    "options": ["Luke 11:9", "Matthew 7:7", "John 16:24"],
+    "correctAnswer": "Matthew 7:7",
+    "hint": "Part of the Sermon on the Mount"
+  },
+  {
+    "id": 19,
+    "passage": "I am the way and the truth and the life. No one comes to the Father except through me.",
+    "options": ["John 14:6", "John 10:9", "John 6:35"],
+    "correctAnswer": "John 14:6",
+    "hint": "One of the seven I AM statements of Jesus"
+  },
+  {
+    "id": 20,
+    "passage": "Greater love has no one than this: to lay down one's life for one's friends.",
+    "options": ["John 13:34", "1 John 3:16", "John 15:13"],
+    "correctAnswer": "John 15:13",
+    "hint": "Jesus speaking to his disciples before the cross"
+  },
+  {
+    "id": 21,
+    "passage": "For all have sinned and fall short of the glory of God.",
+    "options": ["Romans 3:23", "Isaiah 53:6", "1 John 1:8"],
+    "correctAnswer": "Romans 3:23",
+    "hint": "Part of Paul's argument for universal need of salvation"
+  },
+  {
+    "id": 22,
+    "passage": "But the fruit of the Spirit is love, joy, peace, forbearance, kindness, goodness, faithfulness.",
+    "options": ["Romans 12:6", "Galatians 5:22", "Colossians 3:12"],
+    "correctAnswer": "Galatians 5:22",
+    "hint": "Contrasted with the works of the flesh"
+  },
+  {
+    "id": 23,
+    "passage": "He gives strength to the weary and increases the power of the weak.",
+    "options": ["Psalm 29:11", "Isaiah 40:29", "Nahum 1:7"],
+    "correctAnswer": "Isaiah 40:29",
+    "hint": "From the same passage as eagles' wings"
+  },
+  {
+    "id": 24,
+    "passage": "Cast all your anxiety on him because he cares for you.",
+    "options": ["Philippians 4:7", "Matthew 6:25", "1 Peter 5:7"],
+    "correctAnswer": "1 Peter 5:7",
+    "hint": "Written by a fisherman turned apostle"
+  },
+  {
+    "id": 25,
+    "passage": "This is the day the Lord has made; let us rejoice and be glad in it.",
+    "options": ["Psalm 118:24", "Lamentations 3:23", "Psalm 100:1"],
+    "correctAnswer": "Psalm 118:24",
+    "hint": "A psalm of praise and thanksgiving"
+  },
+  {
+    "id": 26,
+    "passage": "The Lord bless you and keep you; the Lord make his face shine on you and be gracious to you.",
+    "options": ["Deuteronomy 28:2", "Numbers 6:24-25", "Psalm 67:1"],
+    "correctAnswer": "Numbers 6:24-25",
+    "hint": "The Aaronic blessing given to priests"
+  },
+  {
+    "id": 27,
+    "passage": "Blessed are the peacemakers, for they will be called children of God.",
+    "options": ["Matthew 5:9", "Luke 6:22", "Romans 12:18"],
+    "correctAnswer": "Matthew 5:9",
+    "hint": "One of the Beatitudes"
+  },
+  {
+    "id": 28,
+    "passage": "Do not conform to the pattern of this world, but be transformed by the renewing of your mind.",
+    "options": ["Colossians 3:2", "Romans 12:2", "Ephesians 4:23"],
+    "correctAnswer": "Romans 12:2",
+    "hint": "Paul's call to spiritual transformation"
+  },
+  {
+    "id": 29,
+    "passage": "No weapon forged against you will prevail, and you will refute every tongue that accuses you.",
+    "options": ["Psalm 46:1", "Isaiah 54:17", "Deuteronomy 20:4"],
+    "correctAnswer": "Isaiah 54:17",
+    "hint": "God's promise of protection to his people"
+  },
+  {
+    "id": 30,
+    "passage": "The heart is deceitful above all things and beyond cure. Who can understand it?",
+    "options": ["Proverbs 4:23", "Jeremiah 17:9", "Ecclesiastes 9:3"],
+    "correctAnswer": "Jeremiah 17:9",
+    "hint": "A sobering statement from a weeping prophet"
+  },
+  {
+    "id": 31,
+    "passage": "In the beginning was the Word, and the Word was with God, and the Word was God.",
+    "options": ["Genesis 1:1", "John 1:1", "Colossians 1:17"],
+    "correctAnswer": "John 1:1",
+    "hint": "The opening of the Gospel of John"
+  },
+  {
+    "id": 32,
+    "passage": "He is not here; he has risen, just as he said.",
+    "options": ["Luke 24:6", "Matthew 28:6", "John 20:14"],
+    "correctAnswer": "Matthew 28:6",
+    "hint": "The angel's words at the empty tomb"
+  },
+  {
+    "id": 33,
+    "passage": "For the Spirit God gave us does not make us timid, but gives us power, love and self-discipline.",
+    "options": ["2 Timothy 1:7", "Romans 8:15", "1 John 4:18"],
+    "correctAnswer": "2 Timothy 1:7",
+    "hint": "Paul's encouragement to a young pastor"
+  },
+  {
+    "id": 34,
+    "passage": "Delight yourself in the Lord, and he will give you the desires of your heart.",
+    "options": ["Psalm 37:4", "Proverbs 10:24", "Matthew 6:33"],
+    "correctAnswer": "Psalm 37:4",
+    "hint": "A psalm attributed to David"
+  },
+  {
+    "id": 35,
+    "passage": "Be still, and know that I am God.",
+    "options": ["Psalm 46:10", "Isaiah 30:15", "Exodus 14:14"],
+    "correctAnswer": "Psalm 46:10",
+    "hint": "God's call to rest in his sovereignty"
+  },
+  {
+    "id": 36,
+    "passage": "The Lord is close to the brokenhearted and saves those who are crushed in spirit.",
+    "options": ["Psalm 34:18", "Isaiah 61:1", "Matthew 5:4"],
+    "correctAnswer": "Psalm 34:18",
+    "hint": "A psalm of David when he feigned madness"
+  },
+  {
+    "id": 37,
+    "passage": "I have hidden your word in my heart that I might not sin against you.",
+    "options": ["Psalm 119:11", "Deuteronomy 6:6", "Joshua 1:8"],
+    "correctAnswer": "Psalm 119:11",
+    "hint": "From the longest chapter in the Bible"
+  },
+  {
+    "id": 38,
+    "passage": "Create in me a pure heart, O God, and renew a steadfast spirit within me.",
+    "options": ["Psalm 51:10", "Ezekiel 36:26", "Lamentations 5:21"],
+    "correctAnswer": "Psalm 51:10",
+    "hint": "David's prayer of repentance after his sin with Bathsheba"
+  },
+  {
+    "id": 39,
+    "passage": "Seek first his kingdom and his righteousness, and all these things will be given to you as well.",
+    "options": ["Luke 12:31", "Matthew 6:33", "Colossians 3:1"],
+    "correctAnswer": "Matthew 6:33",
+    "hint": "Part of the Sermon on the Mount"
+  },
+  {
+    "id": 40,
+    "passage": "A new command I give you: Love one another. As I have loved you, so you must love one another.",
+    "options": ["John 15:12", "John 13:34", "1 John 4:11"],
+    "correctAnswer": "John 13:34",
+    "hint": "Jesus' command at the Last Supper"
+  },
+  {
+    "id": 41,
+    "passage": "I lift up my eyes to the mountains — where does my help come from? My help comes from the Lord.",
+    "options": ["Psalm 121:1-2", "Psalm 123:1", "Psalm 125:1"],
+    "correctAnswer": "Psalm 121:1-2",
+    "hint": "A song of ascents"
+  },
+  {
+    "id": 42,
+    "passage": "The Lord is my light and my salvation — whom shall I fear?",
+    "options": ["Psalm 27:1", "Psalm 56:4", "Isaiah 12:2"],
+    "correctAnswer": "Psalm 27:1",
+    "hint": "A psalm of confidence in God's protection"
+  },
+  {
+    "id": 43,
+    "passage": "And now these three remain: faith, hope and love. But the greatest of these is love.",
+    "options": ["Galatians 5:6", "1 Thessalonians 1:3", "1 Corinthians 13:13"],
+    "correctAnswer": "1 Corinthians 13:13",
+    "hint": "The closing verse of the love chapter"
+  },
+  {
+    "id": 44,
+    "passage": "If my people, who are called by my name, will humble themselves and pray and seek my face and turn from their wicked ways, then I will hear from heaven.",
+    "options": ["2 Chronicles 7:14", "Isaiah 55:6", "Joel 2:12"],
+    "correctAnswer": "2 Chronicles 7:14",
+    "hint": "God's response after Solomon dedicated the temple"
+  },
+  {
+    "id": 45,
+    "passage": "For where two or three gather in my name, there am I with them.",
+    "options": ["Luke 24:15", "Matthew 18:20", "Acts 2:1"],
+    "correctAnswer": "Matthew 18:20",
+    "hint": "Jesus' promise about corporate prayer"
+  },
+  {
+    "id": 46,
+    "passage": "Do not let your hearts be troubled. You believe in God; believe also in me.",
+    "options": ["John 14:1", "John 16:33", "Philippians 4:7"],
+    "correctAnswer": "John 14:1",
+    "hint": "Jesus comforting his disciples before his death"
+  },
+  {
+    "id": 47,
+    "passage": "I am the resurrection and the life. The one who believes in me will live, even though they die.",
+    "options": ["John 6:40", "John 11:25", "John 5:24"],
+    "correctAnswer": "John 11:25",
+    "hint": "Jesus spoke this before raising Lazarus"
+  },
+  {
+    "id": 48,
+    "passage": "The thief comes only to steal and kill and destroy; I have come that they may have life, and have it to the full.",
+    "options": ["John 10:10", "John 8:44", "1 Peter 5:8"],
+    "correctAnswer": "John 10:10",
+    "hint": "The good shepherd discourse"
+  },
+  {
+    "id": 49,
+    "passage": "Blessed are the pure in heart, for they will see God.",
+    "options": ["Matthew 5:8", "Hebrews 12:14", "Psalm 24:4"],
+    "correctAnswer": "Matthew 5:8",
+    "hint": "One of the Beatitudes"
+  },
+  {
+    "id": 50,
+    "passage": "You are the light of the world. A town built on a hill cannot be hidden.",
+    "options": ["John 8:12", "Matthew 5:14", "Luke 11:33"],
+    "correctAnswer": "Matthew 5:14",
+    "hint": "Jesus describing his followers"
+  },
+  {
+    "id": 51,
+    "passage": "Have I not commanded you? Be strong and courageous. Do not be frightened.",
+    "options": ["Joshua 1:9", "Deuteronomy 31:6", "Joshua 1:7"],
+    "correctAnswer": "Joshua 1:9",
+    "hint": "God's charge to Joshua"
+  },
+  {
+    "id": 52,
+    "passage": "Let everything that has breath praise the Lord.",
+    "options": ["Psalm 148:5", "Psalm 150:6", "Psalm 145:21"],
+    "correctAnswer": "Psalm 150:6",
+    "hint": "The final verse of the book of Psalms"
+  },
+  {
+    "id": 53,
+    "passage": "The Lord is good to all; he has compassion on all he has made.",
+    "options": ["Psalm 145:9", "Lamentations 3:25", "Nahum 1:7"],
+    "correctAnswer": "Psalm 145:9",
+    "hint": "A psalm of praise by David"
+  },
+  {
+    "id": 54,
+    "passage": "Return to me, and I will return to you, says the Lord Almighty.",
+    "options": ["Hosea 14:1", "Zechariah 1:3", "James 4:8"],
+    "correctAnswer": "Zechariah 1:3",
+    "hint": "A post-exilic prophet's call to repentance"
+  },
+  {
+    "id": 55,
+    "passage": "He who began a good work in you will carry it on to completion until the day of Christ Jesus.",
+    "options": ["Philippians 1:6", "Romans 8:29", "1 Thessalonians 5:24"],
+    "correctAnswer": "Philippians 1:6",
+    "hint": "Paul's confidence in God's faithfulness"
+  },
+  {
+    "id": 56,
+    "passage": "Now faith is confidence in what we hope for and assurance about what we do not see.",
+    "options": ["Romans 10:17", "Hebrews 11:1", "James 2:17"],
+    "correctAnswer": "Hebrews 11:1",
+    "hint": "The opening definition of the faith chapter"
+  },
+  {
+    "id": 57,
+    "passage": "Therefore, if anyone is in Christ, the new creation has come: The old has gone, the new is here!",
+    "options": ["Galatians 6:15", "2 Corinthians 5:17", "Ephesians 4:24"],
+    "correctAnswer": "2 Corinthians 5:17",
+    "hint": "Paul's declaration of transformation in Christ"
+  },
+  {
+    "id": 58,
+    "passage": "So in everything, do to others what you would have them do to you.",
+    "options": ["Luke 6:31", "Matthew 7:12", "Mark 12:31"],
+    "correctAnswer": "Matthew 7:12",
+    "hint": "The Golden Rule"
+  },
+  {
+    "id": 59,
+    "passage": "What does the Lord require of you? To act justly and to love mercy and to walk humbly with your God.",
+    "options": ["Amos 5:24", "Isaiah 1:17", "Micah 6:8"],
+    "correctAnswer": "Micah 6:8",
+    "hint": "A minor prophet's summary of true religion"
+  },
+  {
+    "id": 60,
+    "passage": "For the word of God is alive and active. Sharper than any double-edged sword.",
+    "options": ["Hebrews 4:12", "Ephesians 6:17", "Revelation 1:16"],
+    "correctAnswer": "Hebrews 4:12",
+    "hint": "Describing the power of Scripture"
+  },
+  {
+    "id": 61,
+    "passage": "Submit yourselves, then, to God. Resist the devil, and he will flee from you.",
+    "options": ["1 Peter 5:9", "James 4:7", "Ephesians 6:11"],
+    "correctAnswer": "James 4:7",
+    "hint": "Practical wisdom from the brother of Jesus"
+  },
+  {
+    "id": 62,
+    "passage": "For God did not send his Son into the world to condemn the world, but to save the world through him.",
+    "options": ["John 3:17", "Luke 19:10", "1 John 4:14"],
+    "correctAnswer": "John 3:17",
+    "hint": "The verse right after the most famous verse"
+  },
+  {
+    "id": 63,
+    "passage": "I am the bread of life. Whoever comes to me will never go hungry.",
+    "options": ["John 6:48", "John 6:35", "John 4:14"],
+    "correctAnswer": "John 6:35",
+    "hint": "One of the I AM statements after feeding 5000"
+  },
+  {
+    "id": 64,
+    "passage": "Taste and see that the Lord is good; blessed is the one who takes refuge in him.",
+    "options": ["Psalm 34:8", "Psalm 16:11", "Nahum 1:7"],
+    "correctAnswer": "Psalm 34:8",
+    "hint": "An invitation to experience God personally"
+  },
+  {
+    "id": 65,
+    "passage": "My grace is sufficient for you, for my power is made perfect in weakness.",
+    "options": ["2 Corinthians 12:9", "Romans 5:20", "Philippians 4:11"],
+    "correctAnswer": "2 Corinthians 12:9",
+    "hint": "God's response to Paul's thorn in the flesh"
+  },
+  {
+    "id": 66,
+    "passage": "Rejoice always, pray continually, give thanks in all circumstances.",
+    "options": ["Philippians 4:4", "1 Thessalonians 5:16-18", "Ephesians 5:20"],
+    "correctAnswer": "1 Thessalonians 5:16-18",
+    "hint": "Three quick commands from Paul"
+  },
+  {
+    "id": 67,
+    "passage": "God is our refuge and strength, an ever-present help in trouble.",
+    "options": ["Psalm 46:1", "Psalm 91:2", "Deuteronomy 33:27"],
+    "correctAnswer": "Psalm 46:1",
+    "hint": "The psalm that inspired A Mighty Fortress Is Our God"
+  },
+  {
+    "id": 68,
+    "passage": "The grass withers and the flowers fall, but the word of our God endures forever.",
+    "options": ["Psalm 119:89", "1 Peter 1:25", "Isaiah 40:8"],
+    "correctAnswer": "Isaiah 40:8",
+    "hint": "From the comfort chapters of Isaiah"
+  },
+  {
+    "id": 69,
+    "passage": "I will praise you, Lord, with all my heart; before the gods I will sing your praise.",
+    "options": ["Psalm 138:1", "Psalm 9:1", "Psalm 111:1"],
+    "correctAnswer": "Psalm 138:1",
+    "hint": "A psalm of thanksgiving by David"
+  },
+  {
+    "id": 70,
+    "passage": "The Lord your God is with you, the Mighty Warrior who saves. He will take great delight in you.",
+    "options": ["Isaiah 12:2", "Zephaniah 3:17", "Psalm 35:27"],
+    "correctAnswer": "Zephaniah 3:17",
+    "hint": "A little-known verse from a minor prophet"
+  },
+  {
+    "id": 71,
+    "passage": "Do not repay anyone evil for evil. Be careful to do what is right in the eyes of everyone.",
+    "options": ["1 Peter 3:9", "Romans 12:17", "1 Thessalonians 5:15"],
+    "correctAnswer": "Romans 12:17",
+    "hint": "Paul's instruction on living peaceably"
+  },
+  {
+    "id": 72,
+    "passage": "The name of the Lord is a fortified tower; the righteous run to it and are safe.",
+    "options": ["Psalm 61:3", "Proverbs 18:10", "Nahum 1:7"],
+    "correctAnswer": "Proverbs 18:10",
+    "hint": "A proverb about God's name as protection"
+  },
+  {
+    "id": 73,
+    "passage": "Give, and it will be given to you. A good measure, pressed down, shaken together and running over.",
+    "options": ["Malachi 3:10", "Luke 6:38", "2 Corinthians 9:6"],
+    "correctAnswer": "Luke 6:38",
+    "hint": "Jesus teaching on generosity"
+  },
+  {
+    "id": 74,
+    "passage": "But seek first his kingdom and his righteousness.",
+    "options": ["Matthew 6:33", "Luke 12:31", "Colossians 3:2"],
+    "correctAnswer": "Matthew 6:33",
+    "hint": "Jesus' priority command in the Sermon on the Mount"
+  },
+  {
+    "id": 75,
+    "passage": "How, then, can they call on the one they have not believed in? And how can they believe in the one of whom they have not heard?",
+    "options": ["1 Corinthians 1:21", "Romans 10:14", "Acts 4:12"],
+    "correctAnswer": "Romans 10:14",
+    "hint": "The basis for Christian missions"
+  },
+  {
+    "id": 76,
+    "passage": "She is clothed with strength and dignity; she can laugh at the days to come.",
+    "options": ["Psalm 31:25", "Proverbs 31:25", "Isaiah 61:10"],
+    "correctAnswer": "Proverbs 31:25",
+    "hint": "Description of a virtuous woman"
+  },
+  {
+    "id": 77,
+    "passage": "Train up a child in the way he should go; even when he is old he will not depart from it.",
+    "options": ["Deuteronomy 6:7", "Proverbs 22:6", "Ephesians 6:4"],
+    "correctAnswer": "Proverbs 22:6",
+    "hint": "Ancient parenting wisdom"
+  },
+  {
+    "id": 78,
+    "passage": "Let your light shine before others, that they may see your good deeds and glorify your Father in heaven.",
+    "options": ["Matthew 5:16", "John 8:12", "Ephesians 5:8"],
+    "correctAnswer": "Matthew 5:16",
+    "hint": "Jesus on salt and light"
+  },
+  {
+    "id": 79,
+    "passage": "By this everyone will know that you are my disciples, if you love one another.",
+    "options": ["John 13:34", "John 13:35", "1 John 4:20"],
+    "correctAnswer": "John 13:35",
+    "hint": "The mark of a true Christian"
+  },
+  {
+    "id": 80,
+    "passage": "Even youths grow tired and weary, and young men stumble and fall.",
+    "options": ["Lamentations 5:13", "Isaiah 40:30", "Ecclesiastes 12:1"],
+    "correctAnswer": "Isaiah 40:30",
+    "hint": "Contrasted with those who hope in the Lord"
+  },
+  {
+    "id": 81,
+    "passage": "I praise you because I am fearfully and wonderfully made; your works are wonderful.",
+    "options": ["Psalm 139:14", "Job 10:8", "Isaiah 44:2"],
+    "correctAnswer": "Psalm 139:14",
+    "hint": "David marveling at God's creation of him"
+  },
+  {
+    "id": 82,
+    "passage": "Where can I go from your Spirit? Where can I flee from your presence?",
+    "options": ["Psalm 51:11", "Jonah 1:3", "Psalm 139:7"],
+    "correctAnswer": "Psalm 139:7",
+    "hint": "David meditating on God's omnipresence"
+  },
+  {
+    "id": 83,
+    "passage": "Thy word have I hid in mine heart, that I might not sin against thee.",
+    "options": ["Joshua 1:8", "Psalm 119:11", "Deuteronomy 11:18"],
+    "correctAnswer": "Psalm 119:11",
+    "hint": "KJV form — from the longest psalm"
+  },
+  {
+    "id": 84,
+    "passage": "For everyone born of God overcomes the world. This is the victory that has overcome the world, even our faith.",
+    "options": ["Romans 8:37", "1 John 5:4", "Revelation 12:11"],
+    "correctAnswer": "1 John 5:4",
+    "hint": "John's letter to early Christians"
+  },
+  {
+    "id": 85,
+    "passage": "The Lord is not slow in keeping his promise, as some understand slowness. Instead he is patient with you.",
+    "options": ["Habakkuk 2:3", "2 Peter 3:9", "Lamentations 3:26"],
+    "correctAnswer": "2 Peter 3:9",
+    "hint": "Peter explaining why Christ hasn't returned yet"
+  },
+  {
+    "id": 86,
+    "passage": "Do not be overcome by evil, but overcome evil with good.",
+    "options": ["1 Peter 3:11", "Romans 12:21", "Galatians 6:10"],
+    "correctAnswer": "Romans 12:21",
+    "hint": "The final verse of Romans 12"
+  },
+  {
+    "id": 87,
+    "passage": "Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit.",
+    "options": ["Acts 1:8", "Mark 16:15", "Matthew 28:19"],
+    "correctAnswer": "Matthew 28:19",
+    "hint": "The Great Commission"
+  },
+  {
+    "id": 88,
+    "passage": "And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.",
+    "options": ["John 14:27", "Colossians 3:15", "Philippians 4:7"],
+    "correctAnswer": "Philippians 4:7",
+    "hint": "The result of bringing requests to God"
+  },
+  {
+    "id": 89,
+    "passage": "Charm is deceptive, and beauty is fleeting; but a woman who fears the Lord is to be praised.",
+    "options": ["Proverbs 11:22", "Proverbs 31:30", "1 Peter 3:4"],
+    "correctAnswer": "Proverbs 31:30",
+    "hint": "Closing verse of the virtuous woman passage"
+  },
+  {
+    "id": 90,
+    "passage": "He has made everything beautiful in its time.",
+    "options": ["Psalm 104:24", "Ecclesiastes 3:11", "Genesis 1:31"],
+    "correctAnswer": "Ecclesiastes 3:11",
+    "hint": "From the 'time for everything' chapter"
+  },
+  {
+    "id": 91,
+    "passage": "And without faith it is impossible to please God, because anyone who comes to him must believe that he exists.",
+    "options": ["Hebrews 11:6", "Romans 14:23", "James 2:14"],
+    "correctAnswer": "Hebrews 11:6",
+    "hint": "From the hall of faith chapter"
+  },
+  {
+    "id": 92,
+    "passage": "God demonstrates his own love for us in this: While we were still sinners, Christ died for us.",
+    "options": ["1 John 4:10", "Romans 5:8", "John 3:16"],
+    "correctAnswer": "Romans 5:8",
+    "hint": "The timing of Christ's sacrifice"
+  },
+  {
+    "id": 93,
+    "passage": "As for me and my household, we will serve the Lord.",
+    "options": ["Deuteronomy 6:13", "Joshua 24:15", "Psalm 101:2"],
+    "correctAnswer": "Joshua 24:15",
+    "hint": "Joshua's declaration at the covenant renewal"
+  },
+  {
+    "id": 94,
+    "passage": "The Lord is righteous in all his ways and faithful in all he does.",
+    "options": ["Deuteronomy 32:4", "Psalm 145:17", "Lamentations 3:23"],
+    "correctAnswer": "Psalm 145:17",
+    "hint": "Praise for God's character"
+  },
+  {
+    "id": 95,
+    "passage": "I have told you these things, so that in me you may have peace. In this world you will have trouble. But take heart! I have overcome the world.",
+    "options": ["John 14:27", "John 16:33", "Romans 8:37"],
+    "correctAnswer": "John 16:33",
+    "hint": "Jesus' final words before his high priestly prayer"
+  },
+  {
+    "id": 96,
+    "passage": "Yet to all who did receive him, to those who believed in his name, he gave the right to become children of God.",
+    "options": ["John 3:3", "Galatians 4:5", "John 1:12"],
+    "correctAnswer": "John 1:12",
+    "hint": "From the prologue of John's Gospel"
+  },
+  {
+    "id": 97,
+    "passage": "Humble yourselves before the Lord, and he will lift you up.",
+    "options": ["1 Peter 5:6", "James 4:10", "Proverbs 29:23"],
+    "correctAnswer": "James 4:10",
+    "hint": "Practical letter from the brother of Jesus"
+  },
+  {
+    "id": 98,
+    "passage": "Be on your guard; stand firm in the faith; be courageous; be strong.",
+    "options": ["Ephesians 6:10", "1 Corinthians 16:13", "2 Timothy 2:1"],
+    "correctAnswer": "1 Corinthians 16:13",
+    "hint": "Paul's closing charge to the Corinthian church"
+  },
+  {
+    "id": 99,
+    "passage": "Therefore, there is now no condemnation for those who are in Christ Jesus.",
+    "options": ["Romans 8:1", "Romans 5:1", "Galatians 3:13"],
+    "correctAnswer": "Romans 8:1",
+    "hint": "The triumphant opening of Romans 8"
+  },
+  {
+    "id": 100,
+    "passage": "Who is like the Lord our God, the One who sits enthroned on high.",
+    "options": ["Psalm 89:6", "Psalm 113:5", "Isaiah 40:25"],
+    "correctAnswer": "Psalm 113:5",
+    "hint": "A Hallel psalm sung at Jewish festivals"
+  },
+  {
+    "id": 101,
+    "passage": "I sought the Lord, and he answered me; he delivered me from all my fears.",
+    "options": ["Psalm 34:4", "Psalm 50:15", "Isaiah 41:10"],
+    "correctAnswer": "Psalm 34:4",
+    "hint": "David's testimony of answered prayer"
+  },
+  {
+    "id": 102,
+    "passage": "Come near to God and he will come near to you.",
+    "options": ["Hebrews 10:22", "James 4:8", "Psalm 73:28"],
+    "correctAnswer": "James 4:8",
+    "hint": "A conditional promise about drawing close to God"
+  },
+  {
+    "id": 103,
+    "passage": "Finally, brothers and sisters, whatever is true, whatever is noble, whatever is right, whatever is pure... think about such things.",
+    "options": ["Colossians 3:2", "Romans 12:2", "Philippians 4:8"],
+    "correctAnswer": "Philippians 4:8",
+    "hint": "Paul's instruction on what to dwell on mentally"
+  },
+  {
+    "id": 104,
+    "passage": "Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up.",
+    "options": ["Galatians 6:9", "Hebrews 12:1", "2 Thessalonians 3:13"],
+    "correctAnswer": "Galatians 6:9",
+    "hint": "Paul's encouragement to persevere in doing good"
+  },
+  {
+    "id": 105,
+    "passage": "With man this is impossible, but with God all things are possible.",
+    "options": ["Mark 9:23", "Luke 1:37", "Matthew 19:26"],
+    "correctAnswer": "Matthew 19:26",
+    "hint": "Jesus speaking about salvation and the rich young ruler"
+  },
+  {
+    "id": 106,
+    "passage": "Lord, you have been our dwelling place throughout all generations.",
+    "options": ["Psalm 90:1", "Psalm 46:1", "Deuteronomy 33:27"],
+    "correctAnswer": "Psalm 90:1",
+    "hint": "The only psalm attributed to Moses"
+  },
+  {
+    "id": 107,
+    "passage": "May the God of hope fill you with all joy and peace as you trust in him.",
+    "options": ["Philippians 4:9", "Romans 15:13", "1 Thessalonians 5:23"],
+    "correctAnswer": "Romans 15:13",
+    "hint": "Paul's benediction near the end of Romans"
+  },
+  {
+    "id": 108,
+    "passage": "For the Lord gives wisdom; from his mouth come knowledge and understanding.",
+    "options": ["Proverbs 1:7", "Proverbs 2:6", "James 1:5"],
+    "correctAnswer": "Proverbs 2:6",
+    "hint": "The source of true wisdom"
+  },
+  {
+    "id": 109,
+    "passage": "He restores my soul. He guides me along the right paths for his name's sake.",
+    "options": ["Psalm 23:3", "Isaiah 57:18", "Psalm 25:4"],
+    "correctAnswer": "Psalm 23:3",
+    "hint": "Part of the shepherd's psalm"
+  },
+  {
+    "id": 110,
+    "passage": "The Lord reigns, let the earth be glad; let the distant shores rejoice.",
+    "options": ["Psalm 96:10", "Psalm 97:1", "Revelation 19:6"],
+    "correctAnswer": "Psalm 97:1",
+    "hint": "An enthronement psalm"
+  },
+  {
+    "id": 111,
+    "passage": "Before I formed you in the womb I knew you, before you were born I set you apart.",
+    "options": ["Psalm 139:13", "Isaiah 49:1", "Jeremiah 1:5"],
+    "correctAnswer": "Jeremiah 1:5",
+    "hint": "God's call to the weeping prophet"
+  },
+  {
+    "id": 112,
+    "passage": "Surely goodness and love will follow me all the days of my life.",
+    "options": ["Psalm 23:6", "Psalm 36:5", "Lamentations 3:22"],
+    "correctAnswer": "Psalm 23:6",
+    "hint": "The final verse of the shepherd's psalm"
+  },
+  {
+    "id": 113,
+    "passage": "You prepare a table before me in the presence of my enemies.",
+    "options": ["Psalm 23:5", "Psalm 78:19", "Proverbs 9:2"],
+    "correctAnswer": "Psalm 23:5",
+    "hint": "Part of the shepherd's psalm"
+  },
+  {
+    "id": 114,
+    "passage": "Give thanks to the Lord, for he is good; his love endures forever.",
+    "options": ["Psalm 107:1", "1 Chronicles 16:34", "Psalm 136:1"],
+    "correctAnswer": "Psalm 136:1",
+    "hint": "The refrain repeated 26 times in one psalm"
+  },
+  {
+    "id": 115,
+    "passage": "The Lord is my strength and my song; he has given me victory.",
+    "options": ["Psalm 118:14", "Exodus 15:2", "Isaiah 12:2"],
+    "correctAnswer": "Exodus 15:2",
+    "hint": "Moses' song after crossing the Red Sea"
+  },
+  {
+    "id": 116,
+    "passage": "Whoever does not love does not know God, because God is love.",
+    "options": ["1 John 4:8", "1 John 3:14", "John 13:35"],
+    "correctAnswer": "1 John 4:8",
+    "hint": "One of the clearest definitions of God's nature"
+  },
+  {
+    "id": 117,
+    "passage": "We love because he first loved us.",
+    "options": ["1 John 4:19", "Romans 5:5", "Galatians 5:22"],
+    "correctAnswer": "1 John 4:19",
+    "hint": "The origin of Christian love"
+  },
+  {
+    "id": 118,
+    "passage": "No temptation has overtaken you except what is common to mankind. And God is faithful.",
+    "options": ["James 1:13", "1 Corinthians 10:13", "Hebrews 4:15"],
+    "correctAnswer": "1 Corinthians 10:13",
+    "hint": "God's promise of a way out in temptation"
+  },
+  {
+    "id": 119,
+    "passage": "Consider it pure joy, my brothers and sisters, whenever you face trials of many kinds.",
+    "options": ["Romans 5:3", "1 Peter 1:6", "James 1:2"],
+    "correctAnswer": "James 1:2",
+    "hint": "The counterintuitive response to trials"
+  },
+  {
+    "id": 120,
+    "passage": "Draw near to God, and he will draw near to you.",
+    "options": ["Hebrews 10:22", "James 4:8", "Psalm 73:28"],
+    "correctAnswer": "James 4:8",
+    "hint": "A two-way relationship principle"
+  },
+  {
+    "id": 121,
+    "passage": "If we confess our sins, he is faithful and just and will forgive us our sins.",
+    "options": ["Psalm 51:2", "Acts 3:19", "1 John 1:9"],
+    "correctAnswer": "1 John 1:9",
+    "hint": "The condition and promise of forgiveness"
+  },
+  {
+    "id": 122,
+    "passage": "Do not be afraid, for I am with you; do not be dismayed, for I am your God.",
+    "options": ["Isaiah 41:10", "Joshua 1:5", "Psalm 23:4"],
+    "correctAnswer": "Isaiah 41:10",
+    "hint": "God's personal declaration to his servant"
+  },
+  {
+    "id": 123,
+    "passage": "Blessed is the one who does not walk in step with the wicked or stand in the way that sinners take.",
+    "options": ["Proverbs 1:1", "Psalm 1:1", "Psalm 32:1"],
+    "correctAnswer": "Psalm 1:1",
+    "hint": "The very first verse of the Psalms"
+  },
+  {
+    "id": 124,
+    "passage": "How good and pleasant it is when God's people live together in unity!",
+    "options": ["Psalm 133:1", "Ephesians 4:3", "1 Corinthians 1:10"],
+    "correctAnswer": "Psalm 133:1",
+    "hint": "A short psalm about the beauty of unity"
+  },
+  {
+    "id": 125,
+    "passage": "Unless the Lord builds the house, the builders labor in vain.",
+    "options": ["Proverbs 24:3", "Psalm 127:1", "Haggai 1:14"],
+    "correctAnswer": "Psalm 127:1",
+    "hint": "A wisdom psalm about depending on God"
+  },
+  {
+    "id": 126,
+    "passage": "The fear of the Lord is the beginning of wisdom.",
+    "options": ["Proverbs 9:10", "Psalm 111:10", "Proverbs 1:7"],
+    "correctAnswer": "Proverbs 1:7",
+    "hint": "The foundation of biblical wisdom"
+  },
+  {
+    "id": 127,
+    "passage": "So whether you eat or drink or whatever you do, do it all for the glory of God.",
+    "options": ["Colossians 3:17", "Romans 14:8", "1 Corinthians 10:31"],
+    "correctAnswer": "1 Corinthians 10:31",
+    "hint": "Paul's life motto in one sentence"
+  },
+  {
+    "id": 128,
+    "passage": "There is no fear in love. But perfect love drives out fear.",
+    "options": ["Romans 8:15", "2 Timothy 1:7", "1 John 4:18"],
+    "correctAnswer": "1 John 4:18",
+    "hint": "John's insight on love and fear"
+  },
+  {
+    "id": 129,
+    "passage": "But God chose the foolish things of the world to shame the wise.",
+    "options": ["1 Corinthians 1:27", "Romans 11:33", "Isaiah 55:8"],
+    "correctAnswer": "1 Corinthians 1:27",
+    "hint": "God's upside-down logic in choosing people"
+  },
+  {
+    "id": 130,
+    "passage": "I am the Alpha and the Omega, the First and the Last, the Beginning and the End.",
+    "options": ["Revelation 1:8", "Isaiah 44:6", "Revelation 22:13"],
+    "correctAnswer": "Revelation 22:13",
+    "hint": "Christ's declaration near the very end of the Bible"
+  },
+  {
+    "id": 131,
+    "passage": "Blessed are those who mourn, for they will be comforted.",
+    "options": ["Matthew 5:4", "Luke 6:21", "Psalm 34:18"],
+    "correctAnswer": "Matthew 5:4",
+    "hint": "One of the Beatitudes"
+  },
+  {
+    "id": 132,
+    "passage": "He will wipe every tear from their eyes. There will be no more death or mourning or crying or pain.",
+    "options": ["Revelation 21:4", "Isaiah 25:8", "Revelation 7:17"],
+    "correctAnswer": "Revelation 21:4",
+    "hint": "The promise of the new creation"
+  },
+  {
+    "id": 133,
+    "passage": "Look, I am coming soon! My reward is with me, and I will give to each person according to what they have done.",
+    "options": ["Revelation 22:12", "Matthew 16:27", "Revelation 3:11"],
+    "correctAnswer": "Revelation 22:12",
+    "hint": "One of the last promises in the Bible"
+  },
+  {
+    "id": 134,
+    "passage": "For our struggle is not against flesh and blood, but against the rulers, against the authorities, against the powers of this dark world.",
+    "options": ["2 Corinthians 10:4", "1 Peter 5:8", "Ephesians 6:12"],
+    "correctAnswer": "Ephesians 6:12",
+    "hint": "The spiritual battle behind physical realities"
+  },
+  {
+    "id": 135,
+    "passage": "Now to him who is able to do immeasurably more than all we ask or imagine, according to his power that is at work within us.",
+    "options": ["Romans 16:25", "Jude 1:24", "Ephesians 3:20"],
+    "correctAnswer": "Ephesians 3:20",
+    "hint": "Paul's doxology midway through Ephesians"
+  },
+  {
+    "id": 136,
+    "passage": "Blessed are the meek, for they will inherit the earth.",
+    "options": ["Matthew 5:3", "Matthew 5:5", "Psalm 37:11"],
+    "correctAnswer": "Matthew 5:5",
+    "hint": "One of the Beatitudes, echoing Psalm 37"
+  },
+  {
+    "id": 137,
+    "passage": "The steadfast love of the Lord never ceases; his mercies never come to an end.",
+    "options": ["Psalm 136:1", "Micah 7:18", "Lamentations 3:22"],
+    "correctAnswer": "Lamentations 3:22",
+    "hint": "Hope found in the darkest book of the Bible"
+  },
+  {
+    "id": 138,
+    "passage": "They are new every morning; great is your faithfulness.",
+    "options": ["Psalm 30:5", "Isaiah 33:2", "Lamentations 3:23"],
+    "correctAnswer": "Lamentations 3:23",
+    "hint": "The verse that inspired the hymn Great Is Thy Faithfulness"
+  },
+  {
+    "id": 139,
+    "passage": "I can do everything through Christ who gives me strength.",
+    "options": ["Philippians 4:13", "Colossians 1:29", "Ephesians 3:16"],
+    "correctAnswer": "Philippians 4:13",
+    "hint": "Paul's confession from a prison cell"
+  },
+  {
+    "id": 140,
+    "passage": "Let the morning bring me word of your unfailing love, for I have put my trust in you.",
+    "options": ["Psalm 5:3", "Psalm 143:8", "Psalm 90:14"],
+    "correctAnswer": "Psalm 143:8",
+    "hint": "David's morning prayer"
+  },
+  {
+    "id": 141,
+    "passage": "O Lord, you have searched me and you know me.",
+    "options": ["Job 23:10", "Psalm 139:1", "Jeremiah 12:3"],
+    "correctAnswer": "Psalm 139:1",
+    "hint": "Opening of David's meditation on God's omniscience"
+  },
+  {
+    "id": 142,
+    "passage": "He who dwells in the shelter of the Most High will rest in the shadow of the Almighty.",
+    "options": ["Psalm 91:1", "Deuteronomy 33:12", "Isaiah 32:18"],
+    "correctAnswer": "Psalm 91:1",
+    "hint": "Opening of the protection psalm"
+  },
+  {
+    "id": 143,
+    "passage": "You will keep in perfect peace those whose minds are steadfast, because they trust in you.",
+    "options": ["Philippians 4:7", "John 14:27", "Isaiah 26:3"],
+    "correctAnswer": "Isaiah 26:3",
+    "hint": "A promise of peace rooted in trust"
+  },
+  {
+    "id": 144,
+    "passage": "I have set the Lord always before me. Because he is at my right hand, I will not be shaken.",
+    "options": ["Psalm 16:8", "Psalm 46:5", "Acts 2:25"],
+    "correctAnswer": "Psalm 16:8",
+    "hint": "Quoted by Peter on Pentecost in Acts"
+  },
+  {
+    "id": 145,
+    "passage": "The Lord is my portion; therefore I will wait for him.",
+    "options": ["Psalm 73:26", "Lamentations 3:24", "Psalm 142:5"],
+    "correctAnswer": "Lamentations 3:24",
+    "hint": "A declaration of hope amidst Jerusalem's fall"
+  },
+  {
+    "id": 146,
+    "passage": "Oh, the depth of the riches of the wisdom and knowledge of God! How unsearchable his judgments.",
+    "options": ["Isaiah 55:8", "Job 26:14", "Romans 11:33"],
+    "correctAnswer": "Romans 11:33",
+    "hint": "Paul's doxology after explaining God's plan for Israel"
+  },
+  {
+    "id": 147,
+    "passage": "I will instruct you and teach you in the way you should go; I will counsel you with my loving eye on you.",
+    "options": ["Psalm 25:9", "Proverbs 3:6", "Psalm 32:8"],
+    "correctAnswer": "Psalm 32:8",
+    "hint": "God's personal promise of guidance"
+  },
+  {
+    "id": 148,
+    "passage": "Whoever finds their life will lose it, and whoever loses their life for my sake will find it.",
+    "options": ["Luke 17:33", "John 12:25", "Matthew 10:39"],
+    "correctAnswer": "Matthew 10:39",
+    "hint": "The paradox of discipleship"
+  },
+  {
+    "id": 149,
+    "passage": "For where your treasure is, there your heart will be also.",
+    "options": ["Luke 12:34", "Matthew 6:21", "1 Timothy 6:10"],
+    "correctAnswer": "Matthew 6:21",
+    "hint": "Jesus teaching on wealth and priorities"
+  },
+  {
+    "id": 150,
+    "passage": "Many are the plans in a person's heart, but it is the Lord's purpose that prevails.",
+    "options": ["Proverbs 16:9", "Psalm 33:10", "Proverbs 19:21"],
+    "correctAnswer": "Proverbs 19:21",
+    "hint": "God's sovereignty over human planning"
+  },
+  {
+    "id": 151,
+    "passage": "A cheerful heart is good medicine, but a crushed spirit dries up the bones.",
+    "options": ["Proverbs 15:13", "Proverbs 17:22", "Psalm 22:14"],
+    "correctAnswer": "Proverbs 17:22",
+    "hint": "Biblical wisdom about the power of joy"
+  },
+  {
+    "id": 152,
+    "passage": "Walk in obedience to all that the Lord your God has commanded you, so that you may live and prosper.",
+    "options": ["Joshua 22:5", "Deuteronomy 5:33", "1 Kings 2:3"],
+    "correctAnswer": "Deuteronomy 5:33",
+    "hint": "Moses' instruction to Israel"
+  },
+  {
+    "id": 153,
+    "passage": "Be completely humble and gentle; be patient, bearing with one another in love.",
+    "options": ["Colossians 3:12", "Ephesians 4:2", "Romans 15:1"],
+    "correctAnswer": "Ephesians 4:2",
+    "hint": "Paul on unity in the body of Christ"
+  },
+  {
+    "id": 154,
+    "passage": "Those who sow with tears will reap with songs of joy.",
+    "options": ["Psalm 30:5", "Galatians 6:7", "Psalm 126:5"],
+    "correctAnswer": "Psalm 126:5",
+    "hint": "A psalm about Israel's return from exile"
+  },
+  {
+    "id": 155,
+    "passage": "Whoever conceals their sins does not prosper, but the one who confesses and renounces them finds mercy.",
+    "options": ["James 5:16", "1 John 1:9", "Proverbs 28:13"],
+    "correctAnswer": "Proverbs 28:13",
+    "hint": "Old Testament wisdom on repentance"
+  },
+  {
+    "id": 156,
+    "passage": "When I am afraid, I put my trust in you.",
+    "options": ["Psalm 27:1", "Isaiah 12:2", "Psalm 56:3"],
+    "correctAnswer": "Psalm 56:3",
+    "hint": "David's response to fear"
+  },
+  {
+    "id": 157,
+    "passage": "The Lord watches over you — the Lord is your shade at your right hand.",
+    "options": ["Psalm 121:5", "Psalm 91:4", "Numbers 14:9"],
+    "correctAnswer": "Psalm 121:5",
+    "hint": "From the traveler's protection psalm"
+  },
+  {
+    "id": 158,
+    "passage": "No discipline seems pleasant at the time, but painful. Later on, however, it produces a harvest of righteousness.",
+    "options": ["James 1:4", "Romans 5:4", "Hebrews 12:11"],
+    "correctAnswer": "Hebrews 12:11",
+    "hint": "The purpose of God's discipline"
+  },
+  {
+    "id": 159,
+    "passage": "But he said to me: My grace is sufficient for you, for my power is made perfect in weakness.",
+    "options": ["Romans 8:26", "Philippians 4:11", "2 Corinthians 12:9"],
+    "correctAnswer": "2 Corinthians 12:9",
+    "hint": "God's direct response to Paul's prayer about his thorn"
+  },
+  {
+    "id": 160,
+    "passage": "Do nothing out of selfish ambition or vain conceit. Rather, in humility value others above yourselves.",
+    "options": ["Romans 12:10", "Galatians 5:26", "Philippians 2:3"],
+    "correctAnswer": "Philippians 2:3",
+    "hint": "Paul's call to Christ-like humility"
+  },
+  {
+    "id": 161,
+    "passage": "He must become greater; I must become less.",
+    "options": ["Galatians 2:20", "John 3:30", "Acts 20:24"],
+    "correctAnswer": "John 3:30",
+    "hint": "John the Baptist's attitude toward Jesus"
+  },
+  {
+    "id": 162,
+    "passage": "Praise the Lord, my soul, and forget not all his benefits.",
+    "options": ["Psalm 103:2", "Psalm 9:1", "Psalm 116:12"],
+    "correctAnswer": "Psalm 103:2",
+    "hint": "David's call to self-remembrance"
+  },
+  {
+    "id": 163,
+    "passage": "As far as the east is from the west, so far has he removed our transgressions from us.",
+    "options": ["Psalm 103:12", "Micah 7:19", "Isaiah 43:25"],
+    "correctAnswer": "Psalm 103:12",
+    "hint": "The infinite measure of God's forgiveness"
+  },
+  {
+    "id": 164,
+    "passage": "But I trust in your unfailing love; my heart rejoices in your salvation.",
+    "options": ["Psalm 13:5", "Psalm 52:8", "Habakkuk 3:18"],
+    "correctAnswer": "Psalm 13:5",
+    "hint": "A psalm of lament that ends in trust"
+  },
+  {
+    "id": 165,
+    "passage": "Whoever is kind to the poor lends to the Lord, and he will reward them for what they have done.",
+    "options": ["Deuteronomy 15:10", "Proverbs 19:17", "Luke 6:35"],
+    "correctAnswer": "Proverbs 19:17",
+    "hint": "An unusual economic metaphor"
+  },
+  {
+    "id": 166,
+    "passage": "A friend loves at all times, and a brother is born for a time of adversity.",
+    "options": ["Proverbs 17:17", "Ecclesiastes 4:10", "John 15:13"],
+    "correctAnswer": "Proverbs 17:17",
+    "hint": "Biblical definition of true friendship"
+  },
+  {
+    "id": 167,
+    "passage": "Let the redeemed of the Lord tell their story — those he redeemed from the hand of the foe.",
+    "options": ["Psalm 107:2", "Isaiah 35:9", "Revelation 5:9"],
+    "correctAnswer": "Psalm 107:2",
+    "hint": "A call to testify of God's redemption"
+  },
+  {
+    "id": 168,
+    "passage": "If you remain in me and my words remain in you, ask whatever you wish, and it will be done for you.",
+    "options": ["John 14:13", "Matthew 21:22", "John 15:7"],
+    "correctAnswer": "John 15:7",
+    "hint": "The condition for powerful prayer"
+  },
+  {
+    "id": 169,
+    "passage": "Shout for joy to the Lord, all the earth. Worship the Lord with gladness.",
+    "options": ["Psalm 95:1", "Psalm 98:4", "Psalm 100:1"],
+    "correctAnswer": "Psalm 100:1",
+    "hint": "The opening of the beloved psalm of thanksgiving"
+  },
+  {
+    "id": 170,
+    "passage": "The Lord our God is one Lord: And thou shalt love the Lord thy God with all thine heart.",
+    "options": ["Leviticus 19:18", "Matthew 22:37", "Deuteronomy 6:4-5"],
+    "correctAnswer": "Deuteronomy 6:4-5",
+    "hint": "The Shema — the central declaration of Jewish faith"
+  },
+  {
+    "id": 171,
+    "passage": "He makes me lie down in green pastures, he leads me beside quiet waters.",
+    "options": ["Psalm 23:2", "Isaiah 40:11", "Ezekiel 34:14"],
+    "correctAnswer": "Psalm 23:2",
+    "hint": "The shepherd leading in peace"
+  },
+  {
+    "id": 172,
+    "passage": "For to me, to live is Christ and to die is gain.",
+    "options": ["Galatians 2:20", "Romans 14:8", "Philippians 1:21"],
+    "correctAnswer": "Philippians 1:21",
+    "hint": "Paul's radical life philosophy"
+  },
+  {
+    "id": 173,
+    "passage": "I have learned the secret of being content in any and every situation, whether well fed or hungry.",
+    "options": ["Hebrews 13:5", "1 Timothy 6:6", "Philippians 4:12"],
+    "correctAnswer": "Philippians 4:12",
+    "hint": "Contentment is learned, not inherited"
+  },
+  {
+    "id": 174,
+    "passage": "Not by might nor by power, but by my Spirit, says the Lord Almighty.",
+    "options": ["1 Samuel 17:47", "Isaiah 31:3", "Zechariah 4:6"],
+    "correctAnswer": "Zechariah 4:6",
+    "hint": "God's word to Zerubbabel about rebuilding the temple"
+  },
+  {
+    "id": 175,
+    "passage": "He has shown you, O mortal, what is good. And what does the Lord require of you?",
+    "options": ["Amos 5:14", "Isaiah 58:6", "Micah 6:8"],
+    "correctAnswer": "Micah 6:8",
+    "hint": "Three-part summary of faithful living"
+  },
+  {
+    "id": 176,
+    "passage": "For the righteous falls seven times and rises again, but the wicked stumble in times of calamity.",
+    "options": ["Psalm 37:24", "Proverbs 24:16", "Job 5:19"],
+    "correctAnswer": "Proverbs 24:16",
+    "hint": "The resilience of the righteous"
+  },
+  {
+    "id": 177,
+    "passage": "Behold, I stand at the door and knock. If anyone hears my voice and opens the door, I will come in.",
+    "options": ["Revelation 3:20", "John 10:3", "Song of Songs 5:2"],
+    "correctAnswer": "Revelation 3:20",
+    "hint": "Christ's invitation to the lukewarm Laodicean church"
+  },
+  {
+    "id": 178,
+    "passage": "I will never leave you nor forsake you.",
+    "options": ["Psalm 94:14", "Joshua 1:5", "Hebrews 13:5"],
+    "correctAnswer": "Hebrews 13:5",
+    "hint": "Quoting God's promise in a letter about contentment"
+  },
+  {
+    "id": 179,
+    "passage": "If anyone lacks wisdom, let him ask of God, who gives generously to all without finding fault.",
+    "options": ["Proverbs 2:3", "James 1:5", "Colossians 1:9"],
+    "correctAnswer": "James 1:5",
+    "hint": "The remedy for lacking wisdom"
+  },
+  {
+    "id": 180,
+    "passage": "For the Lord does not see as man sees; for man looks at the outward appearance, but the Lord looks at the heart.",
+    "options": ["Proverbs 21:2", "1 Samuel 16:7", "Jeremiah 17:10"],
+    "correctAnswer": "1 Samuel 16:7",
+    "hint": "Said when David was chosen over his brothers"
+  },
+  {
+    "id": 181,
+    "passage": "The heart of man plans his way, but the Lord establishes his steps.",
+    "options": ["Proverbs 19:21", "Jeremiah 10:23", "Proverbs 16:9"],
+    "correctAnswer": "Proverbs 16:9",
+    "hint": "God's sovereignty over human planning"
+  },
+  {
+    "id": 182,
+    "passage": "Two are better than one, because they have a good return for their labor.",
+    "options": ["Proverbs 11:14", "Genesis 2:18", "Ecclesiastes 4:9"],
+    "correctAnswer": "Ecclesiastes 4:9",
+    "hint": "The Preacher's wisdom on companionship"
+  },
+  {
+    "id": 183,
+    "passage": "For I am convinced that neither death nor life, neither angels nor demons... will be able to separate us from the love of God.",
+    "options": ["Romans 8:38-39", "Psalm 139:8", "John 10:28"],
+    "correctAnswer": "Romans 8:38-39",
+    "hint": "Paul's triumphant climax to Romans 8"
+  },
+  {
+    "id": 184,
+    "passage": "So do not fear, for I am with you; do not be dismayed, for I am your God. I will strengthen you and help you.",
+    "options": ["Isaiah 43:1", "Deuteronomy 31:8", "Isaiah 41:10"],
+    "correctAnswer": "Isaiah 41:10",
+    "hint": "God's four promises in one verse"
+  },
+  {
+    "id": 185,
+    "passage": "The Lord is faithful, and he will strengthen you and protect you from the evil one.",
+    "options": ["1 Corinthians 10:13", "2 Thessalonians 3:3", "1 John 5:18"],
+    "correctAnswer": "2 Thessalonians 3:3",
+    "hint": "Paul's confidence in God's protection"
+  },
+  {
+    "id": 186,
+    "passage": "Carry each other's burdens, and in this way you will fulfill the law of Christ.",
+    "options": ["Romans 15:1", "1 Thessalonians 5:11", "Galatians 6:2"],
+    "correctAnswer": "Galatians 6:2",
+    "hint": "The communal dimension of Christian living"
+  },
+  {
+    "id": 187,
+    "passage": "Let the word of Christ dwell in you richly as you teach and admonish one another with all wisdom.",
+    "options": ["Ephesians 5:19", "Colossians 3:16", "1 Corinthians 14:26"],
+    "correctAnswer": "Colossians 3:16",
+    "hint": "Paul on Spirit-filled community life"
+  },
+  {
+    "id": 188,
+    "passage": "Do not quench the Spirit.",
+    "options": ["Ephesians 4:30", "Galatians 5:25", "1 Thessalonians 5:19"],
+    "correctAnswer": "1 Thessalonians 5:19",
+    "hint": "One of Paul's shortest commands"
+  },
+  {
+    "id": 189,
+    "passage": "For our light and momentary troubles are achieving for us an eternal glory that far outweighs them all.",
+    "options": ["Romans 8:18", "James 1:12", "2 Corinthians 4:17"],
+    "correctAnswer": "2 Corinthians 4:17",
+    "hint": "Paul's eternal perspective on suffering"
+  },
+  {
+    "id": 190,
+    "passage": "And my God will meet all your needs according to the riches of his glory in Christ Jesus.",
+    "options": ["Philippians 4:19", "Matthew 6:31", "Luke 12:30"],
+    "correctAnswer": "Philippians 4:19",
+    "hint": "Paul's promise to a generous church"
+  },
+  {
+    "id": 191,
+    "passage": "Arise, shine, for your light has come, and the glory of the Lord rises upon you.",
+    "options": ["Malachi 4:2", "Isaiah 60:1", "Matthew 4:16"],
+    "correctAnswer": "Isaiah 60:1",
+    "hint": "A prophecy about restored Israel and the coming Messiah"
+  },
+  {
+    "id": 192,
+    "passage": "He was despised and rejected by mankind, a man of suffering, and familiar with pain.",
+    "options": ["Psalm 22:6", "Isaiah 53:3", "Lamentations 1:12"],
+    "correctAnswer": "Isaiah 53:3",
+    "hint": "The suffering servant prophecy"
+  },
+  {
+    "id": 193,
+    "passage": "But he was pierced for our transgressions, he was crushed for our iniquities.",
+    "options": ["Zechariah 12:10", "Isaiah 53:5", "Psalm 22:16"],
+    "correctAnswer": "Isaiah 53:5",
+    "hint": "The substitutionary atonement foretold 700 years before Christ"
+  },
+  {
+    "id": 194,
+    "passage": "Therefore, since we are surrounded by such a great cloud of witnesses, let us throw off everything that hinders.",
+    "options": ["Hebrews 11:39", "Hebrews 12:1", "1 Corinthians 9:24"],
+    "correctAnswer": "Hebrews 12:1",
+    "hint": "The race of faith imagery"
+  },
+  {
+    "id": 195,
+    "passage": "Fixing our eyes on Jesus, the pioneer and perfecter of faith.",
+    "options": ["Philippians 3:14", "Colossians 3:1", "Hebrews 12:2"],
+    "correctAnswer": "Hebrews 12:2",
+    "hint": "Where to look while running the race of faith"
+  },
+  {
+    "id": 196,
+    "passage": "The Lord is slow to anger and abounding in love, forgiving sin and rebellion.",
+    "options": ["Exodus 34:6", "Numbers 14:18", "Psalm 86:15"],
+    "correctAnswer": "Numbers 14:18",
+    "hint": "Moses quoting God's own self-description"
+  },
+  {
+    "id": 197,
+    "passage": "Give us today our daily bread.",
+    "options": ["Luke 11:3", "Proverbs 30:8", "Matthew 6:11"],
+    "correctAnswer": "Matthew 6:11",
+    "hint": "Part of the Lord's Prayer"
+  },
+  {
+    "id": 198,
+    "passage": "Your kingdom come, your will be done, on earth as it is in heaven.",
+    "options": ["Luke 11:2", "Revelation 11:15", "Matthew 6:10"],
+    "correctAnswer": "Matthew 6:10",
+    "hint": "The central petition of the Lord's Prayer"
+  },
+  {
+    "id": 199,
+    "passage": "Forgive us our debts, as we also have forgiven our debtors.",
+    "options": ["Luke 11:4", "Matthew 6:12", "Mark 11:25"],
+    "correctAnswer": "Matthew 6:12",
+    "hint": "The forgiveness petition of the Lord's Prayer"
+  },
+  {
+    "id": 200,
+    "passage": "For yours is the kingdom and the power and the glory forever. Amen.",
+    "options": ["1 Chronicles 29:11", "Revelation 4:11", "Matthew 6:13"],
+    "correctAnswer": "Matthew 6:13",
+    "hint": "The doxology closing the Lord's Prayer"
+  },
+  {
+    "id": 201,
+    "passage": "Come, let us bow down in worship, let us kneel before the Lord our Maker.",
+    "options": ["Psalm 95:6", "Psalm 29:2", "Isaiah 66:23"],
+    "correctAnswer": "Psalm 95:6",
+    "hint": "A call to corporate worship"
+  },
+  {
+    "id": 202,
+    "passage": "And God raised us up with Christ and seated us with him in the heavenly realms in Christ Jesus.",
+    "options": ["Colossians 3:1", "Romans 6:4", "Ephesians 2:6"],
+    "correctAnswer": "Ephesians 2:6",
+    "hint": "Our current spiritual position in Christ"
+  },
+  {
+    "id": 203,
+    "passage": "For we are God's handiwork, created in Christ Jesus to do good works.",
+    "options": ["Colossians 1:10", "Titus 2:14", "Ephesians 2:10"],
+    "correctAnswer": "Ephesians 2:10",
+    "hint": "The purpose of our new creation"
+  },
+  {
+    "id": 204,
+    "passage": "Set your minds on things above, not on earthly things.",
+    "options": ["Romans 12:2", "Philippians 4:8", "Colossians 3:2"],
+    "correctAnswer": "Colossians 3:2",
+    "hint": "Paul's command to heavenly-mindedness"
+  },
+  {
+    "id": 205,
+    "passage": "Christ in you, the hope of glory.",
+    "options": ["Galatians 2:20", "Ephesians 3:17", "Colossians 1:27"],
+    "correctAnswer": "Colossians 1:27",
+    "hint": "The mystery now revealed to the Gentiles"
+  }
+]
