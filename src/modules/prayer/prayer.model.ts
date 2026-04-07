@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
-export interface IPrayer extends Document {
+export interface IPrayer {
   user: Types.ObjectId; // reference to User
   title: string;
   description: string;

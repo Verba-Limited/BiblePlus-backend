@@ -1,6 +1,7 @@
 import { Blog } from "./blog.model";
 import AppError from "../../core/AppError";
 import { NotificationService } from "../notifications/notification.service";
+import { EmailService } from "../../services/email.service";
 import { HydratedDocument } from "mongoose";
 import { IBlog } from "./blog.model";
 import { fetchAndCacheBlogContent } from "./christainBlog.service";
@@ -143,6 +144,10 @@ export const BlogService = {
       "blog-publish",
       { blogId: updated._id.toString() }
     ).catch(() => {});
+
+    setImmediate(() => {
+      EmailService.sendNewBlogToAll(updated).catch(console.error);
+    });
 
     return updated;
   },

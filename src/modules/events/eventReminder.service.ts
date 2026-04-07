@@ -1,6 +1,8 @@
 import { EventReminder } from "./eventReminder.model";
 import { NotificationService } from "../notifications/notification.service";
 import { IEvent } from "./event.model";
+import { User } from "../auth/auth.model";
+import { EmailService } from "../../services/email.service";
 import mongoose from "mongoose";
 
 export const EventReminderService = {
@@ -72,6 +74,15 @@ export const EventReminderService = {
           "event-reminder",
           { userId }
         );
+        const user24h = await User.findById(userId).select("email firstName");
+        if (user24h?.email) {
+          EmailService.sendEventReminder(
+            user24h.email,
+            user24h.firstName ?? "Friend",
+            event,
+            24
+          ).catch(console.error);
+        }
         reminder.sent24h = true;
         await reminder.save();
       }
@@ -85,6 +96,15 @@ export const EventReminderService = {
           "event-reminder",
           { userId }
         );
+        const user1h = await User.findById(userId).select("email firstName");
+        if (user1h?.email) {
+          EmailService.sendEventReminder(
+            user1h.email,
+            user1h.firstName ?? "Friend",
+            event,
+            1
+          ).catch(console.error);
+        }
         reminder.sent1h = true;
         await reminder.save();
       }

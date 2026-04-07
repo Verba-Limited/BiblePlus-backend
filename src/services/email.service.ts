@@ -340,6 +340,75 @@ export const EmailService = {
   },
 
   /* =====================================================
+     NEW BLOG TO ALL USERS
+  ===================================================== */
+  async sendNewBlogToAll(blog: any) {
+    await this.sendToAllUsers(
+      `📝 New Blog: ${blog.title}`,
+      (firstName) => `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #6B4EFF; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">New Blog Post</h1>
+          </div>
+          <div style="padding: 30px; background: #f9f9f9;">
+            <h2>Hello ${firstName}! 👋</h2>
+            <p>A new blog post has been published on BiblePlus:</p>
+            ${blog.coverImage ? `<img src="${blog.coverImage}" style="width: 100%; border-radius: 10px; margin: 15px 0;" />` : ""}
+            <h3 style="color: #6B4EFF;">${blog.title}</h3>
+            <p>${blog.summary || blog.excerpt || ""}</p>
+            <p><strong>Category:</strong> ${blog.category}</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.APP_URL}/blog/${blog.slug}"
+                 style="background: #6B4EFF; color: white; padding: 15px 30px;
+                        border-radius: 25px; text-decoration: none; font-weight: bold;">
+                Read Now
+              </a>
+            </div>
+            <p style="color: #888; font-size: 12px; text-align: center;">
+              God bless you 🙏 — The BiblePlus Team
+            </p>
+          </div>
+        </div>
+      `
+    );
+  },
+
+  /* =====================================================
+     NEW BOOK TO ALL USERS
+  ===================================================== */
+  async sendNewBookToAll(book: any) {
+    await this.sendToAllUsers(
+      `📚 New Book: ${book.title}`,
+      (firstName) => `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #6B4EFF; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">New Book Available</h1>
+          </div>
+          <div style="padding: 30px; background: #f9f9f9;">
+            <h2>Hello ${firstName}! 📖</h2>
+            <p>A new book has been added to BiblePlus:</p>
+            ${book.coverImage ? `<img src="${book.coverImage}" style="width: 200px; border-radius: 10px; margin: 15px auto; display: block;" />` : ""}
+            <h3 style="color: #6B4EFF;">${book.title}</h3>
+            <p><strong>Author:</strong> ${book.author}</p>
+            <p><strong>Category:</strong> ${book.category}</p>
+            <p>${book.description || ""}</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.APP_URL}/books/${book._id}"
+                 style="background: #6B4EFF; color: white; padding: 15px 30px;
+                        border-radius: 25px; text-decoration: none; font-weight: bold;">
+                Read Now
+              </a>
+            </div>
+            <p style="color: #888; font-size: 12px; text-align: center;">
+              God bless you 🙏 — The BiblePlus Team
+            </p>
+          </div>
+        </div>
+      `
+    );
+  },
+
+  /* =====================================================
      SEND TO ALL USERS (BULK)
   ===================================================== */
   async sendToAllUsers(

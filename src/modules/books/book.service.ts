@@ -2,6 +2,7 @@ import AppError from "../../core/AppError";
 import { Book } from "./book.model";
 import { BookChapter } from "./bookChapter.model";
 import { fetchAndCacheChapters } from "./gutenberg.service";
+import { EmailService } from "../../services/email.service";
 
 export const BookService = {
   /* =====================================================
@@ -110,6 +111,11 @@ getChapters: async (bookId: string) => {
     }
 
     const book = await Book.create(data);
+
+    setImmediate(() => {
+      EmailService.sendNewBookToAll(book).catch(console.error);
+    });
+
     return book;
   },
 
