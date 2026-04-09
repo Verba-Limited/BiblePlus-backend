@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import bcrypt from "bcrypt";
-import { CallbackWithoutResultAndOptionalError } from "mongoose";
-import { HydratedDocument } from "mongoose"
+import bcrypt from "bcryptjs";
+import { HydratedDocument } from "mongoose";
 
 /* =====================================================
    INTERFACE
@@ -122,20 +121,6 @@ const userSchema = new Schema<IUser>(
 );
 
 /* =====================================================
-   HOOKS
-===================================================== */
-
-
-// Hash password before save
-userSchema.pre("save", async function () {
-  if (!this.isModified("password")) {
-    return;
-  }
-
-  this.password = await bcrypt.hash(this.password, 10);
-});
-
-/* =====================================================
    METHODS
 ===================================================== */
 
@@ -146,12 +131,19 @@ userSchema.methods.comparePassword = async function (
 };
 
 /* =====================================================
+   INDEXES
+===================================================== */
+
+// Compound index — speeds up login query { email, isDeleted: false }
+userSchema.index({ email: 1, isDeleted: 1 });
+
+/* =====================================================
    GLOBAL QUERY FILTER (Soft Delete Protection)
 ===================================================== */
 
 // Automatically exclude deleted users
 function excludeDeleted(this: any) {
-  this.where({ isDeleted: { $ne: true } });
+  this.where({ isDeleted: false });
 }
 
 userSchema.pre("find", excludeDeleted);

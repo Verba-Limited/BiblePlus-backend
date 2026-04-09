@@ -139,14 +139,14 @@ export const AuthService = {
      LOGIN USER
   ===================================================== */
   async login(email: string, password: string) {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) throw new AppError("Invalid credentials", 400);
+
+    // ✅ Reject unverified users before running expensive bcrypt
+    if (!user.verified) throw new AppError("Account not verified", 400);
 
     const valid = await comparePassword(password, user.password);
     if (!valid) throw new AppError("Invalid credentials", 400);
-
-    if (!user.verified)
-      throw new AppError("Account not verified", 400);
 
     return {
       token: generateAccessToken({
