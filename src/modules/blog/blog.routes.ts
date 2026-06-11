@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { BlogController } from "./blog.controller";
 import { adminOnly } from "../../middleware/admin.middleware";
+import authMiddleware from "../../middleware/auth.middleware";
 import { uploadBlogCover } from "../../middleware/upload.middleware";
 
 const router = Router();
@@ -18,6 +19,7 @@ router.get("/search", BlogController.search);
 ====================================================== */
 router.post(
   "/admin",
+  authMiddleware,
   adminOnly,
   uploadBlogCover,
   BlogController.create
@@ -25,6 +27,7 @@ router.post(
 
 router.put(
   "/admin/:id",
+  authMiddleware,
   adminOnly,
   uploadBlogCover,
   BlogController.update
@@ -32,12 +35,14 @@ router.put(
 
 router.put(
   "/admin/:id/publish",
+  authMiddleware,
   adminOnly,
   BlogController.publish
 );
 
 router.delete(
   "/admin/:id",
+  authMiddleware,
   adminOnly,
   BlogController.delete
 );
@@ -45,6 +50,7 @@ router.delete(
 // ✅ Manual refresh endpoint for admin
 router.post(
   "/admin/refresh",
+  authMiddleware,
   adminOnly,
   BlogController.refreshExternal
 );

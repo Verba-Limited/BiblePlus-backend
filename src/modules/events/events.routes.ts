@@ -32,15 +32,16 @@ router.get("/:id", EventController.getEvent);
 /* ======================================================
     📌 SPEAKER MANAGEMENT (ADMIN ONLY)
 ====================================================== */
-router.post("/admin/speakers", adminOnly, SpeakerController.create);
-router.put("/admin/speakers/:id", adminOnly, SpeakerController.update);
-router.delete("/admin/speakers/:id", adminOnly, SpeakerController.delete);
+router.post("/admin/speakers", authMiddleware, adminOnly, SpeakerController.create);
+router.put("/admin/speakers/:id", authMiddleware, adminOnly, SpeakerController.update);
+router.delete("/admin/speakers/:id", authMiddleware, adminOnly, SpeakerController.delete);
 
 /* ======================================================
     📌 EVENT BANNER UPLOAD (ADMIN ONLY)
 ====================================================== */
 router.post(
   "/admin/upload-banner",
+  authMiddleware,
   adminOnly,
   bannerUpload.single("banner"),
   (req, res) => {
@@ -64,6 +65,7 @@ router.post(
 ====================================================== */
 router.post(
   "/admin/gallery/upload",
+  authMiddleware,
   adminOnly,
   galleryUpload.array("images", 10),
   (req, res) => {
@@ -88,13 +90,13 @@ router.post(
 /* ======================================================
     📌 LIVESTREAM UPDATE (ADMIN ONLY)
 ====================================================== */
-router.put("/admin/:id/live", adminOnly, EventController.updateLiveStream);
+router.put("/admin/:id/live", authMiddleware, adminOnly, EventController.updateLiveStream);
 
 /* ======================================================
     📌 EVENT CRUD (ADMIN ONLY)
 ====================================================== */
-router.post("/admin", adminOnly, EventController.create);
-router.put("/admin/:id", adminOnly, EventController.update);
-router.delete("/admin/:id", adminOnly, EventController.delete);
+router.post("/admin", authMiddleware, adminOnly, EventController.create);
+router.put("/admin/:id", authMiddleware, adminOnly, EventController.update);
+router.delete("/admin/:id", authMiddleware, adminOnly, EventController.delete);
 
 export default router;

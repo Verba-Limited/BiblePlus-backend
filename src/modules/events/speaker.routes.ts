@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { SpeakerController } from "./speaker.controller";
 import { adminOnly } from "../../middleware/admin.middleware";
+import authMiddleware from "../../middleware/auth.middleware";
 
 const router = Router();
 
@@ -12,10 +13,9 @@ router.get("/:id", SpeakerController.getOne);
 
 /* ======================================================
    📌 ADMIN SPEAKER ROUTES
-   NOTE: NO authMiddleware here — adminOnly is enough
 ====================================================== */
-router.post("/admin", adminOnly, SpeakerController.create);
-router.put("/admin/:id", adminOnly, SpeakerController.update);
-router.delete("/admin/:id", adminOnly, SpeakerController.delete);
+router.post("/admin", authMiddleware, adminOnly, SpeakerController.create);
+router.put("/admin/:id", authMiddleware, adminOnly, SpeakerController.update);
+router.delete("/admin/:id", authMiddleware, adminOnly, SpeakerController.delete);
 
 export default router;

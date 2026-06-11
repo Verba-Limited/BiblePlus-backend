@@ -31,6 +31,7 @@ router.get("/:id/chapter/:chapter", BookController.getChapter);
 /* ---------------------- ADMIN ROUTES ---------------------- */
 router.post(
   "/admin",
+  authMiddleware,
   adminOnly,
   uploadBookCover, // ✅ Cloudinary upload
   BookController.create
@@ -38,6 +39,7 @@ router.post(
 
 router.put(
   "/admin/:id",
+  authMiddleware,
   adminOnly,
   uploadBookCover, // ✅ Cloudinary upload
   BookController.update
@@ -45,6 +47,7 @@ router.put(
 
 router.delete(
   "/admin/:id",
+  authMiddleware,
   adminOnly,
   BookController.delete
 );

@@ -24,6 +24,6 @@ router.delete("/:id", authMiddleware, BlogCommentController.deleteOwn);
 ====================================================== */
 
 // Admin delete ANY comment
-router.delete("/admin/:id", adminOnly, BlogCommentController.adminDelete);
+router.delete("/admin/:id", authMiddleware, adminOnly, BlogCommentController.adminDelete);
 
 export default router;
