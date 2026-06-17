@@ -168,8 +168,10 @@ export const seedChristianBlogs = async () => {
         // ✅ Delay between sources to be respectful
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-      } catch (sourceError) {
-        console.error(`❌ Failed to fetch from ${source.name}:`, sourceError);
+      } catch (sourceError: any) {
+        // Graceful per-source failure — log concisely, don't spam console
+        const msg = sourceError?.message || "Unknown error";
+        console.warn(`⚠️  RSS skip: ${source.name} — ${msg.substring(0, 80)}`);
         continue; // ✅ don't stop — try next source
       }
     }

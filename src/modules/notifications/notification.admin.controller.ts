@@ -43,11 +43,11 @@ export const NotificationAdminController = {
         throw new AppError("title and message are required", 400);
       }
 
-      const notif = await NotificationService.broadcast(
+      const notif = await NotificationService.create(
+        "ALL",
         title,
         message,
-        type || "broadcast",
-        data || {}
+        type || "broadcast"
       );
 
       res.json({

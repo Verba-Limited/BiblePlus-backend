@@ -21,18 +21,18 @@ export const QuizLevelService = {
       progress = await QuizProgress.create({ userId });
     }
 
-    progress.xp += earnedXp;
+    progress.totalXp += earnedXp;
 
     // Determine new level
-    let newLevel = progress.level;
+    let newLevel = progress.highestLevel;
     for (let lvl = 10; lvl >= 1; lvl--) {
-      if (progress.xp >= LEVEL_XP[lvl]) {
+      if (progress.totalXp >= LEVEL_XP[lvl]) {
         newLevel = lvl;
         break;
       }
     }
 
-    progress.level = newLevel;
+    progress.highestLevel = newLevel;
     await progress.save();
 
     return progress;

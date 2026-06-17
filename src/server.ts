@@ -18,6 +18,7 @@ import { seedGutenbergBooks } from "./modules/books/gutenberg.service";
 import { seedChristianBlogs, refreshChristianBlogs } from "./modules/blog/christainBlog.service";
 import { EmailService } from "./services/email.service";
 import { VerseService } from "./modules/verse/verse.service";
+import { seedDefaultConfigs, getConfigBool } from "./modules/admin/system/systemConfig.model";
 
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI as string;
@@ -76,9 +77,14 @@ cron.schedule("* * * * *", async () => {
   }
 });
 
-// ✅ Refresh Christian blogs every 24 hours at midnight
+// ✅ Refresh Christian blogs every 24 hours at midnight (respects feature flag)
 cron.schedule("0 0 * * *", async () => {
   try {
+    const enabled = await getConfigBool("rss_sync_enabled", true);
+    if (!enabled) {
+      console.log("⏭️  RSS sync disabled via SystemConfig — skipping");
+      return;
+    }
     console.log("🔄 Daily Christian blog refresh...");
     await refreshChristianBlogs();
   } catch (err) {
@@ -175,6 +181,7 @@ async function startServer() {
 
         // Needs DB
         await AdminService.createDefaultAdmin();
+        await seedDefaultConfigs();
 
         console.log("✅ All systems initialized");
 
@@ -183,10 +190,15 @@ async function startServer() {
           seedGutenbergBooks().catch(console.error);
         }, 5000);
 
-        // ✅ Christian blogs — 10s after startup
+        // ✅ Christian blogs — 10s after startup (respects feature flag)
         // staggered so they don't hit DB at the same time
-        setTimeout(() => {
-          seedChristianBlogs().catch(console.error);
+        setTimeout(async () => {
+          const rssEnabled = await getConfigBool("rss_sync_enabled", true);
+          if (rssEnabled) {
+            seedChristianBlogs().catch(console.error);
+          } else {
+            console.log("⏭️  RSS sync disabled — skipping initial seed");
+          }
         }, 10000);
 
       } catch (err) {

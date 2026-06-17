@@ -91,6 +91,45 @@ export const EmailService = {
   },
 
   /* =====================================================
+     ADMIN OTP EMAIL
+  ===================================================== */
+  async sendAdminOtp(to: string, username: string, otp: string) {
+    try {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to,
+        subject: "🔒 BiblePlus Admin — Verification Code",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: #e74c3c; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0;">Security Verification</h1>
+            </div>
+            <div style="padding: 30px; background: #f9f9f9; border: 1px solid #ddd; border-top: none; border-radius: 0 0 10px 10px;">
+              <h2>Hello ${username},</h2>
+              <p>You recently requested to perform a sensitive action (like changing your password) in the BiblePlus Admin panel.</p>
+              <p>Here is your One-Time Password (OTP):</p>
+              
+              <div style="background: white; border: 2px dashed #e74c3c; padding: 20px; text-align: center; margin: 30px 0; border-radius: 10px;">
+                <h1 style="font-size: 40px; letter-spacing: 5px; margin: 0; color: #e74c3c;">${otp}</h1>
+              </div>
+
+              <p>This code will expire in <strong>10 minutes</strong>.</p>
+              <p>If you did not request this, please ignore this email and verify your account security.</p>
+              
+              <p style="color: #888; font-size: 12px; text-align: center; margin-top: 40px;">
+                BiblePlus Security System
+              </p>
+            </div>
+          </div>
+        `
+      });
+      console.log(`✅ Admin OTP sent to ${to}`);
+    } catch (error) {
+      console.error("❌ Admin OTP email failed:", error);
+    }
+  },
+
+  /* =====================================================
      VERSE OF THE DAY EMAIL
   ===================================================== */
   async sendVerseOfDay(to: string, firstName: string, verse: any) {

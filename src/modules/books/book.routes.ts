@@ -3,7 +3,6 @@ import { BookController } from "./book.controller";
 import { BookFavoriteController } from "./bookFavorite.controller";
 import { BookProgressController } from "./bookProgress.controller";
 import authMiddleware from "../../middleware/auth.middleware";
-import { adminOnly } from "../../middleware/admin.middleware";
 import { uploadBookCover } from "../../middleware/upload.middleware";
 
 const router = Router();
@@ -28,28 +27,6 @@ router.get("/:id", BookController.getBook);
 router.get("/:id/chapters", BookController.getChapters);
 router.get("/:id/chapter/:chapter", BookController.getChapter);
 
-/* ---------------------- ADMIN ROUTES ---------------------- */
-router.post(
-  "/admin",
-  authMiddleware,
-  adminOnly,
-  uploadBookCover, // ✅ Cloudinary upload
-  BookController.create
-);
 
-router.put(
-  "/admin/:id",
-  authMiddleware,
-  adminOnly,
-  uploadBookCover, // ✅ Cloudinary upload
-  BookController.update
-);
-
-router.delete(
-  "/admin/:id",
-  authMiddleware,
-  adminOnly,
-  BookController.delete
-);
 
 export default router;

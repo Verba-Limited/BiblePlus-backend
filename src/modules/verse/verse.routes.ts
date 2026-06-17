@@ -11,14 +11,4 @@ const router = Router();
 router.get("/today", VerseController.today);
 router.get("/history", VerseController.history);
 
-/* ADMIN */
-
-
-router.post(
-  "/admin/set",
-  authMiddleware,
-  adminOnly,
-  AdminVerseController.setVerseOfDay
-);
-
 export default router;

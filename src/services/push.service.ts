@@ -1,4 +1,4 @@
-import { messaging } from "../config/firebase";
+import admin from "../config/firebase";
 import { User } from "../modules/auth/auth.model";
 
 export const PushService = {
@@ -8,6 +8,8 @@ export const PushService = {
   ===================================================== */
   async sendToUser(userId: string, title: string, body: string, data?: any) {
     try {
+      if (!admin.apps.length) return;
+      const messaging = admin.messaging();
       const user = await User.findById(userId).select("fcmToken");
       if (!user?.fcmToken) return;
 
@@ -42,6 +44,8 @@ export const PushService = {
   ===================================================== */
   async sendToAll(title: string, body: string, data?: any) {
     try {
+      if (!admin.apps.length) return;
+      const messaging = admin.messaging();
       const users = await User.find({
         fcmToken: { $exists: true, $ne: "" }
       }).select("fcmToken");

@@ -6,6 +6,7 @@ export interface IPrayer {
   description: string;
   visibility: "public" | "private";
   isAnswered: boolean;
+  status: "approved" | "pending" | "flagged";
   image?: string;
   prayCount: number;
   createdAt: Date;
@@ -52,6 +53,14 @@ const prayerSchema = new Schema<IPrayer>(
     image: {
       type: String,
       default: ""
+    },
+
+    // ✅ Moderation status
+    status: {
+      type: String,
+      enum: ["approved", "pending", "flagged"],
+      default: "approved",
+      index: true
     },
 
     prayCount: {

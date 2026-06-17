@@ -9,10 +9,12 @@ export const AdminController = {
   // -----------------------------------------------------
   login: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { username, password } = req.body;
+      // Allow them to pass either `username` or `email` field
+      const identifier = req.body.username || req.body.email;
+      const { password } = req.body;
 
-      if (!username || !password) {
-        throw new AppError("Username and password are required", 400);
+      if (!identifier || !password) {
+        throw new AppError("username/email and password are required", 400);
       }
 
       /**
@@ -20,14 +22,18 @@ export const AdminController = {
        *  - validate credentials
        *  - return { userId, role: "admin", token }
        */
-      const result = await AdminService.login(username, password);
+      const result = await AdminService.login(identifier, password);
 
       res.status(200).json({
         success: true,
         message: "Admin login successful",
         data: {
-          token: result.token,
-          role: "admin"
+          accessToken: result.token,
+          user: {
+            id: result.admin.id,
+            username: result.admin.username,
+            role: result.admin.role
+          }
         }
       });
     } catch (err) {

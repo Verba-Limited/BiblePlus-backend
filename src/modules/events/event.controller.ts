@@ -81,8 +81,8 @@ export const EventController = {
       const eventId = req.params.id;
 
       await EventReminder.create({
-        user: req.userId,
-        event: eventId
+        userId: req.userId,
+        eventId: eventId
       });
 
       await NotificationService.create(

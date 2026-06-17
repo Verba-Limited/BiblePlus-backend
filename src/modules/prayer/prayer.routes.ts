@@ -68,15 +68,4 @@ router.get(
   PrayerLikeController.count
 );
 
-/* =====================================
-      ADMIN: DELETE ONLY
-===================================== */
-// DELETE /api/prayer/admin/:id
-router.delete(
-  "/admin/:id",
-  authMiddleware,
-  adminOnly,
-  PrayerController.delete
-);
-
 export default router;

@@ -34,6 +34,11 @@ import prayerLikeRoutes from "./modules/prayer/prayerLike.routes";
 import prayerRoutes from "./modules/prayer/prayer.routes";
 import notificationRoutes from "./modules/notifications/notification.routes";
 import AdminRoutes from "./modules/admin/admin.routes";
+import AdminIndexRoutes from "./modules/admin/admin.index.routes";
+import authMiddleware from "./middleware/auth.middleware";
+import { adminOnly } from "./middleware/admin.middleware";
+import { adminRoleResolver } from "./middleware/adminRoleResolver.middleware";
+import { auditLogMiddleware } from "./middleware/auditLog.middleware";
 import chatbotRoutes from "./modules/chatbot/chatbot.routes";
 import verseRoutes from "./modules/verse/verse.routes";
 import verseEngagementRoutes from "./modules/verse/verseEngagement.routes";
@@ -137,6 +142,7 @@ app.use("/api/prayer", prayerRoutes);
 
 /* ===== ADMIN ===== */
 app.use("/api/admin", AdminRoutes);
+app.use("/api/admin", authMiddleware, adminOnly, adminRoleResolver, auditLogMiddleware, AdminIndexRoutes);
 
 /* ===== OTHER ===== */
 app.use("/api/notifications", notificationRoutes);

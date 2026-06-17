@@ -11,13 +11,13 @@ export const startEventReminderCron = () => {
     const now = new Date();
 
     const reminders = await EventReminder.find()
-      .populate("event")
-      .populate("user");
+      .populate("eventId")
+      .populate("userId");
 
    for (const reminder of reminders) {
 
-  const event = reminder.event as any;
-  const user = reminder.user as any;
+  const event = reminder.eventId as any;
+  const user = reminder.userId as any;
 
   const eventDate = new Date(event.date);
 
@@ -26,7 +26,7 @@ export const startEventReminderCron = () => {
 
   if (
     now.toDateString() === oneDayBefore.toDateString() &&
-    !reminder.remindedDayBefore
+    !reminder.sent24h
   ) {
     await NotificationService.create(
       "USER",
@@ -36,13 +36,13 @@ export const startEventReminderCron = () => {
       { userId: user._id.toString() }
     );
 
-    reminder.remindedDayBefore = true;
+    reminder.sent24h = true;
     await reminder.save();
   }
 
   if (
     now.toDateString() === eventDate.toDateString() &&
-    !reminder.remindedDayOf
+    !reminder.sentStart
   ) {
     await NotificationService.create(
       "USER",
@@ -52,7 +52,7 @@ export const startEventReminderCron = () => {
       { userId: user._id.toString() }
     );
 
-    reminder.remindedDayOf = true;
+    reminder.sentStart = true;
     await reminder.save();
   }
 }

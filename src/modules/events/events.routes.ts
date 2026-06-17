@@ -3,12 +3,7 @@ import { EventController } from "./event.controller";
 import { EventReminderController } from "./eventReminder.controller";
 import { SpeakerController } from "./speaker.controller";
 import authMiddleware from "../../middleware/auth.middleware";
-import { adminOnly } from "../../middleware/admin.middleware";
-import multer from "multer";
 
-/* Uploads */
-const bannerUpload = multer({ dest: "uploads/events/banners" });
-const galleryUpload = multer({ dest: "uploads/events/gallery" });
 
 const router = Router();
 
@@ -26,77 +21,5 @@ router.get("/speakers/:id", SpeakerController.getOne);
 
 /* This MUST stay last among public routes */
 router.get("/:id", EventController.getEvent);
-
-
-
-/* ======================================================
-    📌 SPEAKER MANAGEMENT (ADMIN ONLY)
-====================================================== */
-router.post("/admin/speakers", authMiddleware, adminOnly, SpeakerController.create);
-router.put("/admin/speakers/:id", authMiddleware, adminOnly, SpeakerController.update);
-router.delete("/admin/speakers/:id", authMiddleware, adminOnly, SpeakerController.delete);
-
-/* ======================================================
-    📌 EVENT BANNER UPLOAD (ADMIN ONLY)
-====================================================== */
-router.post(
-  "/admin/upload-banner",
-  authMiddleware,
-  adminOnly,
-  bannerUpload.single("banner"),
-  (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No banner uploaded",
-      });
-    }
-
-    res.json({
-      success: true,
-      file: req.file.filename,
-      url: `/uploads/events/banners/${req.file.filename}`,
-    });
-  }
-);
-
-/* ======================================================
-    📌 EVENT GALLERY UPLOAD (ADMIN ONLY)
-====================================================== */
-router.post(
-  "/admin/gallery/upload",
-  authMiddleware,
-  adminOnly,
-  galleryUpload.array("images", 10),
-  (req, res) => {
-    const files = req.files as Express.Multer.File[];
-    if (!files?.length) {
-      return res.status(400).json({
-        success: false,
-        message: "No images uploaded",
-      });
-    }
-
-    res.json({
-      success: true,
-      images: files.map((f) => ({
-        file: f.filename,
-        url: `/uploads/events/gallery/${f.filename}`,
-      })),
-    });
-  }
-);
-
-/* ======================================================
-    📌 LIVESTREAM UPDATE (ADMIN ONLY)
-====================================================== */
-router.put("/admin/:id/live", authMiddleware, adminOnly, EventController.updateLiveStream);
-
-/* ======================================================
-    📌 EVENT CRUD (ADMIN ONLY)
-====================================================== */
-router.post("/admin", authMiddleware, adminOnly, EventController.create);
-router.put("/admin/:id", authMiddleware, adminOnly, EventController.update);
-router.delete("/admin/:id", authMiddleware, adminOnly, EventController.delete);
 
 export default router;

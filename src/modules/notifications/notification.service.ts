@@ -135,5 +135,42 @@ export const NotificationService = {
     );
 
     return { message: "All notifications marked as read" };
+  },
+
+  /* ============================================
+     ADMIN: LIST ALL NOTIFICATIONS
+  ============================================ */
+  async listAll(page: number, limit: number, type?: string) {
+    const query = type ? { type } : {};
+    const notifications = await Notification.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .populate("user", "firstName lastName email avatar");
+    const total = await Notification.countDocuments(query);
+    return { notifications, total, page, limit };
+  },
+
+  /* ============================================
+     ADMIN: DELETE NOTIFICATION
+  ============================================ */
+  async deleteNotification(id: string) {
+    await Notification.findByIdAndDelete(id);
+  },
+
+  /* ============================================
+     ADMIN: RESEND NOTIFICATION
+  ============================================ */
+  async resend(id: string) {
+    const notif = await Notification.findById(id);
+    if (!notif) throw new AppError("Notification not found", 404);
+
+    if (notif.target === "ALL") {
+      await sendPushToAll(notif.title, notif.message);
+    } else if (notif.user) {
+      await sendPushToUser(notif.user.toString(), notif.title, notif.message);
+    }
+
+    return notif;
   }
 };
