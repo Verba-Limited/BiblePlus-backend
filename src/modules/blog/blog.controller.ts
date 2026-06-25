@@ -84,8 +84,14 @@ export const BlogController = {
       const authorId = req.adminId;
 
       // ✅ Use Cloudinary URL if file uploaded
-      const coverImage =
-        (req.file as any)?.secure_url ?? req.file?.path ?? req.file?.filename ?? "";
+      // multer-storage-cloudinary puts the URL in req.file.path
+      const coverImage = req.file?.path ?? "";
+
+      if (req.file) {
+        console.log("📸 Blog cover uploaded:", { path: req.file.path, filename: req.file.filename });
+      } else {
+        console.warn("⚠️ No file received for blog cover. Check form-data field name is 'coverImage'.");
+      }
 
       const data = await BlogService.createBlog({
         ...req.body,
@@ -110,8 +116,12 @@ export const BlogController = {
   update: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // ✅ Use Cloudinary URL if new image uploaded
-      const coverImage =
-        (req.file as any)?.secure_url ?? req.file?.path ?? req.file?.filename;
+      // multer-storage-cloudinary puts the URL in req.file.path
+      const coverImage = req.file?.path;
+
+      if (req.file) {
+        console.log("📸 Blog cover updated:", { path: req.file.path, filename: req.file.filename });
+      }
 
       const data = await BlogService.updateBlog(req.params.id, {
         ...req.body,

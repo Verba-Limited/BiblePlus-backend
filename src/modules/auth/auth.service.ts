@@ -80,7 +80,8 @@ export const AuthService = {
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
-    console.log("register otp:", otpCode);
+    // Send OTP via email
+    EmailService.sendOtp(email, firstName, otpCode.toString()).catch(console.error);
 
     return {
       message: "OTP sent to email",

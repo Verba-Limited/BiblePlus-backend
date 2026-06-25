@@ -4,6 +4,41 @@ import { User } from "../modules/auth/auth.model";
 export const EmailService = {
 
   /* =====================================================
+     OTP VERIFICATION EMAIL
+  ===================================================== */
+  async sendOtp(to: string, firstName: string, otp: string) {
+    try {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to,
+        subject: "🔐 Your BiblePlus Verification Code",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: #6B4EFF; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0;">Verify Your Account</h1>
+            </div>
+            <div style="padding: 30px; background: #f9f9f9;">
+              <h2>Hello ${firstName}! 👋</h2>
+              <p>Your verification code is:</p>
+              <div style="background: white; border: 2px dashed #6B4EFF; padding: 20px; text-align: center; margin: 30px 0; border-radius: 10px;">
+                <h1 style="font-size: 40px; letter-spacing: 5px; margin: 0; color: #6B4EFF;">${otp}</h1>
+              </div>
+              <p>This code expires in <strong>5 minutes</strong>.</p>
+              <p>If you didn't create an account, you can safely ignore this email.</p>
+              <p style="color: #888; font-size: 12px; text-align: center;">
+                God bless you 🙏 — The BiblePlus Team
+              </p>
+            </div>
+          </div>
+        `
+      });
+      console.log(`✅ OTP email sent to ${to}`);
+    } catch (error) {
+      console.error("❌ OTP email failed:", error);
+    }
+  },
+
+  /* =====================================================
      WELCOME EMAIL
   ===================================================== */
   async sendWelcome(to: string, firstName: string) {
