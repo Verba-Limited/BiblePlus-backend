@@ -79,7 +79,7 @@ export const EventService = {
   ======================================================== */
   updateEvent: async (id: string, data: any) => {
     const updated = await Event.findByIdAndUpdate(id, data, {
-      new: true,
+      returnDocument: "after",
       runValidators: true
     }).populate("speakers");
 

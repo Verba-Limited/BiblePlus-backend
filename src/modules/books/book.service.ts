@@ -125,7 +125,7 @@ getChapters: async (bookId: string) => {
   ===================================================== */
   updateBook: async (bookId: string, data: any) => {
     const updated = await Book.findByIdAndUpdate(bookId, data, {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
     });
 

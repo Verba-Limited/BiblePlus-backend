@@ -7,7 +7,7 @@ export const EventCategoryService = {
   },
 
   update: async (id: string, data: any) => {
-    const updated = await EventCategory.findByIdAndUpdate(id, data, { new: true });
+    const updated = await EventCategory.findByIdAndUpdate(id, data, { returnDocument: "after" });
     if (!updated) throw new AppError("Category not found", 404);
     return updated;
   },

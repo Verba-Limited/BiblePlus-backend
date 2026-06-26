@@ -114,7 +114,7 @@ export const NotificationService = {
         user: userId
       },
       { read: true },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!updated) {

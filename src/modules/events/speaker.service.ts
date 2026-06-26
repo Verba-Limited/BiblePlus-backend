@@ -13,7 +13,7 @@ export const SpeakerService = {
 
   // Update speaker
   updateSpeaker: async (id: string, data: any) => {
-    const speaker = await Speaker.findByIdAndUpdate(id, data, { new: true });
+    const speaker = await Speaker.findByIdAndUpdate(id, data, { returnDocument: "after" });
     if (!speaker) throw new AppError("Speaker not found", 404);
     return speaker;
   },

@@ -40,7 +40,7 @@ export const ProfileService = {
     const updated = await User.findByIdAndUpdate(
       userId,
       data,
-      { new: true }
+      { returnDocument: "after" }
     ).select("-password");
 
     return updated;
@@ -92,7 +92,7 @@ export const ProfileService = {
     const user = await User.findByIdAndUpdate(
       userId,
       { notificationSettings: settings },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     return user?.notificationSettings;
@@ -113,7 +113,7 @@ async updateAvatar(userId: string, avatarPath: string) {
   const user = await User.findByIdAndUpdate(
     userId,
     { avatar: avatarPath },
-    { new: true }
+    { returnDocument: "after" }
   ).select("-password");
 
   return user;

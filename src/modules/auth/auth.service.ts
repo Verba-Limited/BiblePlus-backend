@@ -117,7 +117,7 @@ export const AuthService = {
   const user = await User.findOneAndUpdate(
     { email },
     { verified: true },
-    { new: true }
+    { returnDocument: "after" }
   );
 
   if (!user) throw new AppError("User not found", 404);
@@ -243,7 +243,7 @@ if (!isDevBypass) {
     const user = await User.findByIdAndUpdate(
       userId,
       data,
-      { new: true }
+      { returnDocument: "after" }
     ).select("-password");
 
     if (!user) throw new AppError("User not found", 404);

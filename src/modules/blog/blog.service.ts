@@ -56,7 +56,7 @@ export const BlogService = {
     const blog = await Blog.findOneAndUpdate(
       { slug },
       { $inc: { views: 1 } },
-      { new: true }
+      { returnDocument: "after" }
     ) as HydratedDocument<IBlog> | null;
 
     if (!blog) throw new AppError("Blog not found", 404);
@@ -108,7 +108,7 @@ export const BlogService = {
   // -----------------------------------------------------
   updateBlog: async (id: string, data: any) => {
     const updated = await Blog.findByIdAndUpdate(id, data, {
-      new: true,
+      returnDocument: "after",
       runValidators: true
     }) as HydratedDocument<IBlog> | null;
 
@@ -132,7 +132,7 @@ export const BlogService = {
     const updated = await Blog.findByIdAndUpdate(
       id,
       { status: "published" },
-      { new: true }
+      { returnDocument: "after" }
     ) as HydratedDocument<IBlog> | null;
 
     if (!updated) throw new AppError("Blog not found", 404);

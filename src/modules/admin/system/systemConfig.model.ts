@@ -151,7 +151,7 @@ export const seedDefaultConfigs = async () => {
     await SystemConfig.findOneAndUpdate(
       { key: cfg.key },
       { $setOnInsert: cfg },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
   }
 

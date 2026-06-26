@@ -52,7 +52,7 @@ export const SystemConfigController = {
           value: String(value),
           updatedBy: req.userId
         },
-        { new: true }
+        { returnDocument: "after" }
       );
 
       if (!config) {

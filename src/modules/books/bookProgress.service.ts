@@ -39,7 +39,7 @@ export const BookProgressService = {
         percentage,
       },
       {
-        new: true,
+        returnDocument: "after",
         upsert: true,           // ✅ CREATE if missing
         setDefaultsOnInsert: true,
       }

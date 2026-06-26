@@ -44,7 +44,7 @@ export const ModerationController = {
       const prayer = await Prayer.findByIdAndUpdate(
         req.params.id,
         { status: "approved" },
-        { new: true }
+        { returnDocument: "after" }
       );
       if (!prayer) throw new AppError("Prayer not found", 404);
 
@@ -83,7 +83,7 @@ export const ModerationController = {
       const prayer = await Prayer.findByIdAndUpdate(
         req.params.id,
         { status: "flagged" },
-        { new: true }
+        { returnDocument: "after" }
       );
       if (!prayer) throw new AppError("Prayer not found", 404);
 
@@ -136,7 +136,7 @@ export const ModerationController = {
       const comment = await BlogComment.findByIdAndUpdate(
         req.params.id,
         { status: "approved" },
-        { new: true }
+        { returnDocument: "after" }
       );
       if (!comment) throw new AppError("Comment not found", 404);
 
@@ -175,7 +175,7 @@ export const ModerationController = {
       const comment = await BlogComment.findByIdAndUpdate(
         req.params.id,
         { status: "flagged" },
-        { new: true }
+        { returnDocument: "after" }
       );
       if (!comment) throw new AppError("Comment not found", 404);
 

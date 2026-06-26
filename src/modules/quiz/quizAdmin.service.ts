@@ -48,7 +48,7 @@ export const QuizAdminService = {
     const updated = await QuizQuestion.findByIdAndUpdate(
       id,
       { active: false },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!updated) {
