@@ -51,7 +51,7 @@ export const auditLogMiddleware = (
         await AuditLog.create({
           adminId,
           adminUsername,
-          action,
+          action: action as any,
           resource,
           resourceId,
           details: `${req.method} ${req.originalUrl}`,
