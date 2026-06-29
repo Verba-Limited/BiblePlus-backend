@@ -105,13 +105,11 @@ export const QuizService = {
       throw new AppError("Level locked", 403);
     }
 
-    let questions = await QuizQuestion.find({
-      level,
-      source: "admin",
-      active: true
-    })
-      .limit(10)
-      .lean();
+    // ✅ Randomly sample up to 10 questions for this level (both admin and ai)
+    let questions = await QuizQuestion.aggregate([
+      { $match: { level, active: true } },
+      { $sample: { size: 10 } }
+    ]);
 
     if (questions.length < 10) {
       try {
@@ -129,7 +127,10 @@ export const QuizService = {
           }))
         );
 
-        questions = created.slice(0, 10).map(doc => doc.toObject());
+        // ✅ Combine existing questions with new AI questions to reach 10
+        const needed = 10 - questions.length;
+        const newQuestions = created.slice(0, needed).map(doc => doc.toObject());
+        questions = [...questions, ...newQuestions];
       } catch (err) {
         console.log("AI failed. Using available admin questions.");
         if (!questions.length) {
