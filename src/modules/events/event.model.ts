@@ -9,6 +9,8 @@ export interface IEvent extends Document {
   location: string;
   isOnline: boolean;
 
+  frequency?: "Once" | "Daily" | "Weekly" | "Monthly" | "Yearly";
+
   // ⭐ NEW livestream structure
   liveStream?: {
     platform: string;   // youtube, zoom, facebook, custom
@@ -46,6 +48,12 @@ const eventSchema = new Schema<IEvent>(
 
     // Is this event online or physical?
     isOnline: { type: Boolean, default: false },
+
+    frequency: {
+      type: String,
+      enum: ["Once", "Daily", "Weekly", "Monthly", "Yearly"],
+      default: "Once"
+    },
 
     // ⭐ NEW — livestream object
     liveStream: {

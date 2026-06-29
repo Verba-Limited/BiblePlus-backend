@@ -80,12 +80,11 @@ export const BlogController = {
   // -----------------------------------------------------
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // @ts-ignore
-      const authorId = req.adminId;
+      const authorId = req.userId;
 
       // ✅ Use Cloudinary URL if file uploaded
       // multer-storage-cloudinary puts the URL in req.file.path
-      const coverImage = req.file?.path ?? "";
+      const coverImage = req.file?.path;
 
       if (req.file) {
         console.log("📸 Blog cover uploaded:", { path: req.file.path, filename: req.file.filename });
@@ -96,7 +95,7 @@ export const BlogController = {
       const data = await BlogService.createBlog({
         ...req.body,
         authorId,
-        coverImage,
+        ...(coverImage && { coverImage }),
         source: "admin",
       });
 

@@ -25,7 +25,7 @@ router.post(
     res.json({
       success: true,
       file: req.file.filename,
-      url: `/uploads/events/banners/${req.file.filename}`,
+      url: `${req.protocol}://${req.get("host")}/uploads/events/banners/${req.file.filename}`,
     });
   }
 );
@@ -49,7 +49,7 @@ router.post(
       success: true,
       images: files.map((f) => ({
         file: f.filename,
-        url: `/uploads/events/gallery/${f.filename}`,
+        url: `${req.protocol}://${req.get("host")}/uploads/events/gallery/${f.filename}`,
       })),
     });
   }
