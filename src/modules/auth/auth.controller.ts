@@ -43,6 +43,34 @@ export const AuthController = {
      VERIFY OTP
      POST /api/auth/verify-otp
   ===================================================== */
+  /* =====================================================
+     RESEND VERIFICATION OTP
+     POST /api/auth/resend-otp
+  ===================================================== */
+  resendOtp: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        throw new AppError("Email is required", 400);
+      }
+
+      const result = await AuthService.resendOtp(email);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        data: { email: result.email }
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   verifyOtp: async (
     req: Request,
     res: Response,

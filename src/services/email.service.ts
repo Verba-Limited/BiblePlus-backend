@@ -33,8 +33,12 @@ export const EmailService = {
         `
       });
       console.log(`✅ OTP email sent to ${to}`);
+      return true;
     } catch (error) {
+      // Report the failure so callers can tell the user, instead of
+      // reporting success for a code that will never arrive.
       console.error("❌ OTP email failed:", error);
+      return false;
     }
   },
 

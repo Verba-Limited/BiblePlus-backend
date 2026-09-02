@@ -9,6 +9,8 @@ export interface INotification extends Document {
   message: string;
   type: string;
   read: boolean;
+  resentAt?: Date | null;
+  resendCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,6 +46,17 @@ const notificationSchema = new Schema<INotification>(
     read: {
       type: Boolean,
       default: false
+    },
+
+    // Set when an admin re-sends this notification from the portal
+    resentAt: {
+      type: Date,
+      default: null
+    },
+
+    resendCount: {
+      type: Number,
+      default: 0
     }
   },
   { timestamps: true }

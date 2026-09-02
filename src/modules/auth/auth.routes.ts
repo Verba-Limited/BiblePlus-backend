@@ -24,6 +24,11 @@ router.post(
 // VERIFY OTP
 router.post("/verify-otp", AuthController.verifyOtp);
 
+// RESEND VERIFICATION OTP
+// The emailed code is the only way to verify, so an unverified
+// user must be able to request a fresh one.
+router.post("/resend-otp", AuthController.resendOtp);
+
 // LOGIN
 router.post("/login", validate(loginValidator), AuthController.login);
 

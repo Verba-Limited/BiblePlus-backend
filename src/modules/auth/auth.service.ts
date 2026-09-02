@@ -10,14 +10,6 @@ import AppError from "../../core/AppError";
 import { EmailService } from "../../services/email.service";
 
 /* =====================================================
-   DEV CONFIG
-===================================================== */
-const DEV_MASTER_OTP =
-  process.env.NODE_ENV === "development"
-    ? process.env.DEV_MASTER_OTP || "0000"
-    : null;
-
-/* =====================================================
    HELPERS
 ===================================================== */
 const generateUsername = async (
@@ -90,28 +82,70 @@ export const AuthService = {
   },
 
   /* =====================================================
+     RESEND VERIFICATION OTP
+
+     With no bypass code, the emailed OTP is the only way in —
+     so a user whose first email never arrived needs a way to
+     ask for another one rather than being stranded on an
+     unverified account they cannot re-register.
+  ===================================================== */
+  async resendOtp(email: string) {
+    const user = await User.findOne({ email });
+    if (!user) throw new AppError("Email not found", 404);
+
+    if (user.verified) {
+      throw new AppError("Account is already verified", 400);
+    }
+
+    // Invalidate any outstanding codes so only the newest works
+    await Otp.deleteMany({ email });
+
+    const otpCode = generateOtp();
+
+    await Otp.create({
+      email,
+      code: otpCode.toString(),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    });
+
+    // Awaited: if the mail cannot be sent, say so rather than
+    // reporting success for a code that will never arrive.
+    const sent = await EmailService.sendOtp(
+      email,
+      user.firstName ?? "Friend",
+      otpCode.toString()
+    );
+
+    if (sent === false) {
+      throw new AppError(
+        "Could not send the verification email. Please try again shortly.",
+        502
+      );
+    }
+
+    return { message: "A new OTP has been sent to your email", email };
+  },
+
+  /* =====================================================
      VERIFY OTP
   ===================================================== */
  async verifyOtp(email: string, code: string) {
   const cleanCode = String(code).trim();
 
-  const isDevBypass =
-    DEV_MASTER_OTP !== null && cleanCode === DEV_MASTER_OTP;
+  if (!cleanCode) {
+    throw new AppError("OTP is required", 400);
+  }
 
-  let otp = null;
+  // The emailed code is the only accepted credential, in every
+  // environment. There is no master or bypass code.
+  const otp = await Otp.findOne({ email, code: cleanCode });
 
-  if (!isDevBypass) {
-    otp = await Otp.findOne({ email, code: cleanCode });
+  if (!otp) {
+    throw new AppError("Invalid OTP", 400);
+  }
 
-    if (!otp) {
-      throw new AppError("Invalid OTP", 400);
-    }
-
-    if (otp.expiresAt < new Date()) {
-      throw new AppError("OTP expired", 400);
-    }
-  } else {
-    console.warn("⚠ DEV MASTER OTP USED");
+  if (otp.expiresAt < new Date()) {
+    throw new AppError("OTP expired. Request a new one.", 400);
   }
 
   const user = await User.findOneAndUpdate(
@@ -201,26 +235,20 @@ export const AuthService = {
   ) {
     const cleanCode = String(otp).trim();
 
-const isDevBypass =
-  DEV_MASTER_OTP !== null && cleanCode === DEV_MASTER_OTP;
+    if (!cleanCode) {
+      throw new AppError("OTP is required", 400);
+    }
 
-let record = null;
+    // Emailed code only — no master or bypass code, in any environment.
+    const record = await Otp.findOne({ email, code: cleanCode });
 
-if (!isDevBypass) {
-  record = await Otp.findOne({ email, code: cleanCode });
+    if (!record) {
+      throw new AppError("Invalid OTP", 400);
+    }
 
-  if (!record) {
-    throw new AppError("Invalid OTP", 400);
-  }
-
-  if (record.expiresAt < new Date()) {
-    throw new AppError("OTP expired", 400);
-  }
-} else {
-  console.warn("⚠ DEV MASTER OTP USED FOR PASSWORD RESET");
-}
-
-   
+    if (record.expiresAt < new Date()) {
+      throw new AppError("OTP expired. Request a new one.", 400);
+    }
 
     const hashed = await hashPassword(newPassword);
 

@@ -165,12 +165,44 @@ export const NotificationService = {
     const notif = await Notification.findById(id);
     if (!notif) throw new AppError("Notification not found", 404);
 
+    const io = getIO();
+
+    // Re-emit over the socket so connected clients see it again.
+    // This is the part that always works, independent of push.
     if (notif.target === "ALL") {
-      await sendPushToAll(notif.title, notif.message);
+      io.emit("notification", notif);
     } else if (notif.user) {
-      await sendPushToUser(notif.user.toString(), notif.title, notif.message);
+      io.to(notif.user.toString()).emit("notification", notif);
     }
 
-    return notif;
+    // Push is best effort. It used to throw outright whenever the
+    // push provider was unconfigured, which failed every resend
+    // with a 500 even though the notification itself was fine.
+    let push;
+    try {
+      push =
+        notif.target === "ALL"
+          ? await sendPushToAll(notif.title, notif.message)
+          : notif.user
+          ? await sendPushToUser(notif.user.toString(), notif.title, notif.message)
+          : { delivered: false, provider: "none" as const, reason: "No recipient on this notification" };
+    } catch (err: any) {
+      push = {
+        delivered: false,
+        provider: "none" as const,
+        reason: err?.message || "Push delivery failed"
+      };
+    }
+
+    notif.resentAt = new Date();
+    notif.resendCount = (notif.resendCount || 0) + 1;
+    await notif.save();
+
+    return {
+      notification: notif,
+      resentAt: notif.resentAt,
+      resendCount: notif.resendCount,
+      push
+    };
   }
 };

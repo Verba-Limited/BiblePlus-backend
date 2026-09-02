@@ -3,6 +3,17 @@ import { AdminAnalyticsService } from "./adminAnalytics.service";
 
 export const AdminAnalyticsController = {
   
+  /* Overview + activity + trending + health in one call, for the
+     merged Overview/Analytics page. */
+  dashboard: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await AdminAnalyticsService.getDashboard();
+      res.json({ success: true, ...data });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   overview: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await AdminAnalyticsService.getOverview();

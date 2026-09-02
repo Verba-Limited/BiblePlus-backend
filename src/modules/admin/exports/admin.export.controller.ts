@@ -1,19 +1,53 @@
 import { Request, Response, NextFunction } from "express";
 import { User } from "../../auth/auth.model";
 import { Prayer } from "../../prayer/prayer.model";
+import { AuditLog } from "../audit/audit.model";
+import { readFormat, sendTable, ExportFormat } from "../../../utils/csv";
+
+/* =====================================================
+   Record every download in the audit trail.
+
+   Exports carry personal data, so who pulled what and when
+   needs to be answerable. The generic audit middleware only
+   logs modifying verbs, and an export is a GET.
+===================================================== */
+const recordExport = (req: Request, dataset: string, rows: number, format: ExportFormat) => {
+  setImmediate(async () => {
+    try {
+      await AuditLog.create({
+        adminId: req.userId,
+        adminUsername: (req as any).adminUsername || "unknown",
+        action: "EXPORT",
+        resource: "exports",
+        resourceId: dataset,
+        details: `Exported ${rows} ${dataset} row(s) as ${format}`,
+        ipAddress:
+          (req.headers["x-forwarded-for"] as string) ||
+          req.socket.remoteAddress ||
+          ""
+      });
+    } catch (err) {
+      console.error("⚠️  Export audit log failed:", err);
+    }
+  });
+};
 
 export const ExportController = {
   /* =====================================================
-     EXPORT USERS AS CSV
+     EXPORT USERS
+     GET /api/admin/exports/users?format=csv|excel
   ===================================================== */
-  exportUsers: async (_req: Request, res: Response, next: NextFunction) => {
+  exportUsers: async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const format = readFormat(req.query.format);
+
       const users = await User.find()
-        .select("email username firstName lastName role verified location bio createdAt")
+        .select(
+          "email username firstName lastName role verified isActive location bio createdAt"
+        )
         .sort({ createdAt: -1 })
         .lean();
 
-      // Build CSV
       const headers = [
         "Email",
         "Username",
@@ -21,38 +55,46 @@ export const ExportController = {
         "Last Name",
         "Role",
         "Verified",
+        "Status",
         "Location",
         "Bio",
         "Joined"
       ];
 
       const rows = users.map((u: any) => [
-        escapeCsv(u.email),
-        escapeCsv(u.username),
-        escapeCsv(u.firstName || ""),
-        escapeCsv(u.lastName || ""),
+        u.email,
+        u.username,
+        u.firstName || "",
+        u.lastName || "",
         u.role,
         u.verified ? "Yes" : "No",
-        escapeCsv(u.location || ""),
-        escapeCsv(u.bio || ""),
+        u.isActive === false ? "Deactivated" : "Active",
+        u.location || "",
+        u.bio || "",
         u.createdAt ? new Date(u.createdAt).toISOString() : ""
       ]);
 
-      const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+      recordExport(req, "users", rows.length, format);
 
-      res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", `attachment; filename="users_export_${Date.now()}.csv"`);
-      res.status(200).send(csv);
+      return sendTable(res, {
+        filename: `users_export_${new Date().toISOString().split("T")[0]}`,
+        headers,
+        rows,
+        format
+      });
     } catch (err) {
       next(err);
     }
   },
 
   /* =====================================================
-     EXPORT PRAYERS AS CSV
+     EXPORT PRAYERS
+     GET /api/admin/exports/prayers?format=csv|excel
   ===================================================== */
-  exportPrayers: async (_req: Request, res: Response, next: NextFunction) => {
+  exportPrayers: async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const format = readFormat(req.query.format);
+
       const prayers = await Prayer.find()
         .populate("user", "username email")
         .sort({ createdAt: -1 })
@@ -71,36 +113,76 @@ export const ExportController = {
       ];
 
       const rows = prayers.map((p: any) => [
-        escapeCsv(p.title),
-        escapeCsv(p.description),
+        p.title,
+        p.description,
         p.visibility,
         p.status || "approved",
         p.isAnswered ? "Yes" : "No",
         p.prayCount,
-        escapeCsv(p.user?.username || ""),
-        escapeCsv(p.user?.email || ""),
+        p.user?.username || "",
+        p.user?.email || "",
         p.createdAt ? new Date(p.createdAt).toISOString() : ""
       ]);
 
-      const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+      recordExport(req, "prayers", rows.length, format);
 
-      res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", `attachment; filename="prayers_export_${Date.now()}.csv"`);
-      res.status(200).send(csv);
+      return sendTable(res, {
+        filename: `prayers_export_${new Date().toISOString().split("T")[0]}`,
+        headers,
+        rows,
+        format
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /* =====================================================
+     PREVIEW — the rows the export will contain, as JSON
+     GET /api/admin/exports/preview?dataset=users|prayers
+  ===================================================== */
+  preview: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const dataset = String(req.query.dataset || "users").toLowerCase();
+      const limit = Math.min(Math.max(Number(req.query.limit) || 25, 1), 200);
+
+      if (dataset === "prayers") {
+        const [rows, total] = await Promise.all([
+          Prayer.find()
+            .populate("user", "username email")
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .lean(),
+          Prayer.countDocuments()
+        ]);
+
+        return res.status(200).json({
+          success: true,
+          dataset: "prayers",
+          total,
+          count: rows.length,
+          data: rows
+        });
+      }
+
+      const [rows, total] = await Promise.all([
+        User.find()
+          .select("email username firstName lastName role verified isActive createdAt")
+          .sort({ createdAt: -1 })
+          .limit(limit)
+          .lean(),
+        User.countDocuments()
+      ]);
+
+      return res.status(200).json({
+        success: true,
+        dataset: "users",
+        total,
+        count: rows.length,
+        data: rows
+      });
     } catch (err) {
       next(err);
     }
   }
 };
-
-/* =====================================================
-   HELPER — Escape CSV values
-===================================================== */
-function escapeCsv(value: string): string {
-  if (!value) return "";
-  // If contains comma, newline, or double-quote, wrap in quotes
-  if (value.includes(",") || value.includes("\n") || value.includes('"')) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}

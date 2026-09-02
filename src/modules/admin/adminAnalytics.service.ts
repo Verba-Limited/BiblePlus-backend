@@ -112,13 +112,63 @@ export const AdminAnalyticsService = {
   // -----------------------------------------------------
   getTrending: async () => {
     const trendingBlogs = await BlogTrendingService.getTrending(5);
-    const trendingEvents = await Event.find()
-      .sort({ attendeesCount: -1 })
+    // `attendeesCount` is not a field on the Event schema, so this
+    // sort was a no-op and returned an arbitrary five events.
+    // Soonest upcoming is what the dashboard actually wants.
+    const trendingEvents = await Event.find({ startDate: { $gte: new Date() } })
+      .sort({ startDate: 1 })
       .limit(5);
 
     return {
       trendingBlogs,
       trendingEvents
+    };
+  },
+
+  // -----------------------------------------------------
+  // MERGED DASHBOARD
+  //
+  // Overview and Analytics are being combined into a single
+  // page, so serve the whole thing in one request.
+  //
+  // Each section is resolved independently: if one query
+  // fails, that section reports an error and the rest of the
+  // page still renders, instead of the whole endpoint 500ing
+  // and leaving the dashboard blank.
+  // -----------------------------------------------------
+  getDashboard: async () => {
+    const section = async <T>(name: string, fn: () => Promise<T>) => {
+      try {
+        return { ok: true as const, data: await fn() };
+      } catch (err: any) {
+        console.error(`⚠️  Dashboard section "${name}" failed:`, err?.message);
+        return { ok: false as const, error: err?.message || "Failed to load" };
+      }
+    };
+
+    const [overview, activity, trending, health] = await Promise.all([
+      section("overview", () => AdminAnalyticsService.getOverview()),
+      section("activity", () => AdminAnalyticsService.getActivity()),
+      section("trending", () => AdminAnalyticsService.getTrending()),
+      section("health", () => AdminAnalyticsService.systemHealth())
+    ]);
+
+    const failed = [
+      ["overview", overview],
+      ["activity", activity],
+      ["trending", trending],
+      ["health", health]
+    ]
+      .filter(([, r]: any) => !r.ok)
+      .map(([name]) => name as string);
+
+    return {
+      overview: overview.ok ? overview.data : null,
+      activity: activity.ok ? activity.data : [],
+      trending: trending.ok ? trending.data : null,
+      systemHealth: health.ok ? health.data : null,
+      degraded: failed.length > 0,
+      failedSections: failed
     };
   },
 
