@@ -3,6 +3,28 @@ import { EventService } from "./event.service";
 import AppError from "../../core/AppError";
 import { EventReminder } from "./eventReminder.model";
 import { NotificationService } from "../notifications/notification.service";
+import { readSearchTerm, sanitizeUpdate } from "../../utils/sanitize";
+
+/* Shared response shape.
+   `data` stays a plain array — that is what the existing clients
+   already read — with the paging metadata alongside it. */
+const listResponse = (res: Response, result: any, extra: any = {}) =>
+  res.json({
+    success: true,
+    count: result.events.length,
+    total: result.pagination.total,
+    pagination: result.pagination,
+    data: result.events,
+    ...extra
+  });
+
+/* Pull the common list filters out of a query string. */
+const listFilters = (req: Request) => ({
+  category: req.query.category ? String(req.query.category) : undefined,
+  page: req.query.page,
+  limit: req.query.limit,
+  search: readSearchTerm(req.query as any) || undefined
+});
 
 export const EventController = {
   /* -----------------------------------------------------
@@ -10,11 +32,14 @@ export const EventController = {
   ----------------------------------------------------- */
   getEvents: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const category = req.query.category ? String(req.query.category) : undefined;
+      const status = req.query.status ? String(req.query.status) : undefined;
 
-      const data = await EventService.getEvents({ category });
+      const result = await EventService.getEvents({
+        ...listFilters(req),
+        status
+      });
 
-      res.json({ success: true, data });
+      listResponse(res, result);
     } catch (err) {
       next(err);
     }
@@ -39,8 +64,8 @@ export const EventController = {
   ----------------------------------------------------- */
   upcoming: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await EventService.getUpcoming();
-      res.json({ success: true, data });
+      const result = await EventService.getUpcoming(listFilters(req));
+      listResponse(res, result);
     } catch (err) {
       next(err);
     }
@@ -51,8 +76,8 @@ export const EventController = {
   ----------------------------------------------------- */
   past: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = await EventService.getPast();
-      res.json({ success: true, data });
+      const result = await EventService.getPast(listFilters(req));
+      listResponse(res, result);
     } catch (err) {
       next(err);
     }
@@ -63,10 +88,20 @@ export const EventController = {
   ----------------------------------------------------- */
   search: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const query = req.query.q as string;
-      const data = await EventService.searchEvents(query);
+      // Accept ?q= , ?search= or ?query= — the portal and the app
+      // each used a different name, and the unmatched one arrived
+      // as undefined and crashed the regex query.
+      const term = readSearchTerm(req.query as any);
+      const status = req.query.status ? String(req.query.status) : undefined;
 
-      res.json({ success: true, data });
+      const result = await EventService.searchEvents(term, {
+        category: req.query.category ? String(req.query.category) : undefined,
+        page: req.query.page,
+        limit: req.query.limit,
+        status
+      });
+
+      listResponse(res, result, { query: term });
     } catch (err) {
       next(err);
     }
@@ -133,10 +168,10 @@ export const EventController = {
   update: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
-      const eventData = {
+      const eventData = sanitizeUpdate({
         ...req.body,
         banner: req.file?.filename || req.body.banner
-      };
+      });
 
       const updated = await EventService.updateEvent(id, eventData);
 

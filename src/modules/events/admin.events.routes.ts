@@ -56,6 +56,20 @@ router.post(
 );
 
 /* ======================================================
+    📌 EVENT LISTS (ADMIN ONLY)
+
+    The admin portal calls /api/admin/events for its list,
+    search and past/upcoming tabs. Only the write routes
+    existed here, so every one of those reads 404'd.
+
+    Specific paths MUST stay above /:id.
+====================================================== */
+router.get("/search", EventController.search);
+router.get("/upcoming", EventController.upcoming);
+router.get("/past", EventController.past);
+router.get("/", EventController.getEvents);
+
+/* ======================================================
     📌 LIVESTREAM UPDATE (ADMIN ONLY)
 ====================================================== */
 router.put("/:id/live", EventController.updateLiveStream);
@@ -66,5 +80,8 @@ router.put("/:id/live", EventController.updateLiveStream);
 router.post("/", EventController.create);
 router.put("/:id", EventController.update);
 router.delete("/:id", EventController.delete);
+
+/* This MUST stay last — it matches anything left over */
+router.get("/:id", EventController.getEvent);
 
 export default router;

@@ -146,6 +146,14 @@ export const AuthService = {
     // ✅ Reject unverified users before running expensive bcrypt
     if (!user.verified) throw new AppError("Account not verified", 400);
 
+    // ✅ Deactivated accounts keep their data but cannot sign in
+    if (user.isActive === false) {
+      throw new AppError(
+        "Your account has been deactivated. Please contact support.",
+        403
+      );
+    }
+
     const valid = await comparePassword(password, user.password);
     if (!valid) throw new AppError("Invalid credentials", 400);
 

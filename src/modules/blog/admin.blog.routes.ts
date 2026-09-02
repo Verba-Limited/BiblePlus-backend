@@ -6,6 +6,13 @@ import { uploadBlogCover } from "../../middleware/upload.middleware";
 const router = Router();
 
 /* ======================================================
+   ADMIN BLOG LIST
+   ?status=draft|published|all — the public list only ever
+   returns published posts, so drafts had no way home.
+====================================================== */
+router.get("/", BlogController.adminList);
+
+/* ======================================================
    ADMIN BLOG ROUTES
 ====================================================== */
 router.post(
@@ -53,5 +60,8 @@ router.post(
    ADMIN COMMENT ROUTES
 ====================================================== */
 router.delete("/comments/:id", BlogCommentController.adminDelete);
+
+/* This MUST stay last — it matches anything left over */
+router.get("/:id", BlogController.getOneById);
 
 export default router;
