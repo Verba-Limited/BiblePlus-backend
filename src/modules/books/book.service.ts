@@ -3,6 +3,7 @@ import { Book } from "./book.model";
 import { BookChapter } from "./bookChapter.model";
 import { fetchAndCacheChapters } from "./gutenberg.service";
 import { EmailService } from "../../services/email.service";
+import { escapeRegex, sanitizeUpdate } from "../../utils/sanitize";
 
 export const BookService = {
   /* =====================================================
@@ -86,8 +87,16 @@ getChapters: async (bookId: string) => {
   }) => {
     const query: any = {};
 
-    if (filters.query) {
-      query.title = { $regex: filters.query, $options: "i" };
+    // Escape the term so a title with "(" or "+" searches literally
+    // instead of blowing up as an invalid regular expression.
+    const term = (filters.query || "").trim();
+    if (term) {
+      const safe = escapeRegex(term);
+      query.$or = [
+        { title: { $regex: safe, $options: "i" } },
+        { author: { $regex: safe, $options: "i" } },
+        { description: { $regex: safe, $options: "i" } }
+      ];
     }
 
     if (filters.audience) {
@@ -124,7 +133,11 @@ getChapters: async (bookId: string) => {
       PUT /api/books/admin/:id
   ===================================================== */
   updateBook: async (bookId: string, data: any) => {
-    const updated = await Book.findByIdAndUpdate(bookId, data, {
+    // The admin editor sends the whole record back, `_id` included,
+    // and Mongo refuses any update that touches an immutable path.
+    const payload = sanitizeUpdate(data, ["source", "gutenbergId"]);
+
+    const updated = await Book.findByIdAndUpdate(bookId, payload, {
       returnDocument: "after",
       runValidators: true,
     });

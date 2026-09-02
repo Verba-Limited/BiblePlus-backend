@@ -14,18 +14,39 @@ export const AdminAnalyticsService = {
   // OVERVIEW TOTALS
   // -----------------------------------------------------
   getOverview: async () => {
+    const now = new Date();
+
     const [
       totalUsers,
+      verifiedUsers,
+      inactiveUsers,
+      deletedUsers,
       totalBlogs,
+      draftBlogs,
       totalEvents,
+      upcomingEvents,
+      pastEvents,
       totalPrayers,
       totalLikes,
       totalBookmarks,
       totalNotifications
     ] = await Promise.all([
-      User.countDocuments(),
+      // Soft-deleted accounts are excluded here exactly as they are
+      // in the Users list, so the two screens agree on the total.
+      User.countDocuments({}),
+      User.countDocuments({ verified: true }),
+      User.countDocuments({ isActive: false }),
+      User.countDocuments({ isDeleted: true }).setOptions({ includeDeleted: true }),
       Blog.countDocuments({ status: "published" }),
+      Blog.countDocuments({ status: "draft" }),
       Event.countDocuments(),
+      Event.countDocuments({ startDate: { $gte: now } }),
+      Event.countDocuments({
+        $or: [
+          { endDate: { $lt: now } },
+          { endDate: { $in: [null, undefined] }, startDate: { $lt: now } }
+        ]
+      }),
       Prayer.countDocuments(),
       BlogLike.countDocuments(),
       BlogBookmark.countDocuments(),
@@ -34,8 +55,16 @@ export const AdminAnalyticsService = {
 
     return {
       totalUsers,
+      verifiedUsers,
+      unverifiedUsers: totalUsers - verifiedUsers,
+      activeUsers: totalUsers - inactiveUsers,
+      inactiveUsers,
+      deletedUsers,
       totalBlogs,
+      draftBlogs,
       totalEvents,
+      upcomingEvents,
+      pastEvents,
       totalPrayers,
       totalLikes,
       totalBookmarks,

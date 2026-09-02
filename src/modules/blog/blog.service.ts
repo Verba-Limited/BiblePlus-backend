@@ -5,6 +5,43 @@ import { EmailService } from "../../services/email.service";
 import { HydratedDocument } from "mongoose";
 import { IBlog } from "./blog.model";
 import { fetchAndCacheBlogContent } from "./christainBlog.service";
+import { sanitizeUpdate, escapeRegex } from "../../utils/sanitize";
+
+/* =========================================================
+   EDITABLE FIELDS
+
+   The editor loads a blog, the author corrects a couple of
+   fields and PUTs the whole record back — `_id`, `slug`,
+   `views`, `createdAt` and all. Mongo refuses any update
+   that touches an immutable path, so the save failed and
+   the correction looked like it had been rejected.
+
+   Only these fields are writable from the editor; everything
+   else the server owns.
+========================================================= */
+const BLOG_EDITABLE_FIELDS = [
+  "title",
+  "content",
+  "summary",
+  "excerpt",
+  "coverImage",
+  "category",
+  "tags",
+  "featured",
+  "status"
+];
+
+const BLOG_PROTECTED_FIELDS = [
+  "slug",
+  "views",
+  "source",
+  "externalId",
+  "externalUrl",
+  "isFetched",
+  "authorId",
+  "author",
+  "readingTime"
+];
 
 export const BlogService = {
 
@@ -50,6 +87,59 @@ export const BlogService = {
   },
 
   // -----------------------------------------------------
+  // ADMIN: GET BLOGS (drafts included)
+  //
+  // The public list hard-codes status "published", so drafts
+  // and pending posts had no endpoint that could return them.
+  // -----------------------------------------------------
+  getBlogsForAdmin: async ({ page = 1, limit = 20, category, status, search }: any) => {
+    const query: any = {};
+
+    if (status && status !== "all") query.status = status;
+    if (category) query.category = category;
+
+    const term = (search || "").trim();
+    if (term) {
+      const safe = escapeRegex(term);
+      query.$or = [
+        { title: { $regex: safe, $options: "i" } },
+        { summary: { $regex: safe, $options: "i" } },
+        { category: { $regex: safe, $options: "i" } }
+      ];
+    }
+
+    const pageNum = Math.max(Number(page) || 1, 1);
+    const perPage = Math.min(Math.max(Number(limit) || 20, 1), 100);
+
+    const [blogs, total, published, drafts] = await Promise.all([
+      Blog.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * perPage)
+        .limit(perPage)
+        .select("-content"),
+      Blog.countDocuments(query),
+      Blog.countDocuments({ status: "published" }),
+      Blog.countDocuments({ status: "draft" })
+    ]);
+
+    const pages = Math.ceil(total / perPage) || 1;
+
+    return {
+      blogs,
+      counts: { all: published + drafts, published, drafts },
+      pagination: {
+        total,
+        count: blogs.length,
+        page: pageNum,
+        limit: perPage,
+        pages,
+        hasNextPage: pageNum < pages,
+        hasPrevPage: pageNum > 1
+      }
+    };
+  },
+
+  // -----------------------------------------------------
   // GET SINGLE BLOG BY SLUG
   // -----------------------------------------------------
   getBlogBySlug: async (slug: string) => {
@@ -74,10 +164,23 @@ export const BlogService = {
   // SEARCH BLOGS
   // -----------------------------------------------------
   searchBlogs: async (q: string) => {
-    return await Blog.find({
-      title: { $regex: q, $options: "i" },
-      status: "published"
-    }).select("-content"); // ✅ fast — no content in search results
+    const term = (q || "").trim();
+    const query: any = { status: "published" };
+
+    // A blank term used to reach Mongo as `$regex: undefined` and throw
+    if (term) {
+      const safe = escapeRegex(term);
+      query.$or = [
+        { title: { $regex: safe, $options: "i" } },
+        { summary: { $regex: safe, $options: "i" } },
+        { category: { $regex: safe, $options: "i" } },
+        { tags: { $regex: safe, $options: "i" } }
+      ];
+    }
+
+    return await Blog.find(query)
+      .sort({ createdAt: -1 })
+      .select("-content"); // ✅ fast — no content in search results
   },
 
   // -----------------------------------------------------
@@ -107,12 +210,47 @@ export const BlogService = {
   // UPDATE BLOG
   // -----------------------------------------------------
   updateBlog: async (id: string, data: any) => {
-    const updated = await Blog.findByIdAndUpdate(id, data, {
-      returnDocument: "after",
-      runValidators: true
-    }) as HydratedDocument<IBlog> | null;
+    const blog = await Blog.findById(id) as HydratedDocument<IBlog> | null;
+    if (!blog) throw new AppError("Blog not found", 404);
 
-    if (!updated) throw new AppError("Blog not found", 404);
+    const payload = sanitizeUpdate(data, BLOG_PROTECTED_FIELDS);
+
+    // Apply the edit field by field through the document, so the
+    // pre-save hook re-derives slug, reading time and excerpt when
+    // the title or content actually changed.
+    for (const field of BLOG_EDITABLE_FIELDS) {
+      if (payload[field] === undefined) continue;
+
+      if (field === "tags") {
+        // Multipart forms send tags as a comma-separated string
+        blog.set(
+          "tags",
+          Array.isArray(payload.tags)
+            ? payload.tags
+            : String(payload.tags)
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean)
+        );
+        continue;
+      }
+
+      if (field === "featured") {
+        blog.set("featured", payload.featured === true || payload.featured === "true");
+        continue;
+      }
+
+      blog.set(field, payload[field]);
+    }
+
+    // Content changed — let the hook recompute the derived copy
+    // instead of keeping the old summary/excerpt around.
+    if (payload.content !== undefined && blog.isModified("content")) {
+      if (payload.summary === undefined) blog.summary = "";
+      if (payload.excerpt === undefined) blog.excerpt = "";
+    }
+
+    const updated = (await blog.save()) as HydratedDocument<IBlog>;
 
     NotificationService.create(
       "ALL",

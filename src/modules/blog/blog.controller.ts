@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { BlogService } from "./blog.service";
 import { refreshChristianBlogs } from "./christainBlog.service";
+import { readSearchTerm } from "../../utils/sanitize";
 
 export const BlogController = {
 
@@ -14,6 +15,32 @@ export const BlogController = {
       res.json({
         success: true,
         data
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  // -----------------------------------------------------
+  // ADMIN: LIST BLOGS (?status=draft|published|all)
+  // -----------------------------------------------------
+  adminList: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await BlogService.getBlogsForAdmin({
+        page: req.query.page,
+        limit: req.query.limit,
+        category: req.query.category,
+        status: req.query.status,
+        search: readSearchTerm(req.query as any)
+      });
+
+      res.json({
+        success: true,
+        count: result.blogs.length,
+        total: result.pagination.total,
+        counts: result.counts,
+        pagination: result.pagination,
+        data: result.blogs
       });
     } catch (err) {
       next(err);
@@ -57,10 +84,11 @@ export const BlogController = {
   // -----------------------------------------------------
   search: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const query = req.query.q as string;
+      // Accept ?q= , ?search= or ?query= — clients disagreed on the name
+      const query = readSearchTerm(req.query as any);
 
       if (!query) {
-        res.json({ success: true, data: [] });
+        res.json({ success: true, count: 0, data: [] });
         return;
       }
 

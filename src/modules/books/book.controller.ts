@@ -1,5 +1,22 @@
 import { Request, Response, NextFunction } from "express";
 import { BookService } from "./book.service";
+import AppError from "../../core/AppError";
+import { coerceTypes, readSearchTerm, sanitizeUpdate } from "../../utils/sanitize";
+
+/* A multipart body arrives as strings — convert what the schema
+   expects as numbers/booleans before Mongoose validates it. */
+const normaliseBookBody = (body: any) =>
+  coerceTypes(body || {}, {
+    numbers: ["totalChapters", "gutenbergId"],
+    booleans: ["isFetched"]
+  });
+
+/* multer-storage-cloudinary puts the hosted URL on `path`;
+   a disk fallback only has `filename`. */
+const coverImageFrom = (file?: Express.Multer.File) =>
+  file
+    ? (file as any).secure_url ?? file.path ?? file.filename ?? ""
+    : undefined;
 
 export const BookController = {
 
@@ -96,10 +113,11 @@ export const BookController = {
   ====================================================== */
   search: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { q, audience, category } = req.query;
+      const { audience, category } = req.query;
 
+      // Accept ?q= , ?search= or ?query= — clients disagreed on the name
       const books = await BookService.searchBooks({
-        query: q as string,
+        query: readSearchTerm(req.query as any),
         audience: audience as string,
         category: category as string,
       });
@@ -120,12 +138,19 @@ export const BookController = {
   ====================================================== */
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // ✅ Use Cloudinary URL if available, fallback to filename
-      const coverImage =
-        (req.file as any)?.secure_url ?? req.file?.path ?? req.file?.filename ?? "";
+      const body = normaliseBookBody(req.body);
+
+      // Fail with a clear message instead of a schema error further down
+      if (!body.title || !String(body.title).trim()) {
+        throw new AppError("Book title is required", 400);
+      }
+
+      // ✅ Use Cloudinary URL if available, fallback to filename.
+      // No picture is fine — the cover is optional.
+      const coverImage = coverImageFrom(req.file) ?? body.coverImage ?? "";
 
       const book = await BookService.createBook({
-        ...req.body,
+        ...body,
         coverImage,
       });
 
@@ -146,11 +171,13 @@ export const BookController = {
   update: async (req: Request, res: Response, next: NextFunction) => {
     try {
       // ✅ Use Cloudinary URL if available
-      const coverImage =
-        (req.file as any)?.secure_url ?? req.file?.path ?? req.file?.filename;
+      const coverImage = coverImageFrom(req.file);
+
+      // Strip `_id` and friends — the editor PUTs the whole record back
+      const payload = sanitizeUpdate(normaliseBookBody(req.body));
 
       const updatedBook = await BookService.updateBook(req.params.id, {
-        ...req.body,
+        ...payload,
         ...(coverImage && { coverImage }),
       });
 

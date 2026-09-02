@@ -1,18 +1,110 @@
 import { Event } from "./event.model";
 import AppError from "../../core/AppError";
 import { NotificationService } from "../notifications/notification.service";
+import { escapeRegex, sanitizeUpdate } from "../../utils/sanitize";
+
+/* =========================================================
+   TIME WINDOWS
+
+   Older events were saved without an endDate, so filtering
+   on endDate alone made them vanish from both the upcoming
+   and the past list. Fall back to startDate whenever endDate
+   is missing so every event lands in exactly one bucket.
+========================================================= */
+const pastFilter = (now: Date) => ({
+  $or: [
+    { endDate: { $lt: now } },
+    { endDate: null, startDate: { $lt: now } },
+    { endDate: { $exists: false }, startDate: { $lt: now } }
+  ]
+});
+
+const upcomingFilter = (now: Date) => ({
+  $or: [
+    { endDate: { $gte: now } },
+    { endDate: null, startDate: { $gte: now } },
+    { endDate: { $exists: false }, startDate: { $gte: now } }
+  ]
+});
+
+/** Fields the client must never rewrite on an update. */
+const EVENT_PROTECTED_FIELDS = ["slug"];
+
+/** Label each event so the portal can group them without re-deriving dates. */
+const withStatus = (event: any) => {
+  if (!event) return event;
+
+  const plain = typeof event.toObject === "function" ? event.toObject() : event;
+  const now = Date.now();
+  const start = plain.startDate ? new Date(plain.startDate).getTime() : null;
+  const end = plain.endDate ? new Date(plain.endDate).getTime() : start;
+
+  let status: "upcoming" | "ongoing" | "past" = "upcoming";
+  if (end !== null && end < now) status = "past";
+  else if (start !== null && start <= now) status = "ongoing";
+
+  return { ...plain, status, isPast: status === "past" };
+};
 
 export const EventService = {
+  withStatus,
+
   /* ========================================================
      GET EVENTS WITH OPTIONAL FILTERS
   ======================================================== */
-  getEvents: async (filters: any) => {
+  getEvents: async (filters: any = {}) => {
+    const now = new Date();
     const query: any = {};
+
     if (filters.category) query.category = filters.category;
 
-    return await Event.find(query)
-      .populate("speakers")
-      .sort({ startDate: 1 });
+    if (filters.status === "past") Object.assign(query, pastFilter(now));
+    if (filters.status === "upcoming") Object.assign(query, upcomingFilter(now));
+
+    if (filters.search) {
+      const term = escapeRegex(filters.search);
+      query.$and = [
+        {
+          $or: [
+            { title: { $regex: term, $options: "i" } },
+            { description: { $regex: term, $options: "i" } },
+            { location: { $regex: term, $options: "i" } },
+            { category: { $regex: term, $options: "i" } }
+          ]
+        }
+      ];
+    }
+
+    const page = Math.max(Number(filters.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(filters.limit) || 20, 1), 100);
+
+    // Past events read newest-first; everything else reads soonest-first.
+    const sort: any =
+      filters.status === "past" ? { startDate: -1 } : { startDate: 1 };
+
+    const [events, total] = await Promise.all([
+      Event.find(query)
+        .populate("speakers")
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit),
+      Event.countDocuments(query)
+    ]);
+
+    const pages = Math.ceil(total / limit) || 1;
+
+    return {
+      events: events.map(withStatus),
+      pagination: {
+        total,
+        count: events.length,
+        page,
+        limit,
+        pages,
+        hasNextPage: page < pages,
+        hasPrevPage: page > 1
+      }
+    };
   },
 
   /* ========================================================
@@ -21,34 +113,35 @@ export const EventService = {
   getEvent: async (id: string) => {
     const event = await Event.findById(id).populate("speakers");
     if (!event) throw new AppError("Event not found", 404);
-    return event;
+    return withStatus(event);
   },
 
   /* ========================================================
      UPCOMING EVENTS
   ======================================================== */
-  getUpcoming: async () => {
-    return await Event.find({ startDate: { $gte: new Date() } })
-      .populate("speakers")
-      .sort({ startDate: 1 });
+  getUpcoming: async (filters: any = {}) => {
+    return await EventService.getEvents({ ...filters, status: "upcoming" });
   },
 
   /* ========================================================
      PAST EVENTS
   ======================================================== */
-  getPast: async () => {
-    return await Event.find({ endDate: { $lt: new Date() } })
-      .populate("speakers")
-      .sort({ startDate: -1 });
+  getPast: async (filters: any = {}) => {
+    return await EventService.getEvents({ ...filters, status: "past" });
   },
 
   /* ========================================================
      SEARCH
   ======================================================== */
-  searchEvents: async (query: string) => {
-    return await Event.find({
-      title: { $regex: query, $options: "i" }
-    }).populate("speakers");
+  searchEvents: async (query: string, filters: any = {}) => {
+    // A blank term used to reach Mongo as `$regex: undefined` and throw.
+    // Treat it as "no filter" and return the normal list instead.
+    const term = (query || "").trim();
+
+    return await EventService.getEvents({
+      ...filters,
+      ...(term ? { search: term } : {})
+    });
   },
 
   /* ========================================================
@@ -71,14 +164,19 @@ export const EventService = {
       "event-create"
     ).catch(() => {});
 
-    return populated;
+    return withStatus(populated);
   },
 
   /* ========================================================
      ADMIN: UPDATE EVENT
   ======================================================== */
   updateEvent: async (id: string, data: any) => {
-    const updated = await Event.findByIdAndUpdate(id, data, {
+    // The admin editor PUTs the whole record back, `_id` included.
+    // Mongo rejects updates that touch immutable paths, so strip them
+    // before the correction reaches the database.
+    const payload = sanitizeUpdate(data, EVENT_PROTECTED_FIELDS);
+
+    const updated = await Event.findByIdAndUpdate(id, payload, {
       returnDocument: "after",
       runValidators: true
     }).populate("speakers");
@@ -93,7 +191,7 @@ export const EventService = {
       "event-update"
     ).catch(() => {});
 
-    return updated;
+    return withStatus(updated);
   },
 
   /* ========================================================
