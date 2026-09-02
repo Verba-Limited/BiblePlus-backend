@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | Folders | 25 |
-| Requests | 252 |
-| Assertions | 565 |
-| Endpoint coverage | **207 / 217 routes (95%)** |
+| Requests | 260 |
+| Assertions | 584 |
+| Endpoint coverage | **217 / 217 reachable routes (100%)** |
 
 **Folders 00-12** — QA/UAT regression suite. Covers every backend fix from PR #1
 (QA sheet) and PR #2 (UAT sheet), with assertions that pin each specific bug.
@@ -14,9 +14,26 @@
 prayer, quiz gameplay, chatbot, and the remaining admin screens. These carry smoke
 assertions (route exists, no 5xx) rather than deep behavioural ones.
 
-The 10 routes not covered are the `/api/admin/prayer-moderation/*` alias, which mounts
-the **same router** as `/api/admin/moderation/*` — the alias is proven live by two
-requests, and duplicating the other eight would test identical handlers twice.
+Every route the app actually mounts has at least one request, and every request maps
+to a real route — verified by an audit that derives the mount table from `app.ts` and
+`admin.index.routes.ts` directly, rather than from a hand-kept list.
+
+### Route files that are NOT mounted
+
+Five routers exist in the codebase but are never mounted, so their endpoints are
+unreachable and cannot be tested:
+
+| File | Status |
+|---|---|
+| `modules/xp/userXp.routes.ts` | unreachable — imported by nothing |
+| `modules/quiz/quizPuzzle.routes.ts` | unreachable — imported by nothing |
+| `modules/blog/blogLike.routes.ts` | unreachable — imported by nothing |
+| `modules/blog/blogComments.routes.ts` | unreachable — imported by nothing |
+| `modules/blog/blogCategory.routes.ts` | unreachable (the *admin* category router is mounted) |
+
+`books/bookFavorite.routes.ts` and `books/bookProgress.routes.ts` are also unmounted,
+but their endpoints are reachable because `book.routes.ts` declares the same paths
+itself — those two files are dead duplicates.
 
 ## Two identities
 

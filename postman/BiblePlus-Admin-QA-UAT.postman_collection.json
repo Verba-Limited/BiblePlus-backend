@@ -5989,15 +5989,15 @@
           }
         },
         {
-          "name": "Favourites (root path)",
+          "name": "GET /api/books/favorite falls through to /:id",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"favourites root responds without a server error\", () => pm.expect(pm.response.code, pm.response.text().slice(0,200)).to.be.below(500));",
-                  "pm.test(\"route exists (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));"
+                  "pm.test(\"fails cleanly as a bad id, not a 500\", () => pm.expect(pm.response.code).to.be.below(500));",
+                  "pm.test(\"says why\", () => pm.expect(pm.response.json().message).to.be.a(\"string\"));"
                 ]
               }
             }
@@ -6016,16 +6016,9 @@
                 "favorite"
               ]
             },
-            "description": "The bare mount path, distinct from /favorite/all.",
+            "description": "There is no bare /favorite route \u2014 book.routes.ts defines /favorite/add, /favorite/remove and /favorite/all only. This path therefore matches GET /api/books/:id with id=\"favorite\" and must fail cleanly as a bad id, not with a 500.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{userToken}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           }
         }
@@ -9259,6 +9252,242 @@
               ]
             },
             "description": "The renamed-menu path. /prayer-moderation mounts the SAME router as /moderation, so the remaining alias paths (approve/flag/reject, comments) are the identical handlers already exercised above."
+          }
+        },
+        {
+          "name": "Alias: approve prayer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"alias route is mounted (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code, pm.response.text().slice(0,150)).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prayer-moderation/prayers/000000000000000000000000/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prayer-moderation",
+                "prayers",
+                "000000000000000000000000",
+                "approve"
+              ]
+            },
+            "description": "Alias of /moderation/prayers/:id/approve \u2014 same handler. A 404 body means the prayer id is missing, which is expected; a 404 route would fail the first assertion."
+          }
+        },
+        {
+          "name": "Alias: flag prayer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"alias route is mounted (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code, pm.response.text().slice(0,150)).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prayer-moderation/prayers/000000000000000000000000/flag",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prayer-moderation",
+                "prayers",
+                "000000000000000000000000",
+                "flag"
+              ]
+            },
+            "description": "Alias of /moderation/prayers/:id/flag."
+          }
+        },
+        {
+          "name": "Alias: reject prayer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"alias route is mounted (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code, pm.response.text().slice(0,150)).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prayer-moderation/prayers/000000000000000000000000/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prayer-moderation",
+                "prayers",
+                "000000000000000000000000",
+                "reject"
+              ]
+            },
+            "description": "Alias of /moderation/prayers/:id/reject."
+          }
+        },
+        {
+          "name": "Alias: pending comments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"alias route is mounted (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code, pm.response.text().slice(0,150)).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prayer-moderation/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prayer-moderation",
+                "comments"
+              ]
+            },
+            "description": "Alias of /moderation/comments."
+          }
+        },
+        {
+          "name": "Alias: approve comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"alias route is mounted (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code, pm.response.text().slice(0,150)).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prayer-moderation/comments/000000000000000000000000/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prayer-moderation",
+                "comments",
+                "000000000000000000000000",
+                "approve"
+              ]
+            },
+            "description": "Alias of /moderation/comments/:id/approve."
+          }
+        },
+        {
+          "name": "Alias: flag comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"alias route is mounted (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code, pm.response.text().slice(0,150)).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prayer-moderation/comments/000000000000000000000000/flag",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prayer-moderation",
+                "comments",
+                "000000000000000000000000",
+                "flag"
+              ]
+            },
+            "description": "Alias of /moderation/comments/:id/flag."
+          }
+        },
+        {
+          "name": "Alias: reject comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"alias route is mounted (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code, pm.response.text().slice(0,150)).to.be.below(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prayer-moderation/comments/000000000000000000000000/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prayer-moderation",
+                "comments",
+                "000000000000000000000000",
+                "reject"
+              ]
+            },
+            "description": "Alias of /moderation/comments/:id/reject."
           }
         }
       ]
