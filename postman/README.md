@@ -1,12 +1,31 @@
-# BiblePlus Admin — QA & UAT Regression Collection
-
-Covers every backend fix from **PR #1** (QA sheet) and **PR #2** (UAT sheet).
+# BiblePlus API — Full Postman Collection
 
 | | |
 |---|---|
-| Folders | 13 |
-| Requests | 103 |
-| Assertions | 281 |
+| Folders | 25 |
+| Requests | 252 |
+| Assertions | 565 |
+| Endpoint coverage | **207 / 217 routes (95%)** |
+
+**Folders 00-12** — QA/UAT regression suite. Covers every backend fix from PR #1
+(QA sheet) and PR #2 (UAT sheet), with assertions that pin each specific bug.
+
+**Folders 13-24** — the rest of the API: auth, profile, bible, reader features,
+prayer, quiz gameplay, chatbot, and the remaining admin screens. These carry smoke
+assertions (route exists, no 5xx) rather than deep behavioural ones.
+
+The 10 routes not covered are the `/api/admin/prayer-moderation/*` alias, which mounts
+the **same router** as `/api/admin/moderation/*` — the alias is proven live by two
+requests, and duplicating the other eight would test identical handlers twice.
+
+## Two identities
+
+| Variable | Captured by |
+|---|---|
+| `adminToken` | `00 · Setup → Admin login` |
+| `userToken` | `13 · Auth → Login` |
+
+Run `00 · Setup` and `13 · Auth` first, or just run the whole collection in order.
 
 ## Setup
 
@@ -42,7 +61,8 @@ The single most important assertion is in `05 · Analytics`:
 
 ## Requests needing a file attachment
 
-Three requests in `03 · Books` upload an image. Postman cannot carry binaries in a
+Several requests upload an image (books covers, blog editor images, avatars, event
+banners and galleries — their descriptions say ATTACH AN IMAGE). Postman cannot carry binaries in a
 shared collection, so **attach any small image** to the file field before running
 them, or skip them. They are the ones that prove the cover-upload fix.
 
@@ -57,7 +77,10 @@ newman run postman/BiblePlus-Admin-QA-UAT.postman_collection.json \
 
 ## Caveats
 
-- The three file-upload requests are skipped unless you attach an image.
+- File-upload requests fail until you attach an image.
+- `13 · Auth → Verify OTP` uses `devOtp` and only works with the server on
+  `NODE_ENV=development`; otherwise verify the test user by hand once.
+- `14 · Profile → Delete my account` is destructive — skip unless intended.
 - `08 · Notifications` asserts `pushDelivered` is a *boolean*, not that it is
   `true`. Push is currently undeliverable in this deployment: `FIREBASE_SERVICE_ACCOUNT`
   is truncated in `.env` and OneSignal is unconfigured. The point of the test is
