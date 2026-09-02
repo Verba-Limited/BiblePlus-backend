@@ -78,8 +78,12 @@ newman run postman/BiblePlus-Admin-QA-UAT.postman_collection.json \
 ## Caveats
 
 - File-upload requests fail until you attach an image.
-- `13 · Auth → Verify OTP` uses `devOtp` and only works with the server on
-  `NODE_ENV=development`; otherwise verify the test user by hand once.
+- **OTP is email-only in every environment — there is no bypass code.** Three
+  requests are therefore MANUAL: `13 · Auth → Verify OTP`, `13 · Auth → Reset
+  password`, and `24 · Admin → Settings: change password`. Read the code from the
+  inbox into the `emailOtp` (or `adminOtp`) variable, then send. Codes expire after
+  5 minutes; admin codes after 10. `13 · Auth → Resend verification OTP` issues a
+  fresh one.
 - `14 · Profile → Delete my account` is destructive — skip unless intended.
 - `08 · Notifications` asserts `pushDelivered` is a *boolean*, not that it is
   `true`. Push is currently undeliverable in this deployment: `FIREBASE_SERVICE_ACCOUNT`

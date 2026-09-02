@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "eb99feed-5ab2-4be0-b8c2-50f585bb87d6",
     "name": "BiblePlus API \u2014 Full Collection (QA/UAT + all endpoints)",
-    "description": "Complete Postman collection for the BiblePlus backend.\n\n**Folders 00-12** are the QA/UAT regression suite \u2014 requests named REGRESSION pin a\nspecific bug that was fixed; if one fails, the bug is back.\n\n**Folders 13-24** cover the rest of the API surface (auth, profile, bible, reader\nfeatures, prayer, quiz gameplay, chatbot, and the remaining admin screens) with\nsmoke assertions: route exists, and no 5xx.\n\n## Two identities\n- `adminToken` \u2014 captured by **00 \u00b7 Setup \u2192 Admin login**\n- `userToken`  \u2014 captured by **13 \u00b7 Auth \u2192 Login**\n\nRun `00 \u00b7 Setup` then `13 \u00b7 Auth` before anything else, or just run the whole\ncollection in order.\n\n## Notes\n- `13 \u00b7 Auth \u2192 Verify OTP` uses `devOtp` and needs the server on NODE_ENV=development.\n- Requests whose description says ATTACH AN IMAGE need a file before they will pass.\n- `14 \u00b7 Profile \u2192 Delete my account` is destructive; skip unless intended.\n- Point `baseUrl` at staging, not production \u2014 several folders create and delete data.\n",
+    "description": "Complete Postman collection for the BiblePlus backend.\n\n**Folders 00-12** are the QA/UAT regression suite \u2014 requests named REGRESSION pin a\nspecific bug that was fixed; if one fails, the bug is back.\n\n**Folders 13-24** cover the rest of the API surface (auth, profile, bible, reader\nfeatures, prayer, quiz gameplay, chatbot, and the remaining admin screens) with\nsmoke assertions: route exists, and no 5xx.\n\n## Two identities\n- `adminToken` \u2014 captured by **00 \u00b7 Setup \u2192 Admin login**\n- `userToken`  \u2014 captured by **13 \u00b7 Auth \u2192 Login**\n\nRun `00 \u00b7 Setup` then `13 \u00b7 Auth` before anything else, or just run the whole\ncollection in order.\n\n## Notes\n- OTP is email-only in every environment; there is no bypass code. `13 \u00b7 Auth \u2192 Verify OTP`\n  and the two password-reset requests are MANUAL: read the code from the inbox into the\n  `emailOtp` (or `adminOtp`) variable before sending. Codes expire in 5 minutes (admin: 10).\n- Requests whose description says ATTACH AN IMAGE need a file before they will pass.\n- `14 \u00b7 Profile \u2192 Delete my account` is destructive; skip unless intended.\n- Point `baseUrl` at staging, not production \u2014 several folders create and delete data.\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -152,11 +152,6 @@
       "type": "string"
     },
     {
-      "key": "devOtp",
-      "value": "0000",
-      "type": "string"
-    },
-    {
       "key": "testUserId",
       "value": "",
       "type": "string"
@@ -198,6 +193,16 @@
     },
     {
       "key": "newAdminId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "emailOtp",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminOtp",
       "value": "",
       "type": "string"
     }
@@ -4495,14 +4500,80 @@
           }
         },
         {
-          "name": "Verify OTP (dev bypass)",
+          "name": "Resend verification OTP",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"verified, or already verified\", () => pm.expect([200, 400]).to.include(pm.response.code));"
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code).to.be.below(500));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test(\"a fresh OTP was emailed\", () => pm.expect(pm.response.json().success).to.be.true);",
+                  "  console.log(\"Check the inbox, then put the code in the emailOtp variable.\");",
+                  "} else {",
+                  "  pm.test(\"explains why not (already verified / unknown email / mail failure)\",",
+                  "    () => pm.expect(pm.response.json().message).to.be.a(\"string\"));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/resend-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "resend-otp"
+              ]
+            },
+            "description": "Issues a new OTP and invalidates any outstanding one. Needed because the emailed code is now the only way to verify \u2014 if the first mail never arrived, this is the recovery path. Returns 502 if the email itself could not be sent, rather than falsely reporting success.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Verify OTP (code from the email)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const otp = pm.collectionVariables.get(\"emailOtp\");",
+                  "if (!otp) {",
+                  "  console.warn(\"Set the emailOtp variable to the code from the email before running this.\");",
+                  "}",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code).to.be.below(500));",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test(\"account verified\", () => pm.expect(pm.response.json().success).to.be.true);",
+                  "} else {",
+                  "  pm.test(\"rejected cleanly with a reason\", () => {",
+                  "    pm.expect([400,404]).to.include(pm.response.code);",
+                  "    pm.expect(pm.response.json().message).to.be.a(\"string\");",
+                  "  });",
+                  "}"
                 ]
               }
             }
@@ -4526,10 +4597,10 @@
                 "verify-otp"
               ]
             },
-            "description": "Uses DEV_MASTER_OTP. Only works when the server runs with NODE_ENV=development.",
+            "description": "MANUAL STEP. Read the 6-digit code from the inbox for {{testEmail}} and put it in the `emailOtp` collection variable, then send.\n\nThere is no bypass code in any environment \u2014 the emailed OTP is the only credential accepted. The field name is `otp` (not `code`).\n\nThe OTP expires 5 minutes after it is issued; if it lapses, run 'Resend verification OTP' first.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"code\": \"{{devOtp}}\"\n}",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"otp\": \"{{emailOtp}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4785,7 +4856,7 @@
           }
         },
         {
-          "name": "Reset password (needs a real OTP)",
+          "name": "Reset password (code from the email)",
           "event": [
             {
               "listen": "test",
@@ -4817,10 +4888,10 @@
                 "reset-password"
               ]
             },
-            "description": "Expected to 400 unless the OTP is valid \u2014 asserts it fails cleanly, not with a 500.",
+            "description": "MANUAL STEP. Run 'Forgot password' first, then put the emailed code in `emailOtp`. Without a valid emailed code this returns 400 \u2014 asserted to fail cleanly, not with a 500.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"otp\": \"{{devOtp}}\",\n  \"newPassword\": \"{{testPassword}}\"\n}",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"otp\": \"{{emailOtp}}\",\n  \"newPassword\": \"{{testPassword}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -10550,7 +10621,7 @@
           }
         },
         {
-          "name": "Settings: change password (needs a real OTP)",
+          "name": "Settings: change password (code from the email)",
           "event": [
             {
               "listen": "test",
@@ -10583,10 +10654,10 @@
                 "password"
               ]
             },
-            "description": "Expected to fail without a valid OTP \u2014 asserts it fails cleanly rather than with a 500.",
+            "description": "MANUAL STEP. Run 'Settings: request a password OTP' first, then put the code emailed to the admin into `adminOtp`. Admin OTPs are valid for 10 minutes.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"otp\": \"{{devOtp}}\",\n  \"newPassword\": \"{{adminPassword}}\"\n}",
+              "raw": "{\n  \"oldPassword\": \"{{adminPassword}}\",\n  \"newPassword\": \"{{adminPassword}}\",\n  \"otp\": \"{{adminOtp}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
