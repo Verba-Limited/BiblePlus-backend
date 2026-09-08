@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | Folders | 25 |
-| Requests | 260 |
-| Assertions | 584 |
-| Endpoint coverage | **217 / 217 reachable routes (100%)** |
+| Requests | 263 |
+| Assertions | 598 |
+| Endpoint coverage | **219 / 219 reachable routes (100%)** |
 
 **Folders 00-12** — QA/UAT regression suite. Covers every backend fix from PR #1
 (QA sheet) and PR #2 (UAT sheet), with assertions that pin each specific bug.

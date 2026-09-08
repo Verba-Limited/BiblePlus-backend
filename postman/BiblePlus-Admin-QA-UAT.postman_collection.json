@@ -4815,8 +4815,18 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"forgot password responds without a server error\", () => pm.expect(pm.response.code, pm.response.text().slice(0,200)).to.be.below(500));",
-                  "pm.test(\"route exists (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));"
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code).to.be.below(500));",
+                  "if (pm.response.code === 200) {",
+                  "  const d = pm.response.json().data;",
+                  "  pm.test(\"REGRESSION: reports a code, not a link\", () => {",
+                  "    pm.expect(JSON.stringify(d)).to.not.match(/https?:\\/\\//);",
+                  "    pm.expect(JSON.stringify(d)).to.not.include(\"token=\");",
+                  "  });",
+                  "  pm.test(\"states the expiry window\", () => pm.expect(d.expiresInSeconds).to.be.a(\"number\"));",
+                  "  console.log(\"Check the inbox for the code, then set the emailOtp variable.\");",
+                  "} else {",
+                  "  pm.test(\"fails cleanly with a reason\", () => pm.expect(pm.response.json().message).to.be.a(\"string\"));",
+                  "}"
                 ]
               }
             }
@@ -4840,7 +4850,7 @@
                 "forgot-password"
               ]
             },
-            "description": "",
+            "description": "Step 1 of 3: forgot-password \u2192 verify-reset-otp \u2192 reset-password.\n\nEmails a numeric code. It used to email a reset LINK (APP_URL/reset-password?token=\u2026) with no code shown, which is the bug this fixes.\n\nAny previous reset code is invalidated, so only the newest works. Returns 502 if the email could not be sent, rather than falsely reporting success.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{testEmail}}\"\n}",
@@ -4852,6 +4862,168 @@
             },
             "auth": {
               "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Verify reset OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"route exists (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code).to.be.below(500));",
+                  "if (pm.response.code === 200) {",
+                  "  const d = pm.response.json().data;",
+                  "  pm.test(\"confirms the code\", () => pm.expect(pm.response.json().success).to.be.true);",
+                  "  pm.test(\"reports remaining validity\", () => pm.expect(d.expiresInSeconds).to.be.a(\"number\"));",
+                  "} else {",
+                  "  pm.test(\"rejected cleanly (Invalid OTP / expired / missing field)\",",
+                  "    () => { pm.expect([400,404]).to.include(pm.response.code);",
+                  "            pm.expect(pm.response.json().message).to.be.a(\"string\"); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-reset-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-reset-otp"
+              ]
+            },
+            "description": "Step 2 of 3. MANUAL: put the code from the email into the `emailOtp` variable first.\n\nThis endpoint did not exist \u2014 there was no way to check a reset code before committing to a new password.\n\nIt deliberately does NOT consume the code, so step 3 can still present it, and so reset-password keeps working for clients that skip this step. Accepts `otp` or `code`.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"otp\": \"{{emailOtp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify reset OTP \u2014 /verify-forgot-password-otp alias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"route exists (not 404)\", () => pm.expect(pm.response.code).to.not.equal(404));",
+                  "pm.test(\"no server error\", () => pm.expect(pm.response.code).to.be.below(500));",
+                  "if (pm.response.code === 200) {",
+                  "  const d = pm.response.json().data;",
+                  "  pm.test(\"confirms the code\", () => pm.expect(pm.response.json().success).to.be.true);",
+                  "  pm.test(\"reports remaining validity\", () => pm.expect(d.expiresInSeconds).to.be.a(\"number\"));",
+                  "} else {",
+                  "  pm.test(\"rejected cleanly (Invalid OTP / expired / missing field)\",",
+                  "    () => { pm.expect([400,404]).to.include(pm.response.code);",
+                  "            pm.expect(pm.response.json().message).to.be.a(\"string\"); });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-forgot-password-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-forgot-password-otp"
+              ]
+            },
+            "description": "Same handler under the spelled-out name. This one sends the code as `code` rather than `otp`, exercising the field alias.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"code\": \"{{emailOtp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify reset OTP \u2014 wrong code is rejected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"400, not 500\", () => pm.expect(pm.response.code).to.equal(400));",
+                  "pm.test(\"says Invalid OTP\", () => pm.expect(pm.response.json().message).to.match(/invalid otp/i));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-reset-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-reset-otp"
+              ]
+            },
+            "description": "A code that was never issued must be refused cleanly.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"otp\": \"000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -4888,7 +5060,7 @@
                 "reset-password"
               ]
             },
-            "description": "MANUAL STEP. Run 'Forgot password' first, then put the emailed code in `emailOtp`. Without a valid emailed code this returns 400 \u2014 asserted to fail cleanly, not with a 500.",
+            "description": "Step 3 of 3. MANUAL: run 'Forgot password', then put the emailed code into `emailOtp`.\n\nAccepts `otp` or `code`. The code is single-use and burned on success. A signup verification code is NOT accepted here \u2014 reset codes are scoped to their own flow.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"otp\": \"{{emailOtp}}\",\n  \"newPassword\": \"{{testPassword}}\"\n}",
