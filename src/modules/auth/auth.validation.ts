@@ -15,8 +15,17 @@ export const loginValidator = [
 ];
 
 export const resetPasswordValidator = [
-  body("email").isEmail(),
-  body("otp").notEmpty(),
+  body("email").isEmail().withMessage("A valid email is required"),
+
+  // The handler accepts `otp` or `code`; the validator has to allow
+  // both or it rejects the alias before the handler ever runs.
+  body("otp")
+    .custom((value, { req }) => {
+      const code = value ?? req.body?.code;
+      return typeof code === "string" ? code.trim().length > 0 : code != null;
+    })
+    .withMessage("OTP is required"),
+
   body("newPassword")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
