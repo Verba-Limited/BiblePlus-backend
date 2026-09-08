@@ -10,12 +10,39 @@ import AppError from "../../core/AppError";
 import { EmailService } from "../../services/email.service";
 
 /* =====================================================
-   DEV CONFIG
+   CONSTANTS
 ===================================================== */
-const DEV_MASTER_OTP =
-  process.env.NODE_ENV === "development"
-    ? process.env.DEV_MASTER_OTP || "0000"
-    : null;
+/** How long a one-time passcode stays valid. */
+const OTP_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * Look up a live OTP for one specific flow.
+ *
+ * Verification also accepts rows written before `purpose`
+ * existed, so codes already in flight during a deploy keep
+ * working. Password reset never does — a legacy row of
+ * unknown origin must not be usable to change a password.
+ */
+const findLiveOtp = async (
+  email: string,
+  code: string,
+  purpose: "verification" | "password-reset"
+) => {
+  const scope =
+    purpose === "verification"
+      ? { $or: [{ purpose }, { purpose: { $exists: false } }] }
+      : { purpose };
+
+  const record = await Otp.findOne({ email, code, ...scope });
+
+  if (!record) throw new AppError("Invalid OTP", 400);
+
+  if (record.expiresAt < new Date()) {
+    throw new AppError("OTP expired. Request a new one.", 400);
+  }
+
+  return record;
+};
 
 /* =====================================================
    HELPERS
@@ -77,7 +104,8 @@ export const AuthService = {
     await Otp.create({
       email,
       code: otpCode.toString(),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      purpose: "verification",
+      expiresAt: new Date(Date.now() + OTP_TTL_MS),
     });
 
     // Send OTP via email
@@ -90,29 +118,65 @@ export const AuthService = {
   },
 
   /* =====================================================
+     RESEND VERIFICATION OTP
+
+     With no bypass code, the emailed OTP is the only way in —
+     so a user whose first email never arrived needs a way to
+     ask for another one rather than being stranded on an
+     unverified account they cannot re-register.
+  ===================================================== */
+  async resendOtp(email: string) {
+    const user = await User.findOne({ email });
+    if (!user) throw new AppError("Email not found", 404);
+
+    if (user.verified) {
+      throw new AppError("Account is already verified", 400);
+    }
+
+    // Invalidate any outstanding verification codes so only the newest
+    // works. Scoped, so a live password-reset code is left alone.
+    await Otp.deleteMany({ email, purpose: "verification" });
+
+    const otpCode = generateOtp();
+
+    await Otp.create({
+      email,
+      code: otpCode.toString(),
+      purpose: "verification",
+      expiresAt: new Date(Date.now() + OTP_TTL_MS),
+    });
+
+    // Awaited: if the mail cannot be sent, say so rather than
+    // reporting success for a code that will never arrive.
+    const sent = await EmailService.sendOtp(
+      email,
+      user.firstName ?? "Friend",
+      otpCode.toString()
+    );
+
+    if (sent === false) {
+      throw new AppError(
+        "Could not send the verification email. Please try again shortly.",
+        502
+      );
+    }
+
+    return { message: "A new OTP has been sent to your email", email };
+  },
+
+  /* =====================================================
      VERIFY OTP
   ===================================================== */
  async verifyOtp(email: string, code: string) {
   const cleanCode = String(code).trim();
 
-  const isDevBypass =
-    DEV_MASTER_OTP !== null && cleanCode === DEV_MASTER_OTP;
-
-  let otp = null;
-
-  if (!isDevBypass) {
-    otp = await Otp.findOne({ email, code: cleanCode });
-
-    if (!otp) {
-      throw new AppError("Invalid OTP", 400);
-    }
-
-    if (otp.expiresAt < new Date()) {
-      throw new AppError("OTP expired", 400);
-    }
-  } else {
-    console.warn("⚠ DEV MASTER OTP USED");
+  if (!cleanCode) {
+    throw new AppError("OTP is required", 400);
   }
+
+  // The emailed code is the only accepted credential, in every
+  // environment. There is no master or bypass code.
+  await findLiveOtp(email, cleanCode, "verification");
 
   const user = await User.findOneAndUpdate(
     { email },
@@ -122,7 +186,7 @@ export const AuthService = {
 
   if (!user) throw new AppError("User not found", 404);
 
-  await Otp.deleteMany({ email });
+  await Otp.deleteMany({ email, purpose: "verification" });
 
   EmailService.sendWelcome(user.email, user.firstName ?? "Friend").catch(console.error);
 
@@ -174,21 +238,71 @@ export const AuthService = {
     const user = await User.findOne({ email });
     if (!user) throw new AppError("Email not found", 404);
 
+    // Only the newest reset code should work
+    await Otp.deleteMany({ email, purpose: "password-reset" });
+
     const otpCode = generateOtp();
+    const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
     await Otp.create({
       email,
       code: otpCode.toString(),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      purpose: "password-reset",
+      expiresAt,
     });
 
-    EmailService.sendPasswordReset(
+    // Awaited: if the mail cannot be sent, say so rather than
+    // reporting success for a code that will never arrive.
+    const sent = await EmailService.sendPasswordReset(
       email,
       user.firstName ?? "Friend",
       otpCode.toString()
-    ).catch(console.error);
+    );
 
-    return { message: "Reset OTP sent" };
+    if (sent === false) {
+      throw new AppError(
+        "Could not send the reset email. Please try again shortly.",
+        502
+      );
+    }
+
+    return {
+      message: "A password reset code has been sent to your email",
+      email,
+      expiresAt,
+      expiresInSeconds: Math.round(OTP_TTL_MS / 1000),
+    };
+  },
+
+  /* =====================================================
+     VERIFY PASSWORD RESET OTP
+
+     Step two of the three-step flow: forgot-password →
+     verify-reset-otp → reset-password.
+
+     Deliberately does NOT consume the code, so the reset
+     call that follows can still present it. That also keeps
+     reset-password working unchanged for existing clients
+     that skip this step.
+  ===================================================== */
+  async verifyResetOtp(email: string, otp: string) {
+    const cleanCode = String(otp).trim();
+
+    if (!cleanCode) {
+      throw new AppError("OTP is required", 400);
+    }
+
+    const record = await findLiveOtp(email, cleanCode, "password-reset");
+
+    return {
+      message: "OTP verified. You can now set a new password.",
+      email,
+      expiresAt: record.expiresAt,
+      expiresInSeconds: Math.max(
+        0,
+        Math.round((record.expiresAt.getTime() - Date.now()) / 1000)
+      ),
+    };
   },
 
   /* =====================================================
@@ -201,35 +315,30 @@ export const AuthService = {
   ) {
     const cleanCode = String(otp).trim();
 
-const isDevBypass =
-  DEV_MASTER_OTP !== null && cleanCode === DEV_MASTER_OTP;
+    if (!cleanCode) {
+      throw new AppError("OTP is required", 400);
+    }
 
-let record = null;
+    if (!newPassword || String(newPassword).length < 6) {
+      throw new AppError("Password must be at least 6 characters", 400);
+    }
 
-if (!isDevBypass) {
-  record = await Otp.findOne({ email, code: cleanCode });
-
-  if (!record) {
-    throw new AppError("Invalid OTP", 400);
-  }
-
-  if (record.expiresAt < new Date()) {
-    throw new AppError("OTP expired", 400);
-  }
-} else {
-  console.warn("⚠ DEV MASTER OTP USED FOR PASSWORD RESET");
-}
-
-   
+    // Emailed code only — no master or bypass code, in any environment.
+    // Scoped to password-reset so a signup verification code cannot be
+    // used to take over an account.
+    await findLiveOtp(email, cleanCode, "password-reset");
 
     const hashed = await hashPassword(newPassword);
 
-    await User.findOneAndUpdate(
+    const updated = await User.findOneAndUpdate(
       { email },
       { password: hashed }
     );
 
-    await Otp.deleteMany({ email });
+    if (!updated) throw new AppError("User not found", 404);
+
+    // Burn the code — reset OTPs are single use
+    await Otp.deleteMany({ email, purpose: "password-reset" });
 
     return { message: "Password reset successful" };
   },

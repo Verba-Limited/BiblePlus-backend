@@ -49,6 +49,11 @@ router.use("/verse", requireRole("superadmin", "editor"), adminVerseRoutes);
 
 // ── Moderation (superadmin + moderator) ──
 router.use("/moderation", requireRole("superadmin", "moderator"), adminModerationRoutes);
+
+// Moderation is being renamed to "Prayer" in the main menu. Same
+// handlers, second path, so the portal can switch over without a
+// flag day — /moderation stays live for existing clients.
+router.use("/prayer-moderation", requireRole("superadmin", "moderator"), adminModerationRoutes);
 router.use("/prayers", requireRole("superadmin", "moderator"), adminPrayerRoutes);
 router.use("/notifications", requireRole("superadmin", "moderator"), adminNotificationRoutes);
 

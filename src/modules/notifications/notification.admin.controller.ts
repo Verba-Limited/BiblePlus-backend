@@ -14,12 +14,15 @@ export const NotificationAdminController = {
         throw new AppError("userId, title and message are required", 400);
       }
 
+      // `create` takes the TARGET first and the recipient in options.
+      // Passing userId as the target matched neither branch, so this
+      // silently created nothing and returned undefined.
       const notif = await NotificationService.create(
-        userId,
+        "USER",
         title,
         message,
         type || "admin",
-        data || {}
+        { ...(data || {}), userId }
       );
 
       res.json({
@@ -110,8 +113,14 @@ export const NotificationAdminController = {
 
       res.json({
         success: true,
-        message: "Notification resent successfully",
-        data: result
+        // Say plainly whether the push actually went out — the
+        // notification is re-broadcast either way.
+        message: result.push?.delivered
+          ? "Notification resent successfully"
+          : `Notification resent, but push delivery was skipped: ${result.push?.reason ?? "push provider unavailable"}`,
+        pushDelivered: Boolean(result.push?.delivered),
+        push: result.push,
+        data: result.notification
       });
     } catch (err) {
       next(err);

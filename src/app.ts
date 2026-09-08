@@ -87,6 +87,20 @@ app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
+/* =====================================================
+   BODY DEFAULT
+
+   Express 5 leaves req.body undefined when a request
+   carries no body or no Content-Type. Controllers that
+   destructure it (`const { email } = req.body`) then throw
+   a TypeError, so a merely incomplete request came back as
+   a 500 instead of a 400 explaining what was missing.
+===================================================== */
+app.use((req, _res, next) => {
+  if (req.body === undefined) req.body = {};
+  next();
+});
+
 /* =====================
    STATIC FILES
 ===================== */

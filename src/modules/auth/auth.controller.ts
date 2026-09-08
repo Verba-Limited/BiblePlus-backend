@@ -43,6 +43,34 @@ export const AuthController = {
      VERIFY OTP
      POST /api/auth/verify-otp
   ===================================================== */
+  /* =====================================================
+     RESEND VERIFICATION OTP
+     POST /api/auth/resend-otp
+  ===================================================== */
+  resendOtp: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        throw new AppError("Email is required", 400);
+      }
+
+      const result = await AuthService.resendOtp(email);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        data: { email: result.email }
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   verifyOtp: async (
     req: Request,
     res: Response,
@@ -117,7 +145,44 @@ export const AuthController = {
 
       res.status(200).json({
         success: true,
-        message: "Reset OTP sent",
+        message: result.message,
+        data: result
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /* =====================================================
+     VERIFY PASSWORD RESET OTP
+     POST /api/auth/verify-reset-otp
+
+     Step two of forgot-password → verify → reset. Checks the
+     code without consuming it, so the reset call that follows
+     can still present the same code.
+  ===================================================== */
+  verifyResetOtp: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { email } = req.body;
+      // Accept `otp` or `code` — clients disagreed on the name
+      const otp = req.body.otp ?? req.body.code;
+
+      if (!email || !otp) {
+        throw new AppError("email and otp are required", 400);
+      }
+
+      const result = await AuthService.verifyResetOtp(
+        email,
+        String(otp).trim()
+      );
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
         data: result
       });
     } catch (err) {
@@ -135,7 +200,8 @@ export const AuthController = {
     next: NextFunction
   ) => {
     try {
-      const { email, otp, newPassword } = req.body;
+      const { email, newPassword } = req.body;
+      const otp = req.body.otp ?? req.body.code;
 
       if (!email || !otp || !newPassword) {
         throw new AppError(

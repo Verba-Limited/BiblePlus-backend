@@ -24,11 +24,24 @@ router.post(
 // VERIFY OTP
 router.post("/verify-otp", AuthController.verifyOtp);
 
+// RESEND VERIFICATION OTP
+// The emailed code is the only way to verify, so an unverified
+// user must be able to request a fresh one.
+router.post("/resend-otp", AuthController.resendOtp);
+
 // LOGIN
 router.post("/login", validate(loginValidator), AuthController.login);
 
 // FORGOT PASSWORD
 router.post("/forgot-password", AuthController.forgotPassword);
+
+// VERIFY PASSWORD RESET OTP
+// Step two of forgot-password -> verify -> reset. Does not consume
+// the code, so reset-password still accepts it afterwards.
+router.post("/verify-reset-otp", AuthController.verifyResetOtp);
+
+// Alias, for clients that spell the step out in full
+router.post("/verify-forgot-password-otp", AuthController.verifyResetOtp);
 
 // RESET PASSWORD
 router.post(

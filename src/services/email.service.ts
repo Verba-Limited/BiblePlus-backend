@@ -33,8 +33,12 @@ export const EmailService = {
         `
       });
       console.log(`✅ OTP email sent to ${to}`);
+      return true;
     } catch (error) {
+      // Report the failure so callers can tell the user, instead of
+      // reporting success for a code that will never arrive.
       console.error("❌ OTP email failed:", error);
+      return false;
     }
   },
 
@@ -87,14 +91,12 @@ export const EmailService = {
   /* =====================================================
      PASSWORD RESET EMAIL
   ===================================================== */
-  async sendPasswordReset(to: string, firstName: string, resetToken: string) {
+  async sendPasswordReset(to: string, firstName: string, otp: string) {
     try {
-      const resetUrl = `${process.env.APP_URL}/reset-password?token=${resetToken}`;
-
       await resend.emails.send({
         from: FROM_EMAIL,
         to,
-        subject: "Reset Your BiblePlus Password",
+        subject: "🔑 Your BiblePlus Password Reset Code",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: #6B4EFF; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -102,15 +104,11 @@ export const EmailService = {
             </div>
             <div style="padding: 30px; background: #f9f9f9;">
               <h2>Hello ${firstName},</h2>
-              <p>We received a request to reset your password. Click the button below to create a new password.</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${resetUrl}" 
-                   style="background: #6B4EFF; color: white; padding: 15px 30px; 
-                          border-radius: 25px; text-decoration: none; font-weight: bold;">
-                  Reset Password
-                </a>
+              <p>We received a request to reset your password. Enter this code in the app to continue:</p>
+              <div style="background: white; border: 2px dashed #6B4EFF; padding: 20px; text-align: center; margin: 30px 0; border-radius: 10px;">
+                <h1 style="font-size: 40px; letter-spacing: 5px; margin: 0; color: #6B4EFF;">${otp}</h1>
               </div>
-              <p>This link expires in <strong>1 hour</strong>.</p>
+              <p>This code expires in <strong>5 minutes</strong>.</p>
               <p>If you didn't request this, ignore this email — your password won't change.</p>
               <p style="color: #888; font-size: 12px; text-align: center;">
                 God bless you 🙏 — The BiblePlus Team
@@ -119,9 +117,13 @@ export const EmailService = {
           </div>
         `
       });
-      console.log(`✅ Password reset email sent to ${to}`);
+      console.log(`✅ Password reset code sent to ${to}`);
+      return true;
     } catch (error) {
+      // Report the failure so the caller can tell the user, instead of
+      // reporting success for a code that will never arrive.
       console.error("❌ Password reset email failed:", error);
+      return false;
     }
   },
 
