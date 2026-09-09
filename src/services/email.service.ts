@@ -128,6 +128,74 @@ export const EmailService = {
   },
 
   /* =====================================================
+     ADMIN INVITE
+
+     Sent when a superadmin creates an administrator, so the
+     new admin actually learns the account exists. Nothing was
+     sent before — the record was created silently.
+  ===================================================== */
+  async sendAdminInvite(
+    to: string,
+    username: string,
+    role: string,
+    temporaryPassword: string
+  ) {
+    try {
+      // Only render a sign-in button if a console URL is configured —
+      // otherwise the href would read "undefined/login".
+      const consoleUrl = process.env.ADMIN_URL || process.env.APP_URL || "";
+      const button = consoleUrl
+        ? `<div style="text-align: center; margin: 30px 0;">
+             <a href="${consoleUrl}"
+                style="background: #6B4EFF; color: white; padding: 15px 30px;
+                       border-radius: 25px; text-decoration: none; font-weight: bold;">
+               Open the Admin Console
+             </a>
+           </div>`
+        : "";
+
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to,
+        subject: "You've been added as a BiblePlus administrator",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: #6B4EFF; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0;">Admin Access Granted</h1>
+            </div>
+            <div style="padding: 30px; background: #f9f9f9;">
+              <h2>Hello ${username},</h2>
+              <p>An administrator account has been created for you on BiblePlus with the role
+                 <strong>${role}</strong>.</p>
+
+              <div style="background: white; border-left: 4px solid #6B4EFF; padding: 20px; margin: 25px 0; border-radius: 5px;">
+                <p style="margin: 0 0 10px 0;"><strong>Sign in with</strong></p>
+                <p style="margin: 0 0 6px 0;">Email: <strong>${to}</strong></p>
+                <p style="margin: 0;">Temporary password: <strong style="letter-spacing: 1px;">${temporaryPassword}</strong></p>
+              </div>
+
+              ${button}
+
+              <p style="color: #b00; font-weight: bold;">
+                Change this password as soon as you sign in.
+              </p>
+              <p>If you weren't expecting this, contact the BiblePlus team — do not sign in.</p>
+              <p style="color: #888; font-size: 12px; text-align: center;">
+                God bless you 🙏 — The BiblePlus Team
+              </p>
+            </div>
+          </div>
+        `
+      });
+      console.log(`✅ Admin invite sent to ${to}`);
+      return true;
+    } catch (error) {
+      console.error("❌ Admin invite email failed:", error);
+      return false;
+    }
+  },
+
+  /* =====================================================
      ADMIN OTP EMAIL
   ===================================================== */
   async sendAdminOtp(to: string, username: string, otp: string) {

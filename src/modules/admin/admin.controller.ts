@@ -32,6 +32,7 @@ export const AdminController = {
           user: {
             id: result.admin.id,
             username: result.admin.username,
+            email: result.admin.email,
             role: result.admin.role
           }
         }

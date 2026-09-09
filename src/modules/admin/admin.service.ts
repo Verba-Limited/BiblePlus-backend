@@ -84,6 +84,7 @@ export const AdminService = {
       admin: {
         id: admin._id.toString(),
         username: admin.username,
+        email: admin.email, // the console signs in by email and displays it
         role: admin.role // granular role for frontend
       }
     };
