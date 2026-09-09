@@ -105,10 +105,20 @@ export const toUploadError = (err: any) => {
 
   // Cloudinary rejections arrive as plain errors with no status
   if (err && !err.statusCode) {
-    return new AppError(
-      `Image upload failed: ${err.message || "unknown error"}`,
-      502
-    );
+    const raw = err.message || err?.error?.message || "unknown error";
+
+    // Credential problems are an ops issue, not something the caller
+    // did wrong — say so plainly instead of leaving the team to guess
+    // why every upload suddenly fails.
+    if (/api_key|api key|signature|unauthorized|cloud_name/i.test(raw)) {
+      return new AppError(
+        `Image upload is misconfigured on the server (Cloudinary said: "${raw}"). ` +
+          "Check CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET / CLOUDINARY_CLOUD_NAME.",
+        503
+      );
+    }
+
+    return new AppError(`Image upload failed: ${raw}`, 502);
   }
 
   return err;
@@ -117,16 +127,58 @@ export const toUploadError = (err: any) => {
 /* ======================================================
    FILE FILTER
 ====================================================== */
+const IMAGE_EXTENSIONS = [
+  ".jpg", ".jpeg", ".png", ".gif", ".webp",
+  ".bmp", ".heic", ".heif", ".avif", ".svg", ".tif", ".tiff"
+];
+
+/**
+ * Clients do not reliably label images. Postman sends
+ * "application/octet-stream" when its file reference goes stale, and
+ * some mobile uploads send it for a perfectly ordinary JPEG. Treat
+ * those generic types as "unknown" and fall back to the extension
+ * rather than rejecting a real image outright.
+ *
+ * This is no weaker than trusting the header alone — both are set by
+ * the client — and Cloudinary rejects anything that is not actually
+ * an image when it receives the upload.
+ */
+const GENERIC_MIME_TYPES = [
+  "application/octet-stream",
+  "binary/octet-stream",
+  "application/binary",
+  ""
+];
+
 const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
-  if (!file.mimetype.startsWith("image/")) {
+  const mime = (file.mimetype || "").toLowerCase();
+  const name = (file.originalname || "").toLowerCase();
+  const ext = name.includes(".") ? name.slice(name.lastIndexOf(".")) : "";
+
+  // Properly labelled image
+  if (mime.startsWith("image/")) return cb(null, true);
+
+  // Unlabelled: decide on the extension
+  if (GENERIC_MIME_TYPES.includes(mime)) {
+    if (IMAGE_EXTENSIONS.includes(ext)) return cb(null, true);
+
     return cb(
       new AppError(
-        `Only image files are allowed — received "${file.mimetype}"`,
+        ext
+          ? `"${ext}" is not a supported image type. Allowed: ${IMAGE_EXTENSIONS.join(", ")}`
+          : "Could not identify the uploaded file. Give it a file name with an image extension (.jpg, .png, .webp).",
         400
       )
     );
   }
-  cb(null, true);
+
+  // Clearly labelled as something else
+  return cb(
+    new AppError(
+      `Only image files are allowed — received "${file.mimetype}"`,
+      400
+    )
+  );
 };
 
 /* ======================================================
