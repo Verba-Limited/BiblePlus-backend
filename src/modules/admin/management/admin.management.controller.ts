@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { Admin } from "../admin.model";
 import AppError from "../../../core/AppError";
 import { hashPassword } from "../../../utils/bycrypt";
+import { EmailService } from "../../../services/email.service";
 
 export const AdminManagementController = {
   /* =====================================================
@@ -37,9 +38,25 @@ export const AdminManagementController = {
         role
       });
 
+      // Tell the new administrator their account exists. Nothing was
+      // sent before, so an invited admin had no way to know.
+      //
+      // Awaited so the caller learns whether it actually went out, but
+      // a failure does NOT fail the request: the account is already
+      // created, and reporting an error would imply otherwise.
+      const emailSent = await EmailService.sendAdminInvite(
+        email,
+        username,
+        role,
+        password
+      );
+
       res.status(201).json({
         success: true,
-        message: `${role} account created successfully`,
+        message: emailSent
+          ? `${role} account created — an invite was emailed to ${email}`
+          : `${role} account created, but the invite email could not be sent to ${email}. Share the credentials directly.`,
+        emailSent,
         data: {
           user: {
             id: newAdmin._id,
