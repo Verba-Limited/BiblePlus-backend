@@ -60,7 +60,12 @@ const generateUsername = async (
   let username = base;
   let counter = 0;
 
-  while (await User.exists({ username })) {
+  // `includeDeleted` matters here: the unique index on username spans
+  // soft-deleted rows, so a username that only a deleted user holds
+  // would still be rejected on insert.
+  while (
+    await User.findOne({ username }, null, { includeDeleted: true }).select("_id").lean()
+  ) {
     counter += 1;
     username = `${base}_${counter}`;
   }
@@ -81,12 +86,63 @@ export const AuthService = {
     firstName: string,
     lastName: string
   ) {
-    const existing = await User.findOne({ email });
-    if (existing) {
-      throw new AppError("Email already exists", 400);
+    // `includeDeleted` is essential. The unique index on email covers
+    // soft-deleted rows, but the default query filter hides them — so
+    // without this the check passes and the insert then fails with a
+    // raw duplicate-key error the user cannot act on.
+    const existing = await User.findOne({ email }, null, {
+      includeDeleted: true,
+    });
+
+    if (existing?.isDeleted) {
+      throw new AppError(
+        "This email belonged to an account that was removed. Please contact support to restore it or use a different email.",
+        409
+      );
     }
 
     const hashedPassword = await hashPassword(password);
+
+    if (existing) {
+      if (existing.verified) {
+        throw new AppError(
+          "This email is already registered. Please log in instead.",
+          409
+        );
+      }
+
+      // Signup was started but never verified, so nobody has proven
+      // ownership yet. Let them pick up where they left off with the
+      // details they just submitted, rather than dead-ending them on
+      // "email already exists" with no way forward.
+      existing.password = hashedPassword;
+      if (firstName) existing.firstName = firstName;
+      if (lastName) existing.lastName = lastName;
+      await existing.save();
+
+      await Otp.deleteMany({ email, purpose: "verification" });
+
+      const resendCode = generateOtp();
+      await Otp.create({
+        email,
+        code: resendCode.toString(),
+        purpose: "verification",
+        expiresAt: new Date(Date.now() + OTP_TTL_MS),
+      });
+
+      EmailService.sendOtp(
+        email,
+        existing.firstName ?? firstName,
+        resendCode.toString()
+      ).catch(console.error);
+
+      return {
+        message:
+          "This signup was never completed. We've sent a new verification code to your email.",
+        email,
+      };
+    }
+
     const username = await generateUsername(email, firstName);
 
     await User.create({
