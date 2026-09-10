@@ -47,6 +47,28 @@ const findLiveOtp = async (
 /* =====================================================
    HELPERS
 ===================================================== */
+
+/**
+ * Release a deleted account's email and username so they can be
+ * registered again.
+ *
+ * The row is kept for the audit trail, but its unique fields are
+ * moved aside — the indexes on email and username span deleted rows,
+ * so nothing else can reuse the address while it still holds them.
+ * The originals are preserved in deletedEmail/deletedUsername.
+ */
+const releaseIdentity = async (user: any) => {
+  const id = user._id.toString();
+
+  if (!user.deletedEmail) user.deletedEmail = user.email;
+  if (!user.deletedUsername) user.deletedUsername = user.username;
+
+  user.email = `deleted+${id}@deleted.invalid`;
+  user.username = `deleted_${id}`;
+
+  await user.save();
+  return user;
+};
 const generateUsername = async (
   email: string,
   firstName?: string
@@ -94,16 +116,17 @@ export const AuthService = {
       includeDeleted: true,
     });
 
+    // The previous account was deleted, so the address is free to use
+    // again. Release it from the old row and register a brand-new
+    // account: the new person gets a new id, and none of the deleted
+    // user's content follows the address to them.
     if (existing?.isDeleted) {
-      throw new AppError(
-        "This email belonged to an account that was removed. Please contact support to restore it or use a different email.",
-        409
-      );
+      await releaseIdentity(existing);
     }
 
     const hashedPassword = await hashPassword(password);
 
-    if (existing) {
+    if (existing && !existing.isDeleted) {
       if (existing.verified) {
         throw new AppError(
           "This email is already registered. Please log in instead.",

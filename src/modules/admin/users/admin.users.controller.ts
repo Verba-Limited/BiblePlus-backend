@@ -240,6 +240,29 @@ export const AdminUsersController = {
         throw new AppError("User not found", 404);
       }
 
+      // If this account's email was released (someone re-registered
+      // that address), the original identity may no longer be free.
+      let identityNote = "";
+
+      if (user.deletedEmail) {
+        const taken = await User.findOne(
+          { email: user.deletedEmail },
+          null,
+          { includeDeleted: true }
+        ).select("_id");
+
+        if (taken) {
+          identityNote =
+            ` Their original address (${user.deletedEmail}) has since been registered by someone else, so the account keeps its placeholder email — set a new one before they sign in.`;
+        } else {
+          user.email = user.deletedEmail;
+          if (user.deletedUsername) user.username = user.deletedUsername;
+          user.deletedEmail = null;
+          user.deletedUsername = null;
+          identityNote = " Their original email and username were restored.";
+        }
+      }
+
       user.isDeleted = false;
       user.isActive = true;
       user.deactivatedAt = null;
@@ -247,7 +270,7 @@ export const AdminUsersController = {
 
       res.status(200).json({
         success: true,
-        message: "User has been restored",
+        message: `User has been restored.${identityNote}`,
         data: withAvatar(user.toObject())
       });
     } catch (err) {
