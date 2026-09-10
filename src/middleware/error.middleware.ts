@@ -49,6 +49,17 @@ const normalise = (err: any): { status: number; message: string; details?: any }
   /* ---- Duplicate key ---- */
   if (err?.code === 11000) {
     const field = Object.keys(err.keyPattern || err.keyValue || {})[0] || "field";
+
+    // Signup is the case users actually meet this on, and "a record
+    // already exists" tells them nothing they can act on.
+    if (field === "email") {
+      return {
+        status: 409,
+        message:
+          "This email is already registered. Try logging in, or use 'Forgot password' if you can't get in."
+      };
+    }
+
     return { status: 409, message: `A record with that ${field} already exists` };
   }
 

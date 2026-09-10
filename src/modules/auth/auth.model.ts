@@ -28,6 +28,11 @@ export interface IUser extends Document {
   isDeleted: boolean;
   isActive: boolean;
   deactivatedAt?: Date | null;
+
+  // Set when a deleted account releases its email/username so the
+  // address can be registered again. Keeps the audit trail readable.
+  deletedEmail?: string | null;
+  deletedUsername?: string | null;
   fcmToken?: string;
 
   comparePassword(candidate: string): Promise<boolean>;
@@ -119,6 +124,18 @@ const userSchema = new Schema<IUser>(
 
     deactivatedAt: {
       type: Date,
+      default: null
+    },
+
+    // The address this account used before it was deleted and its
+    // email was released for re-registration.
+    deletedEmail: {
+      type: String,
+      default: null
+    },
+
+    deletedUsername: {
+      type: String,
       default: null
     },
 
